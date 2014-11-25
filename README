@@ -1,3 +1,6 @@
+
+Introduction
+------------
 Chromosome conformation capture (3C) derived techniques, especially Hi-C,
 have revealed that topologically associating domain (TAD) is a structural
 basis for both chromatin organization and regulation in three-dimensional
@@ -19,6 +22,10 @@ TADLib package is written in Python and provides a four-step pipeline:
 - Selecting long-range chromatin interactions in each TAD
 - Finding the aggregation patterns of selected interactions
 - Calculating chromatin interaction feature of TAD
+
+Installation
+------------
+Please check the file "INSTALL" in the distribution.
 
 Links
 -----
