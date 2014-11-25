@@ -4,8 +4,8 @@
 # Organization: HuaZhong Agricultural University
 
 """
-Setup script for TADLib (a feature extraction library for topologically
-associating domains).
+Setup script for TADLib (A Library to Explore Chromatin Interaction Patterns
+for Topologically Associating Domains).
 
 This is a free software under GPLv3. Therefore, you can modify, redistribute
 or even mix it with other GPL-compatible codes. See the file LICENSE
@@ -27,14 +27,14 @@ setup(
     version = lib.__version__,
     author = lib.__author__,
     author_email = 'wangxiaotao868@gmail.com',
-    url = '',
-    description = 'A feature extraction library for topologically associating domains',
+    url = 'https://github.com/XiaoTaoWang/TADLib/',
+    description = 'A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains',
     keywords = 'chromosome structure feature Hi-C TAD CONISS polygon',
     package_dir = {'tadlib':'lib'},
     packages = ['tadlib', 'tadlib.tests'],
     scripts = ['scripts/calfea'],
     package_data = {'tadlib':['data/*']},
-    long_description = read('README'),
+    long_description = read('README.rst'),
     classifiers = [
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
