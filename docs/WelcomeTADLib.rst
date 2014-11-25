@@ -33,7 +33,7 @@ TADLib package is written in Python and provides a four-step pipeline:
 Links
 =====
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
-- `Repository` (At GitHub)
+- `Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub)
 
 Modules
 =======
