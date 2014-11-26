@@ -17,7 +17,7 @@ providing simple and robust access to R within python) and two R packages
 *rioja* and *vegan* are required.
 
 .. note:: Tested systems: Red Hat Enterprise Linux Server release 6.4 (Santiago),
-   CentOS release 6.4 (Final)
+   CentOS release 6.4 (Final), Fedora release 20 (Heisenbug)
 
 Installation
 =============
