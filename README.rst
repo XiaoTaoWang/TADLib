@@ -24,7 +24,7 @@ TADLib package is written in Python and provides a four-step pipeline:
 
 Installation
 ------------
-Please check the file "INSTALL" in the distribution.
+Please check the file "INSTALL.rst" in the distribution.
 
 Links
 -----
