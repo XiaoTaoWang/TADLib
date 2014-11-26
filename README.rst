@@ -34,8 +34,9 @@ Links
 
 Notes
 -----
-Although not required, correction procedures, such as [1]_ or [2]_ are recommended
-for original Hi-C data to eliminate systematic biases.
+By default, we suppose you have performed some correction procedures on the input
+Hi-C data; unexpected results may occur otherwise. If you haven't, choose one of
+methods below you like:
 
 .. [1] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of Hi-C data
    reveals hallmarks ofchromosome organization. Nat Methods, 2012, 9: 999-1003.
