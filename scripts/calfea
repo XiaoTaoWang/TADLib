@@ -151,7 +151,7 @@ def pipe():
     console.setLevel('INFO')
     filehandler.setLevel('DEBUG')
     # Customizing Formatter
-    formatter = logging.Formatter(fmt = '%(name)-12s %(levelname)-7s @ %(asctime)s: %(message)s',
+    formatter = logging.Formatter(fmt = '%(name)-14s %(levelname)-7s @ %(asctime)s: %(message)s',
                                   datefmt = '%m/%d/%y %H:%M:%S')
     ## Unified Formatter
     console.setFormatter(formatter)
