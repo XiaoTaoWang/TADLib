@@ -30,6 +30,21 @@ TADLib package is written in Python and provides a four-step pipeline:
 - Finding the aggregation patterns of selected interactions
 - Calculating chromatin interaction feature of TAD
 
+.. note:: By default, we suppose that the input Hi-C data are corrected appropriately.
+   Otherwise, systematic biases in source data will negatively impact chromatin
+   interaction selection and then parameter calculation. Several correction schemes
+   are available online:
+
+.. [1] Yaffe E, Tanay A. Probabilistic modeling of Hi-C contact maps eliminates
+   systematic biases to characterize global chromosomal architecture. Nat Genet,
+   2011, 43: 1059-65.
+
+.. [2] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of Hi-C data
+   reveals hallmarks ofchromosome organization. Nat Methods, 2012, 9: 999-1003.
+
+.. [3] Hu M, Deng K, Selvaraj S et al. HiCNorm: removing biases in Hi-C data via
+   Poisson regression. Bioinformatics, 2012, 28: 3131-3.
+
 Links
 =====
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
