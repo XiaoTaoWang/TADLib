@@ -12,8 +12,8 @@ Chromosome conformation capture (3C) derived techniques, especially Hi-C,
 have revealed that topologically associating domain (TAD) is a structural
 basis for both chromatin organization and regulation in three-dimensional
 (3D) space. To systematically investigate the relationship between structure
-and function, it is important to develop a quantitative parameter to measure
-the structural characteristics of TAD. TADLib is such a package to explore
+and function, it is important to develop a quantitative parameter (or feature)
+to measure the structural characteristics of TAD. TADLib is a package to explore
 the chromatin interaction pattern of TAD.
 
 Inspired by the observation that there exist great differences in chromatin
@@ -33,17 +33,7 @@ TADLib package is written in Python and provides a four-step pipeline:
 .. note:: By default, we suppose that the input Hi-C data are corrected appropriately.
    Otherwise, systematic biases in source data will negatively impact chromatin
    interaction selection and then parameter calculation. Several correction schemes
-   are available online:
-
-.. [1] Yaffe E, Tanay A. Probabilistic modeling of Hi-C contact maps eliminates
-   systematic biases to characterize global chromosomal architecture. Nat Genet,
-   2011, 43: 1059-65.
-
-.. [2] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of Hi-C data
-   reveals hallmarks ofchromosome organization. Nat Methods, 2012, 9: 999-1003.
-
-.. [3] Hu M, Deng K, Selvaraj S et al. HiCNorm: removing biases in Hi-C data via
-   Poisson regression. Bioinformatics, 2012, 28: 3131-3.
+   are available online [1,2,3]_
 
 Links
 =====
@@ -380,6 +370,18 @@ API Documentation
    analyze
    polygon
    coniss
+
+References
+==========
+.. [1] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of Hi-C data
+   reveals hallmarks ofchromosome organization. Nat Methods, 2012, 9: 999-1003.
+
+.. [2] Hu M, Deng K, Selvaraj S et al. HiCNorm: removing biases in Hi-C data via
+   Poisson regression. Bioinformatics, 2012, 28: 3131-3.
+
+.. [3] Yaffe E, Tanay A. Probabilistic modeling of Hi-C contact maps eliminates
+   systematic biases to characterize global chromosomal architecture. Nat Genet,
+   2011, 43: 1059-65.
 
 Indices and tables
 ==================
