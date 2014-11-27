@@ -129,139 +129,142 @@ def getargs():
         parser.print_help()
         parser.exit(1, 'You have to specify "--output" with "--callTAD" flag!')
     
-    return args
+    return args, commands
 
 ## Pipeline
 def pipe():
     """The Main pipeline for CALFEA.
     
     """
-    from tadlib import analyze
     # Parse Arguments
-    args = getargs()
-    ## Root Logger Configuration
-    logger = logging.getLogger()
-    # Logger Level
-    logger.setLevel((4 - args.verbose) * 10)
-    console = logging.StreamHandler()
-    filehandler = logging.handlers.RotatingFileHandler('calfea.log',
-                                                       maxBytes = 15000,
-                                                       backupCount = 5)
-    # Set level for Handlers
-    console.setLevel('INFO')
-    filehandler.setLevel('DEBUG')
-    # Customizing Formatter
-    formatter = logging.Formatter(fmt = '%(name)-14s %(levelname)-7s @ %(asctime)s: %(message)s',
-                                  datefmt = '%m/%d/%y %H:%M:%S')
-    ## Unified Formatter
-    console.setFormatter(formatter)
-    filehandler.setFormatter(formatter)
-    # Add Handlers
-    logger.addHandler(console)
-    logger.addHandler(filehandler)
-    ## Logging for argument setting
-    arglist = ['# ARGUMENT LIST:',
-               '# output file name = %s' % args.filename,
-               '# data folder = %s' % args.path,
-               '# Hi-C format = %s' % args.Format,
-               '# chromosomes = %s' % args.chroms,
-               '# data resolution = %s' % args.resolution
-               ]
-    if args.Format == 'TXT':
-        arglist.extend(['# Hi-C file template = %s' % args.template,
-                        '# which columns = %s' % args.cols])
-    if args.Format == 'NPZ':
-        arglist.extend(['# input NPZ prefix = %s' % args.prefix])
-    if args.immortal:
-        arglist.append('# output NPZ prefix = %s' % args.saveto)
-    if args.callTAD:
-        arglist.extend(['# window size = %s' % args.window,
-                        '# generated TAD prefix = %s' % args.output])
-    if args.loadTAD:
-        arglist.extend(['# TAD source file = %s' % args.source,
-                        '# chromosome name template = %s' % args.source])
-    arglist.append('# offset = %s' % args.offset)
-    argtxt = '\n'.join(arglist)
-    logger.info('\n' + argtxt)
+    args, commands = getargs()
+    # Improve the performance if you don't want to run it
+    if commands[0] not in ['-h', '-v', '--help', '--version']:
+        ## Root Logger Configuration
+        logger = logging.getLogger()
+        # Logger Level
+        logger.setLevel((4 - args.verbose) * 10)
+        console = logging.StreamHandler()
+        filehandler = logging.handlers.RotatingFileHandler('calfea.log',
+                                                           maxBytes = 15000,
+                                                           backupCount = 5)
+        # Set level for Handlers
+        console.setLevel('INFO')
+        filehandler.setLevel('DEBUG')
+        # Customizing Formatter
+        formatter = logging.Formatter(fmt = '%(name)-14s %(levelname)-7s @ %(asctime)s: %(message)s',
+                                      datefmt = '%m/%d/%y %H:%M:%S')
+        ## Unified Formatter
+        console.setFormatter(formatter)
+        filehandler.setFormatter(formatter)
+        # Add Handlers
+        logger.addHandler(console)
+        logger.addHandler(filehandler)
+        ## Logging for argument setting
+        arglist = ['# ARGUMENT LIST:',
+                   '# output file name = %s' % args.filename,
+                   '# data folder = %s' % args.path,
+                   '# Hi-C format = %s' % args.Format,
+                   '# chromosomes = %s' % args.chroms,
+                   '# data resolution = %s' % args.resolution
+                   ]
+        if args.Format == 'TXT':
+            arglist.extend(['# Hi-C file template = %s' % args.template,
+                            '# which columns = %s' % args.cols])
+        if args.Format == 'NPZ':
+            arglist.extend(['# input NPZ prefix = %s' % args.prefix])
+        if args.immortal:
+            arglist.append('# output NPZ prefix = %s' % args.saveto)
+        if args.callTAD:
+            arglist.extend(['# window size = %s' % args.window,
+                            '# generated TAD prefix = %s' % args.output])
+        if args.loadTAD:
+            arglist.extend(['# TAD source file = %s' % args.source,
+                            '# chromosome name template = %s' % args.source])
+        arglist.append('# offset = %s' % args.offset)
+        argtxt = '\n'.join(arglist)
+        logger.info('\n' + argtxt)
     
-    # Interface for Inters and Queue Object
-    dicts = {'path': args.path, 'Format': args.Format, 'resolution': args.resolution,
-             'template': args.template, 'chroms': args.chroms, 'cols': args.cols,
-             'prefix': args.prefix, 'immortal': args.immortal, 'saveto': args.saveto}
-    # Two Cases
-    if args.callTAD:
-        # Package Dependencies
-        try:
-            from tadlib import coniss
-        except ImportError:
-            logging.error('R and rpy2 must be installed with "--callTAD" flag!')
-            sys.exit(2)
-        # Queue Object for Data Loading and TAD Identification
-        logger.info('Read Hi-C data and identify TADs thereof ...')
-        workQueue = coniss.Queue(output = args.output, window = args.window,
-                                 **dicts)
-        logger.info('Done!')
-        # Interaction Data
-        Idata = workQueue.data
-        # Chromosome Labels
-        chroms = workQueue.labels
-        # TAD Data
-        Tdata = workQueue.TAD
-    else:
-        logger.info('Read Hi-C data ...')
-        # Inters Object, Load Hi-C Data
-        workInters = analyze.Inters(**dicts)
-        logger.info('Done!')
-        # TAD Object, Load External TAD File, Columns 0,1,2
-        logger.info('Read external TAD data ...')
-        workTAD = analyze.TAD(source = args.source)
-        logger.info('Done!')
-        # Interaction Data
-        Idata = workInters.data
-        # Chromosome Labels
-        chroms = workInters.labels
-        # TAD Data
-        Tdata = workTAD.data
+        # Interface for Inters and Queue Object
+        dicts = {'path': args.path, 'Format': args.Format, 'resolution': args.resolution,
+                 'template': args.template, 'chroms': args.chroms, 'cols': args.cols,
+                 'prefix': args.prefix, 'immortal': args.immortal, 'saveto': args.saveto}
+                 
+        from tadlib import analyze
+        # Two Cases
+        if args.callTAD:
+            # Package Dependencies
+            try:
+                from tadlib import coniss
+            except ImportError:
+                logging.error('R and rpy2 must be installed with "--callTAD" flag!')
+                sys.exit(2)
+            # Queue Object for Data Loading and TAD Identification
+            logger.info('Read Hi-C data and identify TADs thereof ...')
+            workQueue = coniss.Queue(output = args.output, window = args.window,
+                                     **dicts)
+            logger.info('Done!')
+            # Interaction Data
+            Idata = workQueue.data
+            # Chromosome Labels
+            chroms = workQueue.labels
+            # TAD Data
+            Tdata = workQueue.TAD
+        else:
+            logger.info('Read Hi-C data ...')
+            # Inters Object, Load Hi-C Data
+            workInters = analyze.Inters(**dicts)
+            logger.info('Done!')
+            # TAD Object, Load External TAD File, Columns 0,1,2
+            logger.info('Read external TAD data ...')
+            workTAD = analyze.TAD(source = args.source)
+            logger.info('Done!')
+            # Interaction Data
+            Idata = workInters.data
+            # Chromosome Labels
+            chroms = workInters.labels
+            # TAD Data
+            Tdata = workTAD.data
     
-    # Header
-    H = ['ChromID', 'Start', 'End', 'Density', 'Gap-Ratio']
-    args.filename.write('\t'.join(H) + '\n')
-    logger.info('Calculate feature for each TAD ...')
-    # Loop for Each Chromosome and Each TAD
-    for c in chroms:
-        logger.info('Chromosome %s', c)
-        # Extract Data of One Chromosome
-        i_data = Idata[c]
-        d_data = Tdata[Tdata['chr'] == c]
-        for d in d_data:
-            ## Boundary of Current TAD
-            left = d['start'] // args.resolution
-            right = d['end'] // args.resolution
-            # Interaction Matrix
-            matrix = analyze.getmatrix(i_data, left, right)
-            # Core Object for Interaction Analysis
-            workCore = analyze.Core(matrix, start = args.offset)
-            # Ratio of Gaps (Vacant Rows or Columns) 
-            gaps = 1 - len(workCore.newM) / len(matrix)
-            # Logical Condition
-            if len(workCore.newM) >= (args.offset + 4):
-                # Extract Long-Range Interactions
-                workCore.longrange()
-                # Natural Clusters
-                workCore.DBSCAN()
-                # Feature
-                workCore.gdensity()
-                # Line by Line
-                wL = [c, str(d['start']), str(d['end']), str(workCore.gden), str(gaps)]
-            else:
-                # Bad Domain!
-                wL = [c, str(d['start']), str(d['end']), '-1', str(gaps)]
-            args.filename.write('\t'.join(wL) + '\n')
-    logger.info('Done!')
-    logger.info('Write results to %s ...', args.filename)
-    args.filename.flush()
-    args.filename.close()
-    logger.info('Done!\n')
+        # Header
+        H = ['ChromID', 'Start', 'End', 'Density', 'Gap-Ratio']
+        args.filename.write('\t'.join(H) + '\n')
+        logger.info('Calculate feature for each TAD ...')
+        # Loop for Each Chromosome and Each TAD
+        for c in chroms:
+            logger.info('Chromosome %s', c)
+            # Extract Data of One Chromosome
+            i_data = Idata[c]
+            d_data = Tdata[Tdata['chr'] == c]
+            for d in d_data:
+                ## Boundary of Current TAD
+                left = d['start'] // args.resolution
+                right = d['end'] // args.resolution
+                # Interaction Matrix
+                matrix = analyze.getmatrix(i_data, left, right)
+                # Core Object for Interaction Analysis
+                workCore = analyze.Core(matrix, start = args.offset)
+                # Ratio of Gaps (Vacant Rows or Columns) 
+                gaps = 1 - len(workCore.newM) / len(matrix)
+                # Logical Condition
+                if len(workCore.newM) >= (args.offset + 4):
+                    # Extract Long-Range Interactions
+                    workCore.longrange()
+                    # Natural Clusters
+                    workCore.DBSCAN()
+                    # Feature
+                    workCore.gdensity()
+                    # Line by Line
+                    wL = [c, str(d['start']), str(d['end']), str(workCore.gden), str(gaps)]
+                else:
+                    # Bad Domain!
+                    wL = [c, str(d['start']), str(d['end']), '-1', str(gaps)]
+                args.filename.write('\t'.join(wL) + '\n')
+        logger.info('Done!')
+        logger.info('Write results to %s ...', args.filename)
+        args.filename.flush()
+        args.filename.close()
+        logger.info('Done!\n')
 
 if __name__ == '__main__':
     pipe()
