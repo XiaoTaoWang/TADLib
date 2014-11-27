@@ -33,7 +33,7 @@ TADLib package is written in Python and provides a four-step pipeline:
 .. note:: By default, we suppose that the input Hi-C data are corrected appropriately.
    Otherwise, systematic biases in source data will negatively impact chromatin
    interaction selection and then parameter calculation. Several correction schemes
-   are available online [1,2,3]_
+   are available online [1]_, [2]_, [3]_.
 
 Links
 =====
