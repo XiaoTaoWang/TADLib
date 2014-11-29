@@ -40,7 +40,7 @@ Then you can install TADLib just as other packages stored in PyPI:
 Use *easy_install*::
 
     $ conda install setuptools
-    $ easy_install install TADLib
+    $ easy_install TADLib
 
 Or download the `source code <https://pypi.python.org/pypi/TADLib>`_ manually,
 extract it and run the setup.py script::
