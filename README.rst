@@ -29,7 +29,7 @@ Please check the file "INSTALL.rst" in the distribution.
 Links
 -----
 - `Detailed Documentation <http://pythonhosted.org//TADLib/>`_
-- `Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub)
+- `Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub, Track the package issue)
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
 
 Notes
