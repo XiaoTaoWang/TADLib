@@ -4,5 +4,7 @@
 # Organization: HuaZhong Agricultural University
 
 __author__ = 'XiaoTao Wang'
-__version__ = '0.1.0'
+__version__ = '0.1.2'
 __license__ = 'GPLv3+'
+
+Me = __file__

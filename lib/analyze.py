@@ -298,7 +298,7 @@ class Inters(object):
             log.debug('Data source: %s', npzfile)
             log.debug('Loading ...')
             if not os.path.exists(os.path.join(self.location, npzfile)):
-                log.error('There is no file named %s at % ', 
+                log.error('There is no file named %s at %s ', 
                           (npzfile, self.location))
                 sys.exit(2)
             else:
