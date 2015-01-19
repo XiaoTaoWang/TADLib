@@ -22,6 +22,10 @@ if (sys.version_info.major != 2) or (sys.version_info.minor < 6):
     print 'PYTHON VERSION MUST BE 2.6 or 2.7. YOU ARE CURRENTLY USING PYTHON ' + sys.version
     sys.exit(2)
 
+# Guarantee Unix Format
+text = open('scripts/calfea', 'rb').read().replace('\r\n', '\n')
+open('scripts/calfea', 'wb').write(text)
+
 setup(
     name = 'TADLib',
     version = lib.__version__,
