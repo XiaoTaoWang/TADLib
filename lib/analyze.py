@@ -437,6 +437,11 @@ class Inters(object):
                 self.label2idx[i] = count
                 self.idx2label[count] = i
                 count += 1
+        else:
+            self.label2idx = dict(
+                [(self.labels[i], int(i)) for i in xrange(len(self.labels))])
+            self.idx2label = dict(
+                [(int(i), self.labels[i]) for i in xrange(len(self.labels))])
         
     def _readInters(self):
         """
