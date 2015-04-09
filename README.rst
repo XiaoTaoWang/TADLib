@@ -28,7 +28,7 @@ Please check the file "INSTALL.rst" in the distribution.
 
 Links
 -----
-- `Detailed Documentation <https://pythonhosted.org/TADLib/#api-documentation>`_
+- `Detailed Documentation <https://pythonhosted.org/TADLib/>`_
 - `Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub, Track the package issue)
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
 
