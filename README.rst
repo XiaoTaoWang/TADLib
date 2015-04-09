@@ -10,16 +10,16 @@ the chromatin interaction pattern of TAD.
 
 Inspired by the observation that there exist great differences in chromatin
 interaction pattern and gene expression level among TADs, a chromatin interaction
-feature is developed to capture the aggregation degree of long-range chromatin
-interactions. Application to human and mouse cell lines shows that there
+feature called Aggregation Preference (AP) is developed to capture the aggregation
+degree of long-range chromatin interactions. Application to human and mouse cell
+lines (including both traditional Hi-C and in situ Hi-C datasets) shows that there
 exist heterogeneous structures among TADs and the structural rearrangement across
-cell lines is significantly associated with transcription activity remodeling.
+cell lines is significantly associated with transcription activity remodelling.
 
-TADLib package is written in Python and provides a four-step pipeline:
+TADLib package is written in Python and provides a three-step pipeline:
 
-- Identifying TAD from Hi-C data (optional)
 - Selecting long-range chromatin interactions in each TAD
-- Finding the aggregation patterns of selected interactions
+- Finding aggregation patterns of selected interactions
 - Calculating chromatin interaction feature of TAD
 
 Installation

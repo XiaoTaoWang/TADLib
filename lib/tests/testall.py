@@ -15,48 +15,38 @@ Import necessary modules in advance:
 :mod:`analyze` first:
 
 >>> path = os.path.join(os.path.dirname(analyze.__file__), 'data')
->>> source = os.path.join(path, 'h1hesc.domain.txt')
+>>> source = os.path.join(path, 'gm12878.domain.txt')
 
->>> template = 'h1hesc.chr%s_chr%s.txt'
+>>> template = 'gm12878.chr%s_chr%s.txt'
 >>> workInters = analyze.Inters(path = path, template = template)
 >>> workInters.data.keys()
 ['1']
 >>> len(workInters.data['1'])
-10535
+60016
 
 >>> workTAD = analyze.TAD(source)
 >>> workTAD.data.shape
-(7,)
+(3,)
 
->>> left = 6490000 / 10000 # Resolution: 10000
->>> right = 6770000 / 10000
+>>> left = 229385000 / 5000 # Resolution: 5000
+>>> right = 229665000 / 5000
 >>> matrix = analyze.getmatrix(workInters.data['1'], left, right) # Chrom 1
 >>> workCore = analyze.Core(matrix)
 >>> len(matrix) == len(workCore.newM)
-False
->>> workCore.longrange()
+True
+>>> workCore.longrange(pw = 4, ww = 7)
 >>> len(workCore.pos)
-9
+61
 >>> workCore.DBSCAN()
 >>> workCore.Nc
-1
->>> workCore.clusters['areas']
-array([ 2.5])
+4
+>>> workCore.clusters['areas'].max()
+83.5
 >>> workCore.gdensity()
->>> print round(workCore.gden, 4)
-0.3563
+>>> print round(workCore.gden, 3)
+0.638
 
 >>> M = np.loadtxt(os.path.join(path, 'matrix.txt'))
->>> pos = analyze.extract_kth_diag(M, k = 1)
->>> print pos
-[[0 1]
- [1 2]
- [2 3]]
->>> np.diagonal(M, offset = 1) # doctest: +NORMALIZE_WHITESPACE
-array([ 0.5706,  0.6367,  0.0314])
->>> M[pos[:,0], pos[:,1]] # doctest: +NORMALIZE_WHITESPACE
-array([ 0.5706,  0.6367,  0.0314])
-
 >>> M[1,:] = 0; M[:,1] = 0
 >>> newM, convert = analyze.manipulation(M)
 >>> print newM # doctest: +NORMALIZE_WHITESPACE
@@ -97,13 +87,6 @@ Counter-clockwise:
 >>> line = [(2, 0.4), (2, 0.8), (2, 4), (2, 100)]
 >>> polygon.collinear(line)
 True
-
-Finally, :mod:`coniss`:
-
->>> from tadlib import coniss
->>> workQueue = coniss.Queue(path = path, template = template)
->>> workQueue.TAD.dtype.names
-('chr', 'start', 'end')
 
 """
 

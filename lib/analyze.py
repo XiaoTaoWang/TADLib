@@ -15,7 +15,7 @@ Contents
     Class for loading TAD (Topologically Associating Domain) data.
 
 :class:`Core`
-    Define and calculate interaction feature for TAD.
+    Define and calculate structural features for TAD.
 
 :func:`getmatrix`
     Function for creating interaction matrix from interaction data.
@@ -23,65 +23,48 @@ Contents
 :func:`manipulation`
     Deal with vacant rows and columns in interaction matrix.
 
-:func:`extract_kth_diag`
-    Return coordinates of a specified diagonal. A complementary function
-    for numpy matrix operations.
-
-:func:`axis_control`
-    A customized axis control operations for matplotlib.
-
 :func:`isnumber`
     Judge if a string is numerical or not.
 
-Architecture
-------------
-The core algorithm is implemented by **Core**, whose only parameter, an
-interaction matrix can be created by **getmatrix**, inputs of which are
-always from **Inters** and **TAD**.
-
-Above relations are shown in schema as follows:
-
-.. image:: _static/ObjectRelationship.png
-
 Examples
 --------
-Say your interaction data file "h1hesc.chr1_chr1.txt" and TAD file
-"h1hesc.domain.txt" at both located in "~/data/", then we have:
+Say, your interaction data file "gm12878.chr1_chr1.txt" and TAD file
+"gm12878.domain.txt" are both located in "~/data/", then we have:
 
 >>> from tadlib import analyze
 >>> path = '~/data/'
->>> source = '~/data/h1hesc.domain.txt'
->>> template = 'h1hesc.chr%s_chr%s.txt'
+>>> source = '~/data/gm12878.domain.txt'
+>>> template = 'gm12878.chr%s_chr%s.txt'
 >>> workInters = analyze.Inters(path = path, template = template)
 >>> workInters.data.keys()
 ['1']
 >>> len(workInters.data['1'])
-10535
+60016
 
 >>> workTAD = analyze.TAD(source)
 >>> workTAD.data.shape
-(7,)
+(3,)
 
-Suppose a TAD, [4670000, 5570000) on chromosome 1, then you can create a
+Suppose a TAD, [229385000, 229665000) on chromosome 1, then you can create a
 Core object like this:
 
->>> left = 6490000 / 10000 # Resolution: 10000
->>> right = 6770000 / 10000
+>>> left = 229385000 / 5000 # Resolution 5000
+>>> right = 229665000 / 5000
 >>> matrix = analyze.getmatrix(workInters.data['1'], left, right) # Chrom 1
 >>> workCore = analyze.Core(matrix)
 >>> len(matrix) == len(workCore.newM)
-False
->>> workCore.longrange()
+True
+>>> workCore.longrange(pw = 4, ww = 7)
 >>> len(workCore.pos)
-9
+61
 >>> workCore.DBSCAN()
 >>> workCore.Nc
-1
->>> workCore.clusters['areas']
-array([ 2.5])
+4
+>>> workCore.clusters['areas'].max()
+83.5
 >>> workCore.gdensity()
->>> print round(workCore.gden, 4)
-0.3563
+>>> print round(workCore.gden, 3)
+0.638
 
 """
 
@@ -91,23 +74,11 @@ import logging
 import warnings
 import polygon
 import numpy as np
-from scipy.stats import itemfreq, poisson
+from scipy.stats import poisson, itemfreq
 from scipy.spatial import distance
 from scipy.interpolate import interp1d, splrep, splev
 import scipy.special as special
 from sklearn import cluster
-
-import matplotlib
-# Use a non-interactive backend
-matplotlib.use('Agg')
-# Other basic settings
-matplotlib.rcParams['xtick.direction'] = 'out'
-matplotlib.rcParams['ytick.direction'] = 'out'
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-# Our Own Color Map
-my_cmap = LinearSegmentedColormap.from_list('interaction',
-                                            ['#FFFFFF','#CD0000'])
 
 log = logging.getLogger(__name__)
 
@@ -220,24 +191,6 @@ class Inters(object):
     numpy.load : Load an array(s) from .npy or .npz files.
     numpy.savez : Save several arrays into a single .npz file.
     numpy.dtype : Create a data type object.
-    
-    Notes
-    -----
-    Our pipeline is more suitable for high-resolution data.
-    (``resolution <= 50000``)
-    
-    References
-    ----------
-    .. [1] Lieberman-Aiden E, van Berkum NL, Williams L et al. Comprehensive
-       mapping of long-range interactions reveals folding principles of the
-       human genome. Science, 2009, 326: 289-293.
-           
-    .. [2] Dekker J, Rippe K, Dekker M et al. Capturing chromosome
-       conformation. Science, 2002, 295: 1306-1311.
-           
-    .. [3] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of
-       Hi-C data reveals hallmarks ofchromosome organization. Nat Methods,
-       2012, 9: 999-1003.
     
     """
     
@@ -618,7 +571,7 @@ class TAD(object):
             sys.exit(1)
         
         # Skip header lines
-        pool = [line for line in pool if isnumber(line[cols[1]])]
+        pool = [line for line in pool if ((isnumber(line[cols[1]])) and (isnumber(line[cols[2]])))]
         
         # Manipulate chromosome labels
         maxL = 0 # Maximum label length        
@@ -629,8 +582,8 @@ class TAD(object):
             if len(pool[i][cols[0]]) > maxL:
                 maxL = len(pool[i][cols[0]])
             # Standardize API
-            pool[i] = (pool[i][cols[0]], int(pool[i][cols[1]]),
-                       int(pool[i][cols[2]]))
+            pool[i] = (pool[i][cols[0]], float(pool[i][cols[1]]),
+                       float(pool[i][cols[2]]))
         
         # Create a structured array
         dtype = np.dtype({'names':['chr', 'start', 'end'],
@@ -650,8 +603,9 @@ class Core(object):
     High IFs off the diagonal region can be identified using
     :meth:`longrange`. :meth:`DBSCAN` performs a density-based clustering
     algorithm to detect aggregation patterns in those IFs. Furthermore,
-    :meth:`gdensity` defines an interaction feature, which is proved
-    closely correlating with active/inactive level.
+    two structural features, called AP (Aggregation Preference) and Coverage
+    in our original research, can be calculated by :meth:`gdensity` and
+    :meth:`totalCover` respectively.
     
     Parameters
     ----------
@@ -660,25 +614,12 @@ class Core(object):
         giving interaction data (under certain resolution). Each entry
         indicates interaction frequency between corresponding two bins.
     
-    start : int
-        Off-diagonal level, i.e., only entries that are at least **start**
-        away from the diagonal will be taken into account.
-    
     left : int
         Starting point of TAD, in **resolution** unit. For example, if bin
         size is 10kb, ``left = 50`` means position 500000(bp) on the genome.
     
     Attributes
     ----------
-    matrix : numpy.ndarray, (ndim = 2)
-        Interaction matrix.
-    
-    start : int
-        Off-diagonal level.
-    
-    left : int
-        Starting point of TAD.
-    
     newM : numpy.ndarray, (ndim = 2)
         A modified **matrix**. All vacant rows and columns in original
         **matrix** are removed.
@@ -686,43 +627,24 @@ class Core(object):
     convert : dict
         A coordinate map from **newM** to **matrix**.
     
-    After calling :meth:`longrange`:
+    After :meth:`longrange`:
     
-    dim : int
-        Size of **newM**.
+    cEM : numpy.ndarray, (ndim = 2)
+        Expected interaction matrix. An upper triangular matrix. Value in each
+        entry will be used to construct a Poisson Model for statistical
+        significance calculation.
     
-    diag : int
-        The best "k" (the kth diagonal) for IF extraction.
+    Ps : numpy.ndarray, (ndim = 2)
+        An upper triangular matrix. Value in each entry indicates the p-value
+        under corresponding Poisson Model.
     
     pos : numpy.ndarray, (shape = (N, 2))
         Coordinates of selected IFs in **newM**.
     
-    sig : float
-        Significance of selected IFs under poisson assumption.
-    
     Np : int
         Number of selected IFs.
     
-    aberrant : numpy.ndarray, (ndim = 1)
-        Aberrant level, i.e., ratio of low IFs near the diagonal region,
-        used to determine the best "k" value.
-    
-    x : numpy.ndarray, (ndim = 1)
-        Indices of **aberrant** components.
-    
-    xs : numpy.ndarray, (ndim = 1)
-        x coordinates of interpolating fitting curve of **aberrant**.
-    
-    ys : numpy.ndarray, (ndim = 1)
-        y coordinates of the fitting curve.
-    
-    dy1 : numpy.ndarray, (ndim = 1)
-        The first-order differences of **ys**.
-    
-    dy2 : numpy.ndarray, (ndim = 1)
-        Second-order differences of **ys**.
-    
-    After calling :meth:`DBSCAN`:
+    After :meth:`DBSCAN`:
     
     cluster_id : numpy.ndarray, (shape = (N,))
         Cluster labels for each point in **pos**. -1 indicates noisy points.
@@ -732,17 +654,12 @@ class Core(object):
     
     clusters : dict
         Details of each cluster. "Average density", "radius",
-        "area (polygon)", and "object number" are all recorded.
+        "area (polygon)", "point coordinates", and "object number" are all
+        recorded.
     
-    Hulls : list of :func:`tadlib.polygon.Polygon` object
-        Record clusters which can be enclosed by a convex polygon.
-    
-    eps : float
-        One of the DBSCAN algorithm inputs, calculated in an analytical
-        way.
-    
-    MinPts : int
-        Another parameter of DBSCAN algorithm.
+    Hulls : dict
+        Details of each convex hull (clusters which can be enclosed by a
+        convex polygon).
     
     ptrace : list of int
         Labels of clusters in which all points are collinear. These
@@ -754,8 +671,10 @@ class Core(object):
         Weighted average density. Calculated using cluster density
         information.
     
-    label : {0, 1}
-        1 if ``Nc > 0``.
+    After :meth:`totalCover`:
+    
+    coverage : float, [0, 1]
+        Total coverage of clusters.
     
     See Also
     --------
@@ -763,210 +682,175 @@ class Core(object):
     
     """
     
-    def __init__(self, matrix, start = 2, left = 0):
+    def __init__(self, matrix, left = 0):
         
-        ## Set basic attributes
-        # Initial Interaction matrix
-        self.matrix = matrix
-        # Off-diagonal level
-        self.start = start
-        # Starting point of the region
-        self.left = left
         # Manipulation, remove vacant rows and columns
-        self.newM, self.convert = manipulation(self.matrix, self.left)
-    
-    
-    def longrange(self):
-        """Extract high IFs away from the diagonal region of an interaction
-        matrix.
+        self.newM, self.convert = manipulation(matrix, left)
         
-        It's known that Hi-C data have revealed a widespread rule for
-        chromatin folding -- "power-law". Fragments on chromatin always
-        interact with genomic proximal ones and chromain are driven into
-        higher order structure. Under the rule, all high IFs should locate
-        in diagonal region for a TAD.
+        ## Determine proper off-diagonal level
+        Len = self.newM.shape[0]
+        idiag = np.arange(0, Len)
+        iIFs = []
+        for i in idiag:
+            temp = np.diagonal(self.newM, offset = i)
+            iIFs.append(temp.mean())
+        iIFs = np.array(iIFs)
         
-        However, there does exist high IFs which are far away from the
-        diagonal region breaking the rule. These interactions may occur
-        between promoters and enhancers, which have potential to regulate
-        gene expression.
+        idx = np.where(iIFs > 0)[0][0]
         
-        Extracting those IFs may bring some new insight into the
-        relationship between structures and regulations.
+        if idx > 0:
+            log.warning('''There is no data in diagonal region.''')
+        
+        self._start = idx
+        IFs = iIFs[idx:]
+        diag = idiag[idx:]
+        
+        self._Ed = _fitting(diag, IFs)
+        
+    def longrange(self, pw = 2, ww = 5, top = 0.7, ratio = 0.05):
+        """
+        Select statistically significant interactions of the TAD. Both
+        genomic distance and local interaction background are taken into
+        account.
+        
+        Parameters
+        ----------
+        pw : int
+            Width of the interaction region surrounding the peak. Default: 2
+        
+        ww : int
+            The size of the donut sampled. Default: 5
+        
+        top : float, [0.5, 1]
+            Parameter for noisy interaction filtering. Default: 0.7
+        
+        ratio : float, [0.01, 0.1]
+            Specifies the sample size of significant interactions.
+            Default: 0.05
         
         Notes
         -----
-        The interaction matrix is expressed as :math:`M_{ij}` with
-        :math:`\\leq i \\leq n, i \\leq j \\leq n`. Here, :math:`M_{ij}`
-        is an upper triangular matrix.
+        *pw* and *ww* are sensitive to data resolution. It performs well
+        when we set *pw* to 4 and *ww* to 7 at 5 kb, and (2, 5) at 10 kb. [1]_
         
-        For each diagonal :math:`k`, coordinates (i, j) are divided into
-        two groups: :math:`R_{kc}`, where :math:`\\left|i-j\\right|\\leq k`,
-        and :math:`R_{ko}`, where :math:`\\left|i - j\\right| > k`.
-        
-        IFs within :math:`R_{ko}` having equal strength with those in
-        :math:`R_{kc}` are extracted. In this way, each :math:`k` has its
-        own such IF population. However, different :math:`k` has different
-        "aberrant level", which we use for determining the best :math:`k`:
-        
-        .. math:: \omega_k = \\frac{L_k}{N_k}
-        
-        where :math:`\omega_k` is so-called "aberrant level",
-        :math:`L_k` is the number of IFs within :math:`R_{kc}` but having
-        lower strength than selected IFs, and :math:`N_k` is the total
-        number of :math:`R_{kc}`.
-        
-        :math:`\omega_k` always decreases sharply along with the first few
-        :math:`k`. Therefore, we calculate first and second order differences
-        of it and the first inflection point is regarded as the best
-        :math:`k`.
+        References
+        ----------
+        .. [1] Rao, S.S., Huntley, M.H., Durand, N.C. et al. A 3D map of the
+           human genome at kilobase resolution reveals principles of chromatin
+           looping. Cell, 2014, 159: 1665-1680.
         
         """
+        dim = self.newM.shape[0]
         
-        self.dim = self.newM.shape[0]
+        ps = 2 * pw + 1 # Peak Size
+        ws = 2 * ww + 1 # Initial window size
+        bs = 2 * pw + 1 # B -- Blurry
         
+        start = ww if (ww > self._start) else self._start
         # Upper triangular matrix
-        upper = np.triu(self.newM, k = self.start)
-        nonzero = upper[np.nonzero(upper)]
+        upper = np.triu(self.newM, k = start)
+        bUpper = np.triu(self.newM, k = 0)
         
-        ## The ideological source -- Pareto distribution
-        # A statistic table
-        freq_base = itemfreq(nonzero)
-        # Cumulative Population
-        cumsum = np.cumsum(freq_base[:,1]) / nonzero.size
-        # Cumulative wealth (IF)
-        wealth = np.cumsum(freq_base[:,0] * freq_base[:,1]) / nonzero.sum()
+        # Expanded Matrix
+        expM = np.zeros((dim + ww*2, dim + ww*2))
+        expBM = np.zeros((dim + ww*2, dim + ww*2))
+        expM[ww:-ww, ww:-ww] = upper
+        expBM[ww:-ww, ww:-ww] = bUpper
         
-        ## Preliminary screening
-        ## For loop termination
-        ## The maximum off-diagonal level
-        # The richest 50%
-        obj = np.ceil(0.5 * nonzero.size)
-        # Coefficients of polynomial
-        coeff = [-1, 2 * (self.dim - self.start) - 1,
-                 2 * (self.dim - self.start) - 2 * obj]
-        # Polynomial roots
-        root = np.roots(coeff)
-        # Constraint condition
-        root = root[(root > 0) & (root < (self.dim - self.start))]
-        n = int(np.ceil(root[0])) if len(root) > 0 else 0
-        for i in range(n, self.dim - self.start):
-            temp = upper.copy()
-            temp[np.triu_indices(self.dim, i + self.start)] = 0
-            residual = np.nonzero(temp)[0].size - obj
-            if residual>=0:
-                break
-        # Calibrate the root
-        n = i
+        tm = np.all((expBM == 0), axis = 0)
+        Mask = np.zeros((dim + ww*2, dim + ww*2), dtype = bool)
+        Mask[:,tm] = True
+        Mask[tm,:] = True
+        expCM = np.ones_like(expM, dtype = int)
+        expCM[Mask] = 0
         
-        ## Assumed Poisson Model
-        ## Trace the strength of selected IFs
-        G = self.newM[np.triu_indices(self.dim, k = self.start)]
-        Poiss = poisson(G.mean())
+        ## Expected matrix
+        EM_idx = np.triu_indices(dim, k = start)
+        EM_value = self._Ed[EM_idx[1] - EM_idx[0] - self._start]
+        EM = np.zeros((dim, dim))
+        EM[EM_idx] = EM_value
+        ## Expanded Expected Matrix
+        expEM = np.zeros((dim + ww*2, dim + ww*2))
+        expEM[ww:-ww, ww:-ww] = EM
         
-        ## Aberrant Power-law for IF selection
-        # Selected IF positions and corresponding level
-        candidate = []
-        # Work in concert with Poiss
-        thres = []
-        # Aberrant level, i.e., ratio of low IFs near the diagonal, used to
-        # determine the best off-diagonal level
-        aberrant = []
+        ## Construct pool of matrices for speed
+        # Window
+        OPool_w = {}
+        EPool_w = {}
+        ss = range(ws)
+        for i in ss:
+            for j in ss:
+                OPool_w[(i,j)] = expM[i:(dim+i), j:(dim+j)]
+                EPool_w[(i,j)] = expEM[i:(dim+i), j:(dim+j)]
+        # Peak
+        OPool_p = {}
+        EPool_p = {}
+        ss = range(ww-pw, ps+ww-pw)
+        for i in ss:
+            for j in ss:
+                OPool_p[(i,j)] = expM[i:(dim+i), j:(dim+j)]
+                EPool_p[(i,j)] = expEM[i:(dim+i), j:(dim+j)]
         
-        # Loop start
-        for i in range(self.start, self.start + n + 1):
-            top_p = upper.copy()
-            ## Two parts
-            # Off diagonal
-            off = np.triu(self.newM, k = i + 1)
-            out = off[np.nonzero(off)]
-            # Close to diagonal
-            top_p[np.triu_indices(self.dim, i + 1)] = 0
-            nearest = top_p[np.nonzero(top_p)]
-            
-            # Find the percent on cumulative population curve which
-            # reflects the wealth (IF) ranking
-            arg = np.abs(cumsum - (1 - nearest.size / nonzero.size)).argmin()
-            # The top x% wealth
-            top = 1 - wealth[arg]
-            total = nonzero.sum() * top
-            # Cash flow away from the diagonal
-            free =  total - top_p.sum()
-            
-            ## Compute threshold
-            # Statistics for the out part
-            out_base = itemfreq(out)
-            # Arrange from large to small
-            out_base = np.flipud(out_base)
-            got = np.abs(np.cumsum(out_base[:,0] * out_base[:,1]) - free)
-            thre = out_base[:,0][got.argmin()]
-            
-            ## Extract long-range interaction positions
-            mask = off > thre
-            temp = np.where(mask)
-            extract = np.array([(temp[0][j], temp[1][j]) for j in 
-                                range(temp[0].size)])
-            
-            if len(extract) > 0:
-                candidate.append((extract, i))
-                aberrant.append((nearest <= thre).sum() / nearest.size)
-                thres.append(thre)
+        # For Blurry Matrix
+        OPool_b = {}
+        OPool_bc = {}
+        ss = range(ww-pw, bs+ww-pw)
+        for i in ss:
+            for j in ss:
+                OPool_b[(i,j)] = expBM[i:(dim+i), j:(dim+j)]
+                OPool_bc[(i,j)] = expCM[i:(dim+i), j:(dim+j)]
         
-        ## Different cases
-        if candidate:
-            self.aberrant = np.array(aberrant)
-            idx = self.aberrant.argmin()
-            self.x = np.arange(self.aberrant.size)
-            # Constraint for gradient calculation
-            if self.x.size >= 3:
-                # Constraint of B-spline (order = 3)
-                if self.x.size > 4:
-                    ## Linear Spline
-                    ip = interp1d(self.x, self.aberrant)
-                    # Downsample the data evenly
-                    times = np.arange(2, 4)
-                    scheck = self.x.size / times
-                    snum = scheck[scheck > 6][-1] if (scheck > 6).sum() > 0 else self.x.size
-                    xi = np.linspace(0, self.x.size - 1, snum)
-                    yi = ip(xi)
-                    
-                    ## B-spline
-                    tcl = splrep(xi, yi)
-                    self.xs = np.linspace(0, self.x.size - 1,
-                                          self.x.size * 5)
-                    self.ys = splev(self.xs, tcl)
-                    # Finite differences
-                    self.dy1 = np.gradient(self.ys)
-                    self.dy2 = np.gradient(self.dy1)
-                else:
-                    self.xs = self.x
-                    self.ys = self.aberrant
-                    self.dy1 = np.gradient(self.aberrant)
-                    self.dy2 = np.gradient(self.dy1)
+        ## Background Strength  --> Background Ratio
+        bS = np.zeros((dim, dim))
+        bE = np.zeros((dim, dim))
+        for w in OPool_w:
+            if (w[0] != ww) and (w[1] != ww):
+                bS += OPool_w[w]
+                bE += EPool_w[w]
+        for p in OPool_p:
+            if (p[0] != ww) and (p[1] != ww):
+                bS -= OPool_p[p]
+                bE -= EPool_p[p]
                 
-                ## Inflection point
-                m = (self.dy2[1:] <= 0) & (self.dy2[:-1] >= 0)
-                for i in np.where(m)[0]:
-                    tid = np.int(np.ceil(self.xs[i]))
-                    if self.aberrant[tid] < self.aberrant[0]:
-                        idx = tid
-                        break
-            
-            # Selected interaction positions
-            self.pos = candidate[idx][0]
-            # Off-diagonal level
-            self.diag = candidate[idx][1]
-            # Significance of selected IFs
-            self.sig = 1 - Poiss.cdf(thres[idx])
-        else:
-            ## Dummy assignment
-            self.diag = 0; self.pos = []
-            self.sig = np.nan
+        bE[bE==0] = 1
+        bR = bS / bE
         
-        # The number
+        ## Corrected Expected Matrix
+        cEM = EM * bR
+        self.cEM = cEM
+        
+        ## Contruct the Blurry Matrix
+        BM = np.zeros((dim, dim))
+        CM = np.zeros((dim, dim), dtype = int)
+        
+        for b in OPool_b:
+            BM += OPool_b[b]
+            CM += OPool_bc[b]
+            
+        mBM = BM / CM
+        Mask = np.isnan(mBM)
+        mBM[Mask] = 0
+        
+        ## Poisson Models
+        Poisses = poisson(cEM)
+        Ps = 1 - Poisses.cdf(upper)
+        self.Ps = Ps
+        rmBM = mBM[EM_idx] # Raveled array
+        # Only consider the top x%
+        top_idx = np.argsort(rmBM)[(1-top)*rmBM.size:]
+        # The most significant ones
+        rPs = Ps[EM_idx][top_idx]
+        Rnan = np.logical_not(np.isnan(rPs)) # Remove any invalid entry
+        RrPs = rPs[Rnan]
+        sig_idx = np.argsort(RrPs)[:ratio/top*RrPs.size]
+        if sig_idx.size > 0:
+            self.pos = np.r_['1,2,0', EM_idx[0][top_idx][Rnan][sig_idx], EM_idx[1][top_idx][Rnan][sig_idx]]
+        else:
+            self.pos = np.array([])
+            
         self.Np = len(self.pos)
-        self.candidate = candidate
-    
+        self._area = EM_idx[0].size
+        
     def DBSCAN(self):
         """Detect natural patterns in selected IFs using DBSCAN.
         
@@ -980,7 +864,6 @@ class Core(object):
         See Also
         --------
         sklearn.cluster.DBSCAN : an implementation of DBSCAN
-        epsilon : calculate **eps** and **MinPts**
         tadlib.polygon.Polygon : calculations based on polygon.
         
         Notes
@@ -1002,30 +885,34 @@ class Core(object):
                
         """
         
-        ## Generalize
-        # Pseudo cluster number
         self.Nc = 0
         # Trace for scatter plot
         self.ptrace = []
         
         # Lower bound for input
-        if self.Np >= 3:
-            self.epsilon()
+        if self.Np >= 5:
+            self._epsilon()
+            # Minimum epsilon
+            if self._eps < np.sqrt(2):
+                self._eps = np.sqrt(2)
             # A simple but prerequisite condition
-            if self.eps > 0:
+            if self._eps > 0:
                 # Density-based cluster identification
-                db = cluster.DBSCAN(eps = self.eps,
-                                    min_samples = self.MinPts).fit(self.pos)
+                db = cluster.DBSCAN(eps = self._eps,
+                                    min_samples = self._MinPts).fit(self.pos)
                 # Cluster Label, -1 means noise
                 self.cluster_id = db.labels_.astype(int)
-                
-                # Correction, there may be a bug in DBSCAN
                 table = itemfreq(self.cluster_id)
                 mask = (table[:,0] != -1) & (table[:,1] == 1)
                 ridx = table[mask][:,0]
                 mask = np.ones(self.Np, dtype = bool)
-                for i in ridx:
-                    mask &= (self.cluster_id != i)
+                if len(ridx) > 0:
+                    ridx.sort()
+                    for i in ridx[::-1]:
+                        mask &= (self.cluster_id != i)
+                    for i in ridx[::-1]:
+                        self.cluster_id[self.cluster_id > i] -= 1
+                        
                 self.pos = self.pos[mask]
                 self.cluster_id = self.cluster_id[mask]
                 
@@ -1035,9 +922,6 @@ class Core(object):
                 
                 if self.Nc > 0:
                     ## Cluster-based attributes
-                    ## Calculate average density / radius of each cluster
-                    ## Only core objects are taken into account
-                    ## Area, objects and object number are also recorded
                     self.clusters = {}
                     self.clusters['density'] = np.zeros(self.Nc)
                     self.clusters['radius'] = np.zeros(self.Nc)
@@ -1045,10 +929,11 @@ class Core(object):
                     self.clusters['obj'] = []
                     self.clusters['Cn'] = np.zeros(self.Nc, dtype = int)
                     
-                    # Convex Hulls
-                    self.Hulls = []
+                    # Hull-based attributes
+                    self.Hulls = {}
+                    self.Hulls['polygons'] = []
+                    self.Hulls['density'] = []
                     
-                    ## Core points may also change after correction
                     core_indices = db.core_sample_indices_
                     cores_mask = np.zeros(self.Np, dtype = bool)
                     cores_mask[core_indices] = True
@@ -1058,6 +943,7 @@ class Core(object):
                     for i in xrange(self.Nc):
                         extract = (self.cluster_id == i)
                         t_C = self.pos[extract]
+                        
                         # Objects
                         self.clusters['obj'].append(t_C)
                         # Total object number
@@ -1072,11 +958,11 @@ class Core(object):
                         dists = distance.cdist(cores, t_C)
                         dists.sort()
                         # Average radius
-                        self.clusters['radius'][i] = np.mean(dists[:, 1:self.MinPts].sum(axis = -1) / \
-                                                             (self.MinPts - 1))
+                        self.clusters['radius'][i] = np.mean(dists[:, 1:self._MinPts].sum(axis = -1) / \
+                                                             (self._MinPts - 1))
                         # Inverse of average radius, i.e., density
-                        self.clusters['density'][i] = np.mean((self.MinPts - 1) / \
-                                    dists[:, 1:self.MinPts].sum(axis = -1))
+                        self.clusters['density'][i] = np.mean((self._MinPts - 1) / \
+                                    dists[:, 1:self._MinPts].sum(axis = -1))
                                     
                         # Collinear test
                         judge = polygon.collinear(t_C)
@@ -1086,7 +972,8 @@ class Core(object):
                             # Area of the polygon
                             P.calarea()
                             self.clusters['areas'][i] = P.area
-                            self.Hulls.append(P)
+                            self.Hulls['polygons'].append(P)
+                            self.Hulls['density'].append(self.clusters['density'][i])
                             
                         else:
                             self.ptrace.append(i)
@@ -1105,15 +992,26 @@ class Core(object):
         
         """
         if self.Nc > 0:
-            W = self.clusters['Cn'] / self.Np
+            Num = len(self.pos[self.cluster_id != -1])
+            W = self.clusters['Cn'] / Num
             self.gden = np.sum(self.clusters['density'] * W)
-            self.label = 1
         else:
             self.gden = 0
-            self.label = 0
+    
+    def totalCover(self):
+        """
+        Total coverage of clusters.
+        
+        :meth:`longrange` and :meth:`DBSCAN` have to be called in advance.
+        """
+        if self.Nc > 0:
+            csum = self.clusters['areas'].sum()
+            self.coverage = csum / self._area
+        else:
+            self.coverage = 0
         
             
-    def epsilon(self):
+    def _epsilon(self):
         """Analytical way of estimating input parameters for DBSCAN.
         
         """
@@ -1126,278 +1024,39 @@ class Core(object):
             n = 1
         
         # Minimum number of points considered as a cluster
-        self.MinPts = np.int(np.ceil(m / 25)) + 1
+        self._MinPts = np.int(np.ceil(m / 25)) + 1
         # Enclose the total space
         prod = np.prod(self.pos.max(axis = 0) - self.pos.min(axis = 0))
         # Interpolation
         gamma = special.gamma(0.5 * n + 1)
         denom = (m * np.sqrt(np.pi ** n))
-        self.eps = ((prod * self.MinPts * gamma) / denom) ** (1.0 / n)
-    
-    def plot(self, prefix = 'image', F = 'png', dpi = 300, s = 35,
-             original = False, cmap = my_cmap, ec = '#4C4C4C'):
-        """Graphical representation of every analysis stage.
-        
-        3 figures are created: Heat map of interaction matrix, scatter plot
-        of selected IFs, scatter plot of clusters (enclosed by a convex
-        polygon).
-        
-        Parameters
-        ----------
-        prefix : str
-            Prefix of the output figure names. Default: 'image'
-        
-        F : str
-            Format of the figures. Default: 'png'
-        
-        dpi : int
-            The resolution in dots per inch. Directly delivered to
-            plt.savefig. Default: 300
-        
-        s : int
-            Size of points in scatter plot. Default: 35
-        
-        original : bool
-            True if use the original interaction matrix. Default: False
-        
-        cmap : matplotlib.colors.Colormap
-            A matplotlib.colors.Colormap instance. Default: :data:`my_cmap`
-        
-        ec : str
-            Line color. Default: '#4C4C4C' (Dark grey)
-        
-        """
-        ## Heatmap
-        # Use the original matrix
-        if original:
-            matrix = self.matrix
-        # Revised matrix
-        else:
-            matrix = self.newM
-        
-        nonzero = matrix[np.nonzero(matrix)]
-        # 95-th percentile, to clarify the heatmap
-        p = np.percentile(nonzero, 95)
-        plt.imshow(matrix, origin = 'lower', interpolation = 'none',
-                   cmap = cmap, vmax = p)
-        plt.colorbar(format = '%d')
-        plt.savefig('.'.join([prefix, 'heatmap', F]), dpi = dpi)
-        plt.close()
-        
-        if self.Np > 0:
-            if original:
-                # Coordinates-conversion
-                x = np.r_[[self.convert[i[0]] for i in self.pos]]
-                y = np.r_[[self.convert[i[1]] for i in self.pos]]
-                orid = self.convert[self.diag]
-                bx = np.arange(len(matrix) - orid + 1)
-                by = bx + orid
-            else:
-                x = self.pos[:,0]
-                y = self.pos[:,1]
-                bx = np.arange(self.dim - self.diag + 1)
-                by = bx + self.diag
-        
-        ## Selected interactions
-        if self.Np > 0:
-            fig = plt.figure(figsize = (8, 8))
-            plt.scatter(x, y, c = cmap(0.9), edgecolor = 'none', s = s)
-            # Boundary (k-th diagonal)
-            plt.plot(bx, by, color = ec, linestyle = '--', linewidth = 0.8)
-            # Axis Control
-            plt.xlim(0, len(matrix))
-            plt.ylim(0, len(matrix))
-            plt.axis('equal')
-            plt.title('k = ' + str(self.diag))
-            plt.savefig('.'.join([prefix, 'selected', F]), dpi = dpi)
-            plt.close(fig)
-        
-        ## Clusters
-        if self.Np > 0:
-            # Color Map
-            spectral = plt.cm.rainbow
-            fig = plt.figure(figsize = (8, 8))
-            if self.Nc > 0:
-                noise = self.cluster_id == -1
-                plt.scatter(x[noise], y[noise], c = 'k', edgecolor = 'none',
-                            s = s)
-                # In cluster but not in hulls
-                for i in self.ptrace:
-                    mask = self.cluster_id == i
-                    # Random colors
-                    seed = spectral(np.random.rand())
-                    cs = [seed for i in xrange(len(x))]
-                    plt.scatter(x[mask], y[mask], edgecolor = 'none', s = s,
-                                c = cs)
-                    plt.plot(x[mask], y[mask], color = ec, linestyle = '-')
-                    
-                # In hulls
-                for h in self.Hulls:
-                    if original:
-                        points = np.r_[[(self.convert[i[0]],
-                                         self.convert[i[1]])
-                                       for i in h.points]]
-                    else:
-                        points = h.points
-                    seed = spectral(np.random.rand())
-                    cs = [seed for i in xrange(len(points))]
-                    plt.scatter(points[:,0], points[:,1], edgecolor = 'none',
-                                s = s, c = cs)
-                    # Plot the Polygon
-                    for simplex in h.simplices:
-                        plt.plot(points[simplex, 0], points[simplex, 1],
-                                 color = ec, linestyle = '-')
-            else:
-                # All points are noise
-                plt.scatter(x, y, c = 'k', edgecolor = 'none', s = s)
-            # Boundary
-            plt.plot(bx, by, color = ec, linestyle = '--', linewidth = 0.8)
-            # Axis Control
-            plt.xlim(0, len(matrix))
-            plt.ylim(0, len(matrix))
-            plt.axis('equal')
-            plt.title('k = ' + str(self.diag))
-            plt.savefig('.'.join([prefix, 'clusters', F]), dpi = dpi)
-            plt.close(fig)
-    
-    def kchoose(self, prefix = 'Aberrant', F = 'png', dpi = 300,
-                ec = '#4C4C4C'):
-        """
-        Graphical representation of principles in :attr:`diag` determination.
-        
-        :attr:`aberrant` and its finite differences are plotted, and
-        :attr:`diag` is labeled on the figures.
-        
-        Parameters
-        ----------
-        prefix : str
-            Prefix of the output figure names. Default: 'Aberrant'
-        
-        F : str
-            Format of the figures. Default: 'png'
-        
-        dpi : int
-            The resolution in dots per inch. Directly delivered to
-            plt.savefig. Default: 300
-        
-        ec : str
-            Line color. Default: '#4C4C4C' (Dark grey)
-        
-        """
-        if self.Np > 0:
-            if self.x.size > 2:
-                ## The trend of aberrant level
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                ax.plot(self.x, self.aberrant, 'ro', self.xs, self.ys)
-                # Marker
-                idx = self.diag - self.start
-                ax.vlines(idx, ymin = self.aberrant.min(),
-                          ymax = self.aberrant.max(),
-                          linestyles = 'dashed', colors = ec)
-                axis_control(ax)
-                ax.set_xlabel('k')
-                ax.set_ylabel('Percentage')
-                ax.set_xticks(self.x)
-                ax.set_xticklabels([i + self.start for i in self.x])
-                plt.savefig('.'.join([prefix, 'trend', F]), dpi = dpi)
-                plt.close()
-            
-                ## First-order difference
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                ax.plot(self.xs, self.dy1)
-                ax.vlines(idx, ymin = self.dy1.min(), ymax = self.dy1.max(),
-                          linestyles = 'dashed', colors = ec)
-                axis_control(ax)
-                ax.set_xlabel('k')
-                ax.set_xticks(self.x)
-                ax.set_xticklabels([i + self.start for i in self.x])
-                plt.savefig('.'.join([prefix, 'diff-1', F]), dpi = dpi)
-                plt.close()
-            
-                ## Second-order difference
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                ax.plot(self.xs, self.dy2)
-                ax.vlines(idx, ymin = self.dy2.min(), ymax = self.dy2.max(),
-                          linestyles = 'dashed', colors = ec)
-                axis_control(ax)
-                ax.set_xlabel('k')
-                ax.set_xticks(self.x)
-                ax.set_xticklabels([i + self.start for i in self.x])
-                plt.savefig('.'.join([prefix, 'diff-2', F]), dpi = dpi)
-                plt.close()
-    
-def extract_kth_diag(M, k = 0):
-    """Coordinates of specified diagonal.
-    
-    Parameters
-    ----------
-    M : numpy.ndarray, (shape = (N, N))
-        Array from which the diagonal is taken.
-    
-    k : int
-        Offset of the diagonal from the main diagonal. Positive or negative.
-        Default: 0
-    
-    Returns
-    -------
-    pos : numpy.ndarray, (shape = (x, 2))
-        Coordinates of the specified diagonal.
-    
-    See Also
-    --------
-    numpy.diagonal : Return sepcified diagonals
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from tadlib.analyze import extract_kth_diag
-    >>> M = np.random.rand(4, 4) # A Random Matrix
-    >>> pos = extract_kth_diag(M, k = 1)
-    >>> print pos
-    [[0 1]
-     [1 2]
-     [2 3]]
-    >>> np.diagonal(M, offset = 1)
-    array([ 0.78321734,  0.63147834,  0.64473559])
-    >>> M[pos[:,0], pos[:,1]]
-    array([ 0.78321734,  0.63147834,  0.64473559])
-        
-    """
-    ridx, cidx = np.diag_indices_from(M)
-    # ridx and cidx share the same buffer
-    cidx = cidx.copy()
-    
-    if k > 0:
-        cidx += k
-    else:
-        cidx -= k
-    
-    k = np.abs(k)
-    
-    x = ridx[:-k]; y = cidx[:-k]
-    pos = np.array([(x[i], y[i]) for i in xrange(x.size)])
-    
-    return pos
+        self._eps = ((prod * self._MinPts * gamma) / denom) ** (1.0 / n)
 
-def axis_control(ax):
-    """A customized axis control operations.
+def _fitting(x, y):
     
-    Parameters
-    ----------
-    ax : AxesSubplot
-        An AxesSubplot instance.
+    ## Linear Spline
+    ip = interp1d(x, y)
+    # Downsample the data evenly
+    times = np.arange(2, 4)
+    scheck = x.size / times
+    snum = scheck[scheck > 6][-1] if (scheck > 6).sum() > 0 else x.size
+    xi = np.linspace(x.min(), x.max(), snum)
+    yi = ip(xi)
     
-    """
-    ax.yaxis.set_ticks_position('left')
-    ax.xaxis.set_ticks_position('bottom')
-    for spine in ['right', 'top']:
-        ax.spines[spine].set_visible(False)
-    ax.tick_params(axis='y',labelsize=9,direction='out')
-    ax.tick_params(axis='x',labelsize=9,direction='out')
-        
+    ## B-spline
+    tcl = splrep(xi, yi)
+    ys = splev(x, tcl)
+    
+    # Finite differences
+    dy1 = np.gradient(ys)
+    
+    ## Unstable region
+    m = (dy1[1:] >= 0) & (dy1[:-1] <= 0)
+    if len(np.where(m)[0]) != 0:
+        i = np.where(m)[0][0]
+        ys[x > x[i]] = ys[i]
+    
+    return ys
 
 def isnumber(value):
     """A numerical string or not.

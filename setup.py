@@ -33,7 +33,7 @@ setup(
     author_email = 'wangxiaotao868@gmail.com',
     url = 'https://github.com/XiaoTaoWang/TADLib/',
     description = 'A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains',
-    keywords = 'chromosome structure feature Hi-C TAD CONISS polygon',
+    keywords = 'Hi-C TAD aggregation structure feature annotation polygon',
     package_dir = {'tadlib':'lib'},
     packages = ['tadlib', 'tadlib.tests'],
     scripts = ['scripts/calfea'],

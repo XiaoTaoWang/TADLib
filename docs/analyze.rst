@@ -29,17 +29,7 @@ Interaction Matrix
 
 .. autofunction:: tadlib.analyze.getmatrix
 
-Matrix Operations
-=================
-
 .. autofunction:: tadlib.analyze.manipulation
-
-.. autofunction:: tadlib.analyze.extract_kth_diag
-
-Axis Control
-============
-
-.. autofunction:: tadlib.analyze.axis_control
 
 Numerical Judgement
 ===================

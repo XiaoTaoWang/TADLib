@@ -11,36 +11,21 @@ import argparse, sys, logging, logging.handlers
 
 def getargs():
     ## Construct an ArgumentParser object for command-line arguments
-    parser = argparse.ArgumentParser(usage = '%(prog)s <-f filename> <--callTAD | --loadTAD> '
-                                     '[options]\n\nCALFEA -- CALculate FEAture for TADs',
+    parser = argparse.ArgumentParser(usage = '%(prog)s [options]\n\n'
+                                     'CALFEA -- CALculate FEAture for TADs',
                                     description = '''The calculation is implemented by identifying
-                                    long-range interactions for each TAD and looking for the
-                                    aggregation patterns thereof. For more details, please
-                                    refer to online TADLib documentation. Our algorithm is
-                                    basically parameter-free, i.e., all you need to input are
-                                    the necessary data. As is implied by the usage line, you
-                                    should specify a flag --callTAD/--loadTAD to tell calfea
-                                    whether to identify TADs itself or just load from an
-                                    existing file.''',
+                                    long-range significant interactions for each TAD and looking for
+                                    the aggregation patterns thereof. For more details, please
+                                    refer to online TADLib documentation.''',
                                     formatter_class = argparse.ArgumentDefaultsHelpFormatter)
 
     # Version
-    parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s 0.1.4',
+    parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s 0.2.0',
                         help = 'Print version number and exit')
 
     # Output
     parser.add_argument('-f', '--filename', type = argparse.FileType('w'),
                         default = sys.stdout, help = 'Output file name.')
-    
-    ## Mutual Groups
-    mg = parser.add_mutually_exclusive_group(required = True)
-    mg.add_argument('--loadTAD', action = 'store_true', help = 'Load external TAD data')
-    mg.add_argument('--callTAD', action = 'store_true', help = 'Identify TADs from loaded Hi-C data')
-    
-    # The sole parameter used in ineraction analysis
-    parser.add_argument('--offset', type = int, default = 2, help = 'Offset from the main '
-                        'diagonal of TAD interaction matrix. All entries with offset less than'
-                        ' this value will be ignored during our analysis.')
     
     # About Logging
     parser.add_argument('--verbose', type = int, default = 2, choices = [0, 1, 2, 3],
@@ -84,26 +69,27 @@ def getargs():
                          'not included. Required with "--immortal".')
                      
     ## Second one, load TAD data
-    group_2 = parser.add_argument_group(title = 'TAD Loading:', description = 'With "--loadTAD" '
-                                        'flag, you need to provide TAD data yourself. Your file '
-                                        'should contain 3 columns indicating "chromosome name",'
+    group_2 = parser.add_argument_group(title = 'TAD Loading:', description = 'Your file should '
+                                        'contain 3 columns indicating "chromosome name",'
                                         ' "start site" and "end site", respectively.')
     group_2.add_argument('-s', '--source', help = 'Complete source file name. Both absolute '
-                     'and relative path are supported.')
+                         'and relative path are supported.')
     group_2.add_argument('--chromname', help = 'Template of chromosome names')
-    ## Third one, calculate TAD
-    group_3 = parser.add_argument_group(title = 'TAD Calculating:', description = 'With "--callTAD"'
-                                        ' flag, a constrained hierarchical clustering algorithm '
-                                        'called CONISS will be used to identify TADs according to'
-                                        ' loaded Hi-C data.')
-    group_3.add_argument('-O', '--output', help = 'Prefix of the generated TAD file, which is '
-                         'created under the folder of Hi-C data.')
-    group_3.add_argument('-w', '--window', type = int, default = 2000,
-                         help = 'Window size used in TAD identification, with RESOLUTION as '
-                         'the unit. For example, "-w 2000" and "-R 10000" generate a 20Mb '
-                         'window. Then this window slides along each chromosome, and at each time,'
-                         ' only a region of WINDOW size is taken into account and subjected to'
-                         ' clustering.')
+    
+    ## About the algorithm
+    group_3 = parser.add_argument_group(title = 'Feature calculation')
+    group_3.add_argument('--pw', type = int, default = 2, help = 'Width of the interaction '
+                         'region surrounding the peak. According to experience, we set it'
+                         ' to 2 at 10 kb and 4 at 5 kb.')
+    group_3.add_argument('--ww', type = int, default = 5, help = 'The size of the donut '
+                         'sampled. Set it to 5 at 10 kb, and 7 at 5 kb.')
+    group_3.add_argument('--top', type = float, default = 0.7, help = 'Parameter for noisy '
+                         'interaction filtering. By default, 30 percent noisy interactions'
+                         ' will be eliminated.')
+    group_3.add_argument('--ratio', type = float, default = 0.05, help = 'Specifies the sample'
+                         ' ratio of significant interactions for TAD.')
+    group_3.add_argument('--gap', type = float, default = 0.2, help = 'Maximum gap ratio.')
+    
     ## Parse the command-line arguments
     commands = sys.argv[1:]
     if not commands:
@@ -122,12 +108,6 @@ def getargs():
     if args.immortal and (not args.saveto):
         parser.print_help()
         parser.exit(1, 'You have to specify "--saveto" with "--immortal" flag!')
-    if args.loadTAD and (not args.source):
-        parser.print_help()
-        parser.exit(1, '"--source" is required with "--loadTAD" flag!')
-    if args.callTAD and (not args.output):
-        parser.print_help()
-        parser.exit(1, 'You have to specify "--output" with "--callTAD" flag!')
     
     return args, commands
 
@@ -146,7 +126,7 @@ def pipe():
         logger.setLevel((4 - args.verbose) * 10)
         console = logging.StreamHandler()
         filehandler = logging.handlers.RotatingFileHandler('calfea.log',
-                                                           maxBytes = 15000,
+                                                           maxBytes = 30000,
                                                            backupCount = 5)
         # Set level for Handlers
         console.setLevel('INFO')
@@ -166,22 +146,15 @@ def pipe():
                    '# data folder = %s' % args.path,
                    '# Hi-C format = %s' % args.Format,
                    '# chromosomes = %s' % args.chroms,
-                   '# data resolution = %s' % args.resolution
+                   '# data resolution = %s' % args.resolution,
+                   '# TAD source file = %s' % args.source,
+                   '# chromosome name template = %s' % args.source,
+                   '# Peak window width = %s' % args.pw,
+                   '# Donut size = %s' % args.ww,
+                   '# Noise filtering ratio = %s' % (1 - args.top),
+                   '# Significant interaction ratio = %s' % args.ratio,
+                   '# Maximum gap ratio = %s' % args.gap
                    ]
-        if args.Format == 'TXT':
-            arglist.extend(['# Hi-C file template = %s' % args.template,
-                            '# which columns = %s' % args.cols])
-        if args.Format == 'NPZ':
-            arglist.extend(['# input NPZ prefix = %s' % args.prefix])
-        if args.immortal:
-            arglist.append('# output NPZ prefix = %s' % args.saveto)
-        if args.callTAD:
-            arglist.extend(['# window size = %s' % args.window,
-                            '# generated TAD prefix = %s' % args.output])
-        if args.loadTAD:
-            arglist.extend(['# TAD source file = %s' % args.source,
-                            '# chromosome name template = %s' % args.source])
-        arglist.append('# offset = %s' % args.offset)
         argtxt = '\n'.join(arglist)
         logger.info('\n' + argtxt)
     
@@ -191,43 +164,24 @@ def pipe():
                  'prefix': args.prefix, 'immortal': args.immortal, 'saveto': args.saveto}
                  
         from tadlib import analyze
-        # Two Cases
-        if args.callTAD:
-            # Package Dependencies
-            try:
-                from tadlib import coniss
-            except ImportError:
-                logging.error('R and rpy2 must be installed with "--callTAD" flag!')
-                sys.exit(2)
-            # Queue Object for Data Loading and TAD Identification
-            logger.info('Read Hi-C data and identify TADs thereof ...')
-            workQueue = coniss.Queue(output = args.output, window = args.window,
-                                     **dicts)
-            logger.info('Done!')
-            # Interaction Data
-            Idata = workQueue.data
-            # Chromosome Labels
-            chroms = workQueue.labels
-            # TAD Data
-            Tdata = workQueue.TAD
-        else:
-            logger.info('Read Hi-C data ...')
-            # Inters Object, Load Hi-C Data
-            workInters = analyze.Inters(**dicts)
-            logger.info('Done!')
-            # TAD Object, Load External TAD File, Columns 0,1,2
-            logger.info('Read external TAD data ...')
-            workTAD = analyze.TAD(source = args.source)
-            logger.info('Done!')
-            # Interaction Data
-            Idata = workInters.data
-            # Chromosome Labels
-            chroms = workInters.labels
-            # TAD Data
-            Tdata = workTAD.data
+        
+        logger.info('Read Hi-C data ...')
+        # Inters Object, Load Hi-C Data
+        workInters = analyze.Inters(**dicts)
+        logger.info('Done!')
+        # TAD Object, Load External TAD File, Columns 0,1,2
+        logger.info('Read external TAD data ...')
+        workTAD = analyze.TAD(source = args.source)
+        logger.info('Done!')
+        # Interaction Data
+        Idata = workInters.data
+        # Chromosome Labels
+        chroms = workInters.labels
+        # TAD Data
+        Tdata = workTAD.data
     
         # Header
-        H = ['ChromID', 'Start', 'End', 'Density', 'Gap-Ratio']
+        H = ['ChromID', 'Start', 'End', 'AP', 'Gap-Ratio']
         args.filename.write('\t'.join(H) + '\n')
         logger.info('Calculate feature for each TAD ...')
         # Loop for Each Chromosome and Each TAD
@@ -242,14 +196,20 @@ def pipe():
                 right = d['end'] // args.resolution
                 # Interaction Matrix
                 matrix = analyze.getmatrix(i_data, left, right)
-                # Core Object for Interaction Analysis
-                workCore = analyze.Core(matrix, start = args.offset)
-                # Ratio of Gaps (Vacant Rows or Columns) 
-                gaps = 1 - len(workCore.newM) / len(matrix)
+                
+                newM, convert = analyze.manipulation(matrix)
+                if len(matrix) > 0:
+                    # Ratio of Gaps (Vacant Rows or Columns)
+                    gaps = 1 - len(newM) / len(matrix)
+                else:
+                    gaps = 1.0
+                
                 # Logical Condition
-                if len(workCore.newM) >= (args.offset + 4):
+                if (gaps < args.gap) and (newM.shape[0] > (args.ww * 2 + 1)):
+                    # Core Object for Interaction Analysis
+                    workCore = analyze.Core(matrix)
                     # Extract Long-Range Interactions
-                    workCore.longrange()
+                    workCore.longrange(pw = args.pw, ww = args.ww, top = args.top, ratio = args.ratio)
                     # Natural Clusters
                     workCore.DBSCAN()
                     # Feature
