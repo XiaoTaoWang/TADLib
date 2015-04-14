@@ -132,7 +132,7 @@ Extract long-range interactions:
 
 >>> workCore.longrange(pw = 4, ww = 7)
 >>> len(workCore.pos) # Number
-61
+62
 
 Aggregation pattern discovery:
 
@@ -144,7 +144,7 @@ Feature calculation:
 
 >>> workCore.gdensity()
 >>> print workCore.gden # Subjects to small variations across platforms
-0.638018839342
+0.627528491366
 
 
 CALFEA

@@ -56,15 +56,15 @@ Core object like this:
 True
 >>> workCore.longrange(pw = 4, ww = 7)
 >>> len(workCore.pos)
-61
+62
 >>> workCore.DBSCAN()
 >>> workCore.Nc
 4
 >>> workCore.clusters['areas'].max()
-83.5
+103.5
 >>> workCore.gdensity()
 >>> print round(workCore.gden, 3)
-0.638
+0.628
 
 """
 
@@ -83,6 +83,7 @@ from sklearn import cluster
 log = logging.getLogger(__name__)
 
 class Inters(object):
+    
     """
     Load interaction data from TXT or Numpy .npz file.
     
@@ -191,6 +192,24 @@ class Inters(object):
     numpy.load : Load an array(s) from .npy or .npz files.
     numpy.savez : Save several arrays into a single .npz file.
     numpy.dtype : Create a data type object.
+    
+    Notes
+    -----
+    Our pipeline is more suitable for high-resolution data.
+    (``resolution <= 20000``)
+    
+    References
+    ----------
+    .. [1] Lieberman-Aiden E, van Berkum NL, Williams L et al. Comprehensive
+       mapping of long-range interactions reveals folding principles of the
+       human genome. Science, 2009, 326: 289-293.
+           
+    .. [2] Dekker J, Rippe K, Dekker M et al. Capturing chromosome
+       conformation. Science, 2002, 295: 1306-1311.
+           
+    .. [3] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of
+       Hi-C data reveals hallmarks ofchromosome organization. Nat Methods,
+       2012, 9: 999-1003.
     
     """
     
@@ -837,12 +856,12 @@ class Core(object):
         self.Ps = Ps
         rmBM = mBM[EM_idx] # Raveled array
         # Only consider the top x%
-        top_idx = np.argsort(rmBM)[(1-top)*rmBM.size:]
+        top_idx = np.argsort(rmBM)[np.int(np.floor((1-top)*rmBM.size)):]
         # The most significant ones
         rPs = Ps[EM_idx][top_idx]
         Rnan = np.logical_not(np.isnan(rPs)) # Remove any invalid entry
         RrPs = rPs[Rnan]
-        sig_idx = np.argsort(RrPs)[:ratio/top*RrPs.size]
+        sig_idx = np.argsort(RrPs)[:np.int(np.ceil(ratio/top*RrPs.size))]
         if sig_idx.size > 0:
             self.pos = np.r_['1,2,0', EM_idx[0][top_idx][Rnan][sig_idx], EM_idx[1][top_idx][Rnan][sig_idx]]
         else:

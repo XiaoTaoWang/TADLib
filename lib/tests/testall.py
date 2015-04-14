@@ -36,15 +36,15 @@ Import necessary modules in advance:
 True
 >>> workCore.longrange(pw = 4, ww = 7)
 >>> len(workCore.pos)
-61
+62
 >>> workCore.DBSCAN()
 >>> workCore.Nc
 4
 >>> workCore.clusters['areas'].max()
-83.5
+103.5
 >>> workCore.gdensity()
 >>> print round(workCore.gden, 3)
-0.638
+0.628
 
 >>> M = np.loadtxt(os.path.join(path, 'matrix.txt'))
 >>> M[1,:] = 0; M[:,1] = 0
