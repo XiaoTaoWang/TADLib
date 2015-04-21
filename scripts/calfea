@@ -156,13 +156,6 @@ def pipe():
                    '# Maximum gap ratio = %s' % args.gap
                    ]
         
-        if args.Format == 'TXT':
-            arglist.extend(['# which columns = %s' % args.cols])
-        if args.Format == 'NPZ':
-            arglist.extend(['# input NPZ prefix = %s' % args.prefix])
-        if args.immortal:
-            arglist.append('# output NPZ prefix = %s' % args.saveto)
-        
         argtxt = '\n'.join(arglist)
         logger.info('\n' + argtxt)
     
