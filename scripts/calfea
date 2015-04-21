@@ -80,9 +80,9 @@ def getargs():
     group_3 = parser.add_argument_group(title = 'Feature calculation')
     group_3.add_argument('--pw', type = int, default = 2, help = 'Width of the interaction '
                          'region surrounding the peak. According to experience, we set it'
-                         ' to 2 at 10 kb and 4 at 5 kb.')
+                         ' to 1 at 20 kb, 2 at 10 kb, and 4 at 5 kb.')
     group_3.add_argument('--ww', type = int, default = 5, help = 'The size of the donut '
-                         'sampled. Set it to 5 at 10 kb, and 7 at 5 kb.')
+                         'sampled. Set it to 3 at 20 kb, 5 at 10 kb, and 7 at 5 kb.')
     group_3.add_argument('--top', type = float, default = 0.7, help = 'Parameter for noisy '
                          'interaction filtering. By default, 30 percent noisy interactions'
                          ' will be eliminated.')
@@ -155,6 +155,14 @@ def pipe():
                    '# Significant interaction ratio = %s' % args.ratio,
                    '# Maximum gap ratio = %s' % args.gap
                    ]
+        
+        if args.Format == 'TXT':
+            arglist.extend(['# which columns = %s' % args.cols])
+        if args.Format == 'NPZ':
+            arglist.extend(['# input NPZ prefix = %s' % args.prefix])
+        if args.immortal:
+            arglist.append('# output NPZ prefix = %s' % args.saveto)
+        
         argtxt = '\n'.join(arglist)
         logger.info('\n' + argtxt)
     
