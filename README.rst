@@ -32,6 +32,10 @@ Links
 - `Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub, Track the package issue)
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
 
+Citation
+--------
+Wang XT, Dong PF, Zhang HY, Peng C. Structural heterogeneity and functional diversity of topologically associating domains in mammalian genomes. Nucleic Acids Research, 2015, doi: 10.1093/nar/gkv684
+
 Notes
 -----
 By default, we suppose that the input Hi-C data are corrected appropriately.
