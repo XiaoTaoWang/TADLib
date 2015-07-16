@@ -30,7 +30,7 @@ setup(
     name = 'TADLib',
     version = lib.__version__,
     author = lib.__author__,
-    author_email = 'wangxiaotao868@gmail.com',
+    author_email = 'wangxiaotao868@163.com',
     url = 'https://github.com/XiaoTaoWang/TADLib/',
     description = 'A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains',
     keywords = 'Hi-C TAD aggregation structure feature annotation polygon',
