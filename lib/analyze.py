@@ -80,7 +80,14 @@ from scipy.interpolate import interp1d, splrep, splev
 import scipy.special as special
 from sklearn import cluster
 
+## Customize the logger
 log = logging.getLogger(__name__)
+console = logging.StreamHandler()
+console.setLevel('INFO')
+formatter = logging.Formatter(fmt = '%(name)-14s %(levelname)-7s @ %(asctime)s: %(message)s',
+                              datefmt = '%m/%d/%y %H:%M:%S')
+console.setFormatter(formatter)
+log.addHandler(console)
 
 class Inters(object):
     
