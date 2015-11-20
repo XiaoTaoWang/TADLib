@@ -255,18 +255,17 @@ class Inters(object):
         # Summary of actions
         log.debug('Following tasks will be done:')
         if (Format == 'NPZ') and immortal:
-            log.debug('Argument template and cols will be ignored')
-            log.debug('Load interaction data from a Numpy .npz file')
-            log.debug('Save interaction data to another Numpy .npz file')
+            log.debug('    Argument template and cols will be ignored')
+            log.debug('    Load interaction data from a Numpy .npz file')
+            log.debug('    Save interaction data to another Numpy .npz file')
         elif (Format == 'NPZ') and (not immortal):
-            log.debug('Argument template and cols will be ignored')
-            log.debug('Load interaction data from a Numpy .npz file')
+            log.debug('    Argument template and cols will be ignored')
+            log.debug('    Load interaction data from a Numpy .npz file')
         elif (Format == 'TXT') and (immortal):
-            log.debug('Load interaction data from TXT files')
-            log.debug('Save interaction data to a binary file in Numpy .npz'
-                      ' format')
+            log.debug('    Load interaction data from TXT files')
+            log.debug('''    Save interaction data to a binary file in Numpy .npz format''')
         else:
-            log.debug('Load interaction data from TXT files')
+            log.debug('    Load interaction data from TXT files')
         
         # Interaction data will be stored in a dict, with chromosome labels
         # as the keys
