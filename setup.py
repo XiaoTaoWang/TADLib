@@ -18,8 +18,8 @@ from distutils.core import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-if (sys.version_info.major != 2) or (sys.version_info.minor < 6):
-    print 'PYTHON VERSION MUST BE 2.6 or 2.7. YOU ARE CURRENTLY USING PYTHON ' + sys.version
+if (sys.version_info.major != 2) or (sys.version_info.minor != 7):
+    print 'PYTHON 2.7 IS REQUIRED. YOU ARE CURRENTLY USING PYTHON ' + sys.version
     sys.exit(2)
 
 # Guarantee Unix Format
@@ -40,7 +40,6 @@ setup(
     package_data = {'tadlib':['data/*']},
     long_description = read('README.rst'),
     classifiers = [
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX',
