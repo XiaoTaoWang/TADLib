@@ -6,10 +6,10 @@ Requirements
 TADLib is developed and tested on UNIX-like operating system, and following Python
 packages are recommended:
 
-- Python (2.x >= 2.6, not compatible with 3.x)
+- Python (2.7, not compatible with 3.x)
 - Numpy (>= 1.6)
-- Scipy library (>= 0.10)
-- scikit-learn (>= 0.10)
+- Scipy library (>= 0.13)
+- scikit-learn (>= 0.11)
 
 .. note:: Tested systems: Red Hat Enterprise Linux Server release 6.4 (Santiago),
    CentOS release 6.4 (Final), Fedora release 20 (Heisenbug), Ubuntu 14.04 LTS
