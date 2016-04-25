@@ -215,7 +215,7 @@ class Inters(object):
        conformation. Science, 2002, 295: 1306-1311.
            
     .. [3] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of
-       Hi-C data reveals hallmarks ofchromosome organization. Nat Methods,
+       Hi-C data reveals hallmarks of chromosome organization. Nat Methods,
        2012, 9: 999-1003.
     
     """
