@@ -1,5 +1,5 @@
-Introduction
-============
+TADLib
+******
 Chromosome conformation capture (3C) derived techniques, especially Hi-C, have
 revealed that topologically associating domain (TAD) is a structural basis for
 both chromatin organization and biological functions in three-dimensional (3D)
@@ -33,17 +33,20 @@ Currently, TADLib consists of two methods:
     involved in shaping higher-order compartment, replication timing and transcriptional
     regulation. [2]_
 
-Links
-=====
-- `Detailed Documentation <https://pythonhosted.org/TADLib/>`_
-    - `Installation <https://pythonhosted.org/TADLib/install.html>`_
-    - `Aggregation Preference <https://pythonhosted.org/TADLib/calfea.html>`_
-    - `Hierarchical TAD <https://pythonhosted.org/TADLib/hitad.html>`_
-- `Code Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub, Track the package issue)
-- `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
-	
-Citation
-========
+User Guide
+==========
+
+.. toctree::
+   :maxdepth: 3
+
+   install
+   calfea
+   hitad
+   changelog 
+
+
+Reference
+=========
 .. [1] Wang XT, Dong PF, Zhang HY, Peng C. Structural heterogeneity and functional diversity
    of topologically associating domains in mammalian genomes. Nucleic Acids Research, 2015,
    doi: 10.1093/nar/gkv684

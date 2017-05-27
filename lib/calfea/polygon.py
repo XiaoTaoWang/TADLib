@@ -3,38 +3,6 @@
 # Author: XiaoTao Wang
 # Organization: HuaZhong Agricultural University
 
-"""
-Polygon creations and operations.
-
-Here, polygon means convex polygon. In the simplest case, a polygon can be
-created or presented by vertices. More ofen, you don't know the vertices but
-want a polygon enclosing a set of points.
-
-**ConvexHull** defined in **scipy.spatial** module uses the Qhull library to
-compute convex hull for a finite set of points, but doesn't provide any
-further polygon operations.
-
-We fix these problems by customizing more methods for **ConvexHull**.
-
-Contents
---------
-:class:`Polygon`
-    A customized **ConvexHull** class. Some common operations based on
-    polygon are provided.
-
-:func:`shoelace`
-    Function for area calculation using Shoelace formula.
-
-:func:`collinear`
-    Test if all given points are collinear.
-
-Notes
------
-Obviously, collinear point sets cannot be used to construct polygon. So
-a collinear test should be performed in advance.
-
-"""
-
 import numpy as np
 from scipy.spatial import ConvexHull
 
@@ -74,7 +42,7 @@ class Polygon(ConvexHull):
     anchors : ndarray of double, shape (nvertices,)
         Vertices of the convex hull, counter-clockwise ordered.
     
-    Attributes after :meth:`calarea` is called:
+    Attributes after :meth:`tadlib.calfea.polygon.Polygon.calarea` is called:
     
     area : float
         Area of the polygon.
@@ -84,7 +52,7 @@ class Polygon(ConvexHull):
     Convex hull of a random set of points:
     
     >>> import numpy as np
-    >>> from tadlib.polygon import Polygon
+    >>> from tadlib.calfea.polygon import Polygon
     >>> points = np.random.rand(20, 2) # 20 random points in 2-D space
     >>> P = Polygon(points)
     >>> print P.anchors
@@ -114,7 +82,7 @@ class Polygon(ConvexHull):
         
         See Also
         --------
-        shoelace : Twice the area of polygon
+        tadlib.calfea.polygon.shoelace : Twice the area of polygon
         
         """
         # Our Calculation
@@ -127,11 +95,12 @@ class Polygon(ConvexHull):
         
         See Also
         --------
-        isinside : judge if points are inside a polygon or not.
+        tadlib.calfea.polygon.isinside : judge if points are inside a polygon
+                                         or not.
         
         Notes
         -----
-        Must be called before :meth:`isinside`.
+        Must be called before :meth:`tadlib.calfea.polygon.Polygon.isinside`.
         
         """
         first = self.anchors[0]
@@ -166,10 +135,10 @@ class Polygon(ConvexHull):
         
         Examples
         --------
-        We start with :class:`Polygon` construction:
+        We start with :class:`tadlib.calfea.polygon.Polygon` construction:
         
         >>> import numpy as np
-        >>> from tadlib.polygon import Polygon
+        >>> from tadlib.calfea.polygon import Polygon
         >>> points = np.random.rand(20, 2) # Used for constructing Polygon
         >>> P = Polygon(points)
         >>> check = np.random.rand(3, 2) # Another 3 random points
@@ -284,7 +253,7 @@ def shoelace(vertices):
 
     Clockwise:    
     
-    >>> from tadlib.polygon import shoelace
+    >>> from tadlib.calfea.polygon import shoelace
     >>> sq = [(0,0), (0,1), (1,1), (1,0)]
     >>> shoelace(sq)
     -2.0
@@ -316,9 +285,9 @@ def collinear(points):
     """Test whether all given points are collinear.
     
     Collinear points will trigger an error called **QhullError** when used
-    to initialize a :class:`Polygon` instance. However, other conditions
-    may also trigger **QhullError**. Doing this test in advance can avoid
-    this error and make things clearer.
+    to initialize a :class:`tadlib.calfea.polygon.Polygon` instance. However,
+    other conditions may also trigger **QhullError**. Doing this test in
+    advance can avoid this error and make things clearer.
     
     Parameters
     ----------
@@ -333,7 +302,7 @@ def collinear(points):
     
     See Also
     --------
-    shoelace
+    tadlib.calfea.polygon.shoelace
     
     Notes
     -----
@@ -345,7 +314,7 @@ def collinear(points):
     --------
     Trival but still effective:
     
-    >>> from tadlib.polygon import collinear
+    >>> from tadlib.calfea.polygon import collinear
     >>> line = [(2, 0.4), (2, 0.8), (2, 4), (2, 100)]
     >>> collinear(line)
     True

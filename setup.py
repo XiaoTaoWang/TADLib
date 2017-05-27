@@ -23,8 +23,9 @@ if (sys.version_info.major != 2) or (sys.version_info.minor != 7):
     sys.exit(2)
 
 # Guarantee Unix Format
-text = open('scripts/calfea', 'rb').read().replace('\r\n', '\n')
-open('scripts/calfea', 'wb').write(text)
+for src in ['scripts/calfea','scripts/hitad']:
+    text = open(src, 'rb').read().replace('\r\n', '\n')
+    open(src, 'wb').write(text)
 
 setup(
     name = 'TADLib',
@@ -33,11 +34,15 @@ setup(
     author_email = 'wangxiaotao868@163.com',
     url = 'https://github.com/XiaoTaoWang/TADLib/',
     description = 'A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains',
-    keywords = 'Hi-C TAD aggregation structure feature annotation polygon',
+    keywords = 'TAD Aggregation Preference AP sub-TAD hierarchy Hi-C',
     package_dir = {'tadlib':'lib'},
-    packages = ['tadlib', 'tadlib.tests'],
-    scripts = ['scripts/calfea'],
-    package_data = {'tadlib':['data/*']},
+    packages = ['tadlib', 'tadlib.calfea', 'tadlib.hitad'],
+    scripts = ['scripts/calfea', 'scripts/hitad'],
+    package_data = {'tadlib.calfea':['data/*'],
+                    'tadlib.hitad':['data/NPZ/*',
+                                    'data/TXT/datasets*',
+                                    'data/TXT/IMR90-HindIII-rep1/*',
+                                    'data/TXT/IMR90-HindIII-rep2/*']},
     long_description = read('README.rst'),
     classifiers = [
         'Programming Language :: Python :: 2.7',

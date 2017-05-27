@@ -1,0 +1,3 @@
+res:40000
+  rep1:../lib/hitad/data/NPZ/GM12878-HindIII.40K.rep1.npz
+  rep2:../lib/hitad/data/NPZ/GM12878-HindIII.40K.rep2.npz

@@ -3,71 +3,6 @@
 # Author: XiaoTao Wang
 # Organization: HuaZhong Agricultural University
 
-"""
-Interaction selection, pattern discovery and feature calculation.
-
-Contents
---------
-:class:`Inters`
-    Class for loading interaction data.
-
-:class:`TAD`
-    Class for loading TAD (Topologically Associating Domain) data.
-
-:class:`Core`
-    Define and calculate structural features for TAD.
-
-:func:`getmatrix`
-    Function for creating interaction matrix from interaction data.
-
-:func:`manipulation`
-    Deal with vacant rows and columns in interaction matrix.
-
-:func:`isnumber`
-    Judge if a string is numerical or not.
-
-Examples
---------
-Say, your interaction data file "gm12878.chr1_chr1.txt" and TAD file
-"gm12878.domain.txt" are both located in "~/data/", then we have:
-
->>> from tadlib import analyze
->>> path = '~/data/'
->>> source = '~/data/gm12878.domain.txt'
->>> template = 'gm12878.chr%s_chr%s.txt'
->>> workInters = analyze.Inters(path = path, template = template)
->>> workInters.data.keys()
-['1']
->>> len(workInters.data['1'])
-60016
-
->>> workTAD = analyze.TAD(source)
->>> workTAD.data.shape
-(3,)
-
-Suppose a TAD, [229385000, 229665000) on chromosome 1, then you can create a
-Core object like this:
-
->>> left = 229385000 / 5000 # Resolution 5000
->>> right = 229665000 / 5000
->>> matrix = analyze.getmatrix(workInters.data['1'], left, right) # Chrom 1
->>> workCore = analyze.Core(matrix)
->>> len(matrix) == len(workCore.newM)
-True
->>> workCore.longrange(pw = 4, ww = 7)
->>> len(workCore.pos)
-62
->>> workCore.DBSCAN()
->>> workCore.Nc
-4
->>> workCore.clusters['areas'].max()
-103.5
->>> workCore.gdensity()
->>> print round(workCore.gden, 3)
-0.628
-
-"""
-
 from __future__ import division
 import glob, re, os, sys
 import logging
@@ -82,15 +17,8 @@ from sklearn import cluster
 
 ## Customize the logger
 log = logging.getLogger(__name__)
-console = logging.StreamHandler()
-console.setLevel('INFO')
-formatter = logging.Formatter(fmt = '%(name)-14s %(levelname)-7s @ %(asctime)s: %(message)s',
-                              datefmt = '%m/%d/%y %H:%M:%S')
-console.setFormatter(formatter)
-log.addHandler(console)
 
 class Inters(object):
-    
     """
     Load interaction data from TXT or Numpy .npz file.
     
@@ -314,7 +242,6 @@ class Inters(object):
     def _extractChrLabel(self, filename):
         """
         Extract chromosome label from a file name according to the template.
-        
         """
         # Full filename including path prefix
         _, interName = os.path.split(filename)
@@ -331,9 +258,7 @@ class Inters(object):
     def _scanFolder(self):
         """
         Create a map from chromosome labels to file names under the folder.
-        
         """
-        
         if not os.path.isdir(self.location):
             log.error('%s is not a folder', self.location)
             sys.exit(2)
@@ -424,9 +349,7 @@ class Inters(object):
     def _readInters(self):
         """
         Read interaction data chromosome by chromosome.
-        
         """
-        
         itype = np.dtype({'names':['bin1', 'bin2', 'IF'],
                           'formats':[np.int, np.int, np.float]})
         
@@ -626,16 +549,18 @@ class Core(object):
     all interaction information of a TAD. 
     
     High IFs off the diagonal region can be identified using
-    :meth:`longrange`. :meth:`DBSCAN` performs a density-based clustering
-    algorithm to detect aggregation patterns in those IFs. Furthermore,
-    two structural features, called AP (Aggregation Preference) and Coverage
-    in our original research, can be calculated by :meth:`gdensity` and
-    :meth:`totalCover` respectively.
+    :meth:`tadlib.calfea.analyze.Core.longrange`. :meth:`tadlib.calfea.analyze.Core.DBSCAN`
+    performs a density-based clustering algorithm to detect aggregation patterns
+    in those IFs. Furthermore, two structural features, called AP
+    (Aggregation Preference) and Coverage in our original research, can be
+    calculated by :meth:`tadlib.calfea.analyze.Core.gdensity` and
+    :meth:`tadlib.calfea.analyze.Core.totalCover` respectively.
     
     Parameters
     ----------
     matrix : numpy.ndarray, (ndim = 2)
-        Interaction matrix of a TAD. Can be extracted by :func:`getmatrix`
+        Interaction matrix of a TAD. Can be extracted by
+        :func:`tadlib.calfea.analyze.getmatrix`
         giving interaction data (under certain resolution). Each entry
         indicates interaction frequency between corresponding two bins.
     
@@ -652,7 +577,7 @@ class Core(object):
     convert : dict
         A coordinate map from **newM** to **matrix**.
     
-    After :meth:`longrange`:
+    After :meth:`tadlib.calfea.analyze.Core.longrange`:
     
     cEM : numpy.ndarray, (ndim = 2)
         Expected interaction matrix. An upper triangular matrix. Value in each
@@ -669,7 +594,7 @@ class Core(object):
     Np : int
         Number of selected IFs.
     
-    After :meth:`DBSCAN`:
+    After :meth:`tadlib.calfea.analyze.Core.DBSCAN`:
     
     cluster_id : numpy.ndarray, (shape = (N,))
         Cluster labels for each point in **pos**. -1 indicates noisy points.
@@ -690,23 +615,22 @@ class Core(object):
         Labels of clusters in which all points are collinear. These
         clusters cannot be enclosed by a convex polygon.
     
-    After :meth:`gdensity`:
+    After :meth:`tadlib.calfea.analyze.Core.gdensity`:
     
     gden : float, [0, 1]
         Weighted average density. Calculated using cluster density
         information.
     
-    After :meth:`totalCover`:
+    After :meth:`tadlib.calfea.analyze.Core.totalCover`:
     
     coverage : float, [0, 1]
         Total coverage of clusters.
     
     See Also
     --------
-    getmatrix
+    tadlib.calfea.analyze.getmatrix
     
     """
-    
     def __init__(self, matrix, left = 0):
         
         # Manipulation, remove vacant rows and columns
@@ -889,7 +813,7 @@ class Core(object):
         See Also
         --------
         sklearn.cluster.DBSCAN : an implementation of DBSCAN
-        tadlib.polygon.Polygon : calculations based on polygon.
+        tadlib.calfea.polygon.Polygon : calculations based on polygon.
         
         Notes
         -----
@@ -1010,7 +934,8 @@ class Core(object):
     def gdensity(self):
         """Weighted density calculation.
         
-        :meth:`longrange` and :meth:`DBSCAN` have to be called in advance.
+        :meth:`tadlib.calfea.analyze.Core.longrange` and
+        :meth:`tadlib.calfea.analyze.Core.DBSCAN` have to be called in advance.
         
         Density of a TAD is the weighted average density of each cluster.
         Weight is the ratio of object number of a cluster to :attr:`Np`.
@@ -1027,7 +952,8 @@ class Core(object):
         """
         Total coverage of clusters.
         
-        :meth:`longrange` and :meth:`DBSCAN` have to be called in advance.
+        :meth:`tadlib.calfea.analyze.Core.longrange` and
+        :meth:`tadlib.calfea.analyze.Core.DBSCAN` have to be called in advance.
         """
         if self.Nc > 0:
             csum = self.clusters['areas'].sum()
@@ -1038,7 +964,6 @@ class Core(object):
             
     def _epsilon(self):
         """Analytical way of estimating input parameters for DBSCAN.
-        
         """
         ## Neighborhood of a point
         if len(self.pos.shape) > 1:
@@ -1160,7 +1085,7 @@ def manipulation(matrix, start = 0):
     Parameters
     ----------
     matrix : numpy.ndarray, (ndim = 2)
-        Interaction matrix generated by **getmatrix**.
+        Interaction matrix generated by :func:`tadlib.calfea.analyze.getmatrix`.
     
     start : int
         The begining of the region. (Default: 0)
@@ -1176,12 +1101,12 @@ def manipulation(matrix, start = 0):
     
     See Also
     --------
-    getmatrix
+    tadlib.calfea.analyze.getmatrix
     
     Examples
     --------
     >>> import numpy as np
-    >>> from tadlib.analyze import manipulation
+    >>> from tadlib.calfea.analyze import manipulation
     >>> matrix = np.random.rand(4, 4)
     >>> matrix[1,:] = 0; matrix[:,1] = 0
     >>> print matrix
