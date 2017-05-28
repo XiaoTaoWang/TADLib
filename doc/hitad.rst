@@ -239,11 +239,6 @@ Other Options
 
   Maximum domain size in base-pair unit. (Default: 4000000)
 
-- ``--cache`` CACHE
-
-  Cache folder path. HiTAD will try to create the folder and all intermediate
-  ones if they don't exist. (Default: /tmp)
-
 - ``--removeCache``
 
   Remove cached data before existing. (Default: False)
