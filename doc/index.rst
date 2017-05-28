@@ -51,5 +51,6 @@ Reference
    of topologically associating domains in mammalian genomes. Nucleic Acids Research, 2015,
    doi: 10.1093/nar/gkv684
 
-.. [2] Wang XT, Cui W, Peng C. HiTAD: a novel method revealing the structural and functional
-   hierarchy of topologically associating domain.
+.. [2] Wang XT, Cui W, Peng C. HiTAD: detecting the structural and functional hierarchy of
+   topologically associating domain from chromatin interactions.
+

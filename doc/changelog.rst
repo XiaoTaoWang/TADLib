@@ -1,5 +1,9 @@
 Release Notes
 =============
+Version 0.3.0-dev2 (2017-5-28)
+""""""""""""""""""""""""""""""
+- Remove the ``--cache`` option from *hitad* command-line tool. Cache data will
+  always be stored under ``~/.hitad``.
 
 Version 0.3.0-dev1 (2017-5-2)
 """""""""""""""""""""""""""""
