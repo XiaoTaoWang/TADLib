@@ -20,62 +20,41 @@ log = logging.getLogger(__name__)
 
 class Inters(object):
     """
-    Load interaction data from TXT or Numpy .npz file.
-    
-    Here, interaction data are produced by Hi-C [1]_, which is a high-
-    throughput variant of 3C [2]_ and is widely used to study chromatin
-    interactions across an entire genome.
-    
-    You need to perform some conventional processes, such as read alignment
-    and filtering in advance. Technically, our pipeline accepts binned data,
-    and only within-chromosome ones are allowed.
-    
-    Although not required, some correction procedures [3]_ are recommended
-    to eliminate systematic biases.
-    
-    If source data are provided in TXT format, we suppose they are split
-    and saved chromosome by chromosome, and the files' name should contain
-    chromosome information. 3 columns are required in these files. In order,
-    they are bin1, bin2, and corresponding frequency.
-    
-    Data can also be stored in Numpy .npz format, with chromosome ID as
-    the key. Such file type makes I/O extremely fast.
+    Load bin-level Hi-C data from TXT or Numpy .npz file.
     
     Parameters
     ----------
     path : str
-        The path to the folder with source interaction data. (Default: '.',
-        current working directory)
+        Data path. (Default: '.', current working directory)
         
     Format : {'TXT', 'NPZ'}
         Two choices of the source format. (Default: 'TXT')
         
     template : str
-        Template of the source file names. Only required for TXT sources.
+        Template of the source file names. Only required for TXT.
         (Default: 'chr%s_chr%s.int', in which '%s' indicates chromosome
         ID)
         
     resolution : int
-        Resolution of the interaction data. (Default: 10000, i.e., the bin
-        size equals 10kb)
+        Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)
         
     chroms : list
-        The list with the strings indicating which chromosome data will be
-        read. Specially, '#' stands for chromosomes with numerical labels.
-        If an empty list is provided, all chromosome data will be loaded.
+        List of chromosome labels. Only Hi-C data within the specified chromosomes
+        will be included. Specially, '#' stands for chromosomes with numerical
+        labels. If an empty list is provided, all chromosome data will be loaded.
         (Default: ['#', 'X'])
         
     cols : None or list of int (length: 3)
         Which columns to read, with 0 being the first. For example,
         ``cols = [1, 3, 4]`` will extract the 2nd, 4th and 5th columns.
-        (Default: None, automatic recognization will be triggered)
+        (Default: None, the automatic recognization will be triggered)
         
     prefix : str or None
         Prefix of input .npz file name. For example, ``prefix = 'h1hesc'``
         will load a file named "h1hesc.npz". (Default: None)
         
     immortal : bool
-        If True, save loaded data to a new Numpy .npz file.
+        If True, save the loaded data to a new Numpy .npz file.
         (Default: False)
         
     saveto : str or None
@@ -84,14 +63,13 @@ class Inters(object):
     Attributes
     ----------
     location : str
-        Absolute path to the data folder. Output .npz file will also be
-        exported here.
+        Absolute path to the data folder.
         
     chroms : set
-        Set of the parameter chroms.
+        Set of the input chromosome labels.
         
     template : str
-        Template of the source file names.
+        Template of the TXT source file names.
         
     resolution : int
         Resolution of the data.
@@ -100,14 +78,13 @@ class Inters(object):
         Which columns in TXT source file to read.
         
     data : dict
-        Loaded interaction data, with chromosome ID as the key and a
+        Loaded Hi-C data, with chromosome ID as the key and a
         customized Numpy Structured Array as the value. The structured
         array, which is defined through numpy.dtype object, has 3 fields
         named "bin1", "bin2" and "IF", respectively.
         
     interFiles : list of str
-        List of TXT source files. Sorted according to corresponding
-        chromosome labels. Only created if ``Format = 'TXT'``.
+        List of TXT source files. Only created if ``Format = 'TXT'``.
         
     labels : list of str
         List of sorted chromosome labels.
@@ -127,24 +104,6 @@ class Inters(object):
     numpy.load : Load an array(s) from .npy or .npz files.
     numpy.savez : Save several arrays into a single .npz file.
     numpy.dtype : Create a data type object.
-    
-    Notes
-    -----
-    Our pipeline is more suitable for high-resolution data.
-    (``resolution <= 20000``)
-    
-    References
-    ----------
-    .. [1] Lieberman-Aiden E, van Berkum NL, Williams L et al. Comprehensive
-       mapping of long-range interactions reveals folding principles of the
-       human genome. Science, 2009, 326: 289-293.
-           
-    .. [2] Dekker J, Rippe K, Dekker M et al. Capturing chromosome
-       conformation. Science, 2002, 295: 1306-1311.
-           
-    .. [3] Imakaev M, Fudenberg G, McCord RP et al. Iterative correction of
-       Hi-C data reveals hallmarks of chromosome organization. Nat Methods,
-       2012, 9: 999-1003.
     
     """
     
@@ -183,17 +142,17 @@ class Inters(object):
         # Summary of actions
         log.debug('Following tasks will be done:')
         if (Format == 'NPZ') and immortal:
-            log.debug('    Argument template and cols will be ignored')
-            log.debug('    Load interaction data from a Numpy .npz file')
-            log.debug('    Save interaction data to another Numpy .npz file')
+            log.debug('    The input template and cols will be ignored')
+            log.debug('    Load Hi-C data from a Numpy .npz file')
+            log.debug('    Save Hi-C data to another Numpy .npz file')
         elif (Format == 'NPZ') and (not immortal):
-            log.debug('    Argument template and cols will be ignored')
-            log.debug('    Load interaction data from a Numpy .npz file')
+            log.debug('    The input template and cols will be ignored')
+            log.debug('    Load Hi-C data from a Numpy .npz file')
         elif (Format == 'TXT') and (immortal):
-            log.debug('    Load interaction data from TXT files')
-            log.debug('''    Save interaction data to a binary file in Numpy .npz format''')
+            log.debug('    Load Hi-C data from TXT files')
+            log.debug('    Save Hi-C data to a binary file in Numpy .npz format')
         else:
-            log.debug('    Load interaction data from TXT files')
+            log.debug('    Load Hi-C data from TXT files')
         
         # Interaction data will be stored in a dict, with chromosome labels
         # as the keys
@@ -227,7 +186,7 @@ class Inters(object):
             log.debug('Scanning folder: %s' % self.location)
             # Scan the folder and obtain a list of chromosome labels
             self._scanFolder()
-            log.debug('Loading interaction data from TXT files, this '
+            log.debug('Loading Hi-C data from TXT files, this '
                       'process may be time/space consuming')
             self._readInters()
         
@@ -240,9 +199,7 @@ class Inters(object):
             
     
     def _extractChrLabel(self, filename):
-        """
-        Extract chromosome label from a file name according to the template.
-        """
+        
         # Full filename including path prefix
         _, interName = os.path.split(filename)
         regexp = self.template % (('(.*)',) * self.template.count('%s'))
@@ -256,9 +213,7 @@ class Inters(object):
         return label
 
     def _scanFolder(self):
-        """
-        Create a map from chromosome labels to file names under the folder.
-        """
+        
         if not os.path.isdir(self.location):
             log.error('%s is not a folder', self.location)
             sys.exit(2)
@@ -269,14 +224,13 @@ class Inters(object):
                            self.template % (('*',) * self.template.count('%s'))))]
         
         if len(self.interFiles) == 0:
-            log.error('No files found at %s', self.location)
+            log.error('There is no file found at %s', self.location)
             sys.exit(2)
         
-        log.debug('%d interaction files are found in total', 
-                  len(self.interFiles))
+        log.debug('%d valid TXT files are found in total', len(self.interFiles))
         
         # Read chromosome labels
-        log.debug('Filter interaction files according to chroms ...')
+        log.debug('Filter TXT files according to the specified chromosome labels ...')
         self.labels = []
         filtered = [] # Depend on user's selection
         for i in self.interFiles:
@@ -288,11 +242,10 @@ class Inters(object):
         
         self.interFiles = filtered
         if len(self.interFiles) == 0:
-            log.error('No interaction files left after filtering!')
+            log.error('No TXT file left after filtering!')
             sys.exit(2)
         
-        log.debug('%d interaction files are left after filtering', 
-                  len(self.interFiles))
+        log.debug('%d files are left after filtering', len(self.interFiles))
         
         self._sortlabels()
         
@@ -305,7 +258,7 @@ class Inters(object):
         
         # Map from labels to files
         self.map = dict(zip(self.labels, self.interFiles))
-        log.debug('Following interaction files will be considered for'
+        log.debug('The following Hi-C data files will be considered for'
                   ' further analysis:')
         for i in self.interFiles:
             log.debug(i)
@@ -316,7 +269,6 @@ class Inters(object):
         
         Numerical labels are sorted naturally. For non-numerical labels,
         give the priority to XYM over the rest.
-        
         """
         if ('#' in self.chroms) or (not self.chroms):
             # Convert labels to indices:
@@ -348,14 +300,14 @@ class Inters(object):
         
     def _readInters(self):
         """
-        Read interaction data chromosome by chromosome.
+        Read the Hi-C data chromosome by chromosome.
         """
         itype = np.dtype({'names':['bin1', 'bin2', 'IF'],
                           'formats':[np.int, np.int, np.float]})
         
         # Try to parse the interaction file format
         # We assume the columns are separated by comma or any space
-        log.debug('Parsing interaction files ...')
+        log.debug('Parsing the source files ...')
         if not self.cols:
             log.warning('You haven\'t specify the desired columns! An '
                         'automatic recognization will be performed, but '
@@ -392,10 +344,7 @@ class Inters(object):
                 cols = [idx for idx in range(len(parse)) if isnumber(parse[idx])]
                 if len(cols) < 3:
                     # Format Error
-                    log.error('Illegal Format: "%s"! Three columns '
-                              'indicating two bins and corresponding'
-                              ' interaction frequency are required!',
-                              line.strip())
+                    log.error('Illegal Format: "%s"!', line.strip())
                     sys.exit(2)
             
             # When label is contained in the main text
@@ -414,11 +363,11 @@ class Inters(object):
             else:
                 if self.cols:
                     if (set(self.cols) & set(cols)) != set(self.cols):
-                        warnings.warn('Your cols setting may have a trouble!'
+                        warnings.warn('Your column setting may have a trouble!'
                                       ' Note that the index of Python is '
                                       '0-based.')
                         
-                    log.debug('Column %s, %s, and %s will be  parsed as '
+                    log.debug('Column %s, %s, and %s will be parsed as '
                               '"bin1", "bin2", and "Interaction frequency", '
                               'respectively.', *tuple(self.cols))
                     
@@ -427,7 +376,7 @@ class Inters(object):
                                               skiprows = skip,
                                               usecols = self.cols)
                 else:
-                    log.debug('Column %s, %s, and %s will be  parsed as '
+                    log.debug('Column %s, %s, and %s will be parsed as '
                               '"bin1", "bin2", and "Interaction frequency", '
                               'respectively.', *tuple(cols))
                     
@@ -435,7 +384,7 @@ class Inters(object):
                                               delimiter = delimiter,
                                               skiprows = skip,
                                               usecols = cols)
-        log.debug('Interaction files are read successfully!')
+        log.debug('Hi-C data have been loaded successfully!')
 
 class TAD(object):
     """
@@ -443,15 +392,10 @@ class TAD(object):
     
     TAD -- Topologically Associating Domain.
     
-    TADs reflect megabase-scale substructures of chromatin in mammals [1]_,
-    even in some lower animals(Drosophila embryos) [2]_. In short, TADs are
-    identified naturally from interaction data, and chromatin interactions
-    occur preferentially among the bins within the same domain.
-    
     Parameters
     ----------
     source : str
-        Complete source file name.
+        The complete source file name.
         Suppose a file named "h1hesc.domain" is located in
         "/home/xtwang/data/TAD", then ``source = '~/data/TAD/h1hesc.domain'``
         or ``source = '/home/xtwang/data/TAD/h1hesc.domain'``.
@@ -474,23 +418,13 @@ class TAD(object):
     
     Attributes
     ----------
-    data : Structured Array
-        3 fields are defined by numpy.dtype object, and they are "chr",
-        "start" and "end".
+    data :  Numpy Structured Array
+        The parsed TAD intervals are contained in a numpy structured array
+        containing 3 fields: "chr", "start" and "end".
     
     See Also
     --------
     numpy.dtype : Create a data type object
-    
-    References
-    ----------
-    .. [1] Dixon JR, Selvaraj S, Yue F et al. Topological domains in
-       mammalian genomes identified by analysis of chromatin interactions.
-       Nature, 2012, 485: 376-380.
-       
-    .. [2] Sexton T, Yaffe E, Kenigsberg E et al. Three-dimensional folding
-       and functional organization principles of the Drosophila genome.
-       Cell, 2012, 148: 458-472.
     
     """
     def __init__(self, source, chromname=None, cols=[0, 1, 2]):
@@ -545,9 +479,6 @@ class Core(object):
     """
     Interaction analysis at TAD level.
     
-    The analysis uses an interaction matrix as the input, which contains
-    all interaction information of a TAD. 
-    
     High IFs off the diagonal region can be identified using
     :meth:`tadlib.calfea.analyze.Core.longrange`. :meth:`tadlib.calfea.analyze.Core.DBSCAN`
     performs a density-based clustering algorithm to detect aggregation patterns
@@ -559,23 +490,19 @@ class Core(object):
     Parameters
     ----------
     matrix : numpy.ndarray, (ndim = 2)
-        Interaction matrix of a TAD. Can be extracted by
-        :func:`tadlib.calfea.analyze.getmatrix`
-        giving interaction data (under certain resolution). Each entry
-        indicates interaction frequency between corresponding two bins.
+        Interaction matrix of a TAD.
     
     left : int
-        Starting point of TAD, in **resolution** unit. For example, if bin
-        size is 10kb, ``left = 50`` means position 500000(bp) on the genome.
+        Starting point of TAD. For example, if the bin size is 10kb,
+        ``left = 50`` means position 500000(bp) on the genome.
     
     Attributes
     ----------
     newM : numpy.ndarray, (ndim = 2)
-        A modified **matrix**. All vacant rows and columns in original
-        **matrix** are removed.
+        Gap-free interaction matrix.
     
-    convert : dict
-        A coordinate map from **newM** to **matrix**.
+    convert : list
+        Information required for converting *newM* to *matrix*.
     
     After :meth:`tadlib.calfea.analyze.Core.longrange`:
     
@@ -584,20 +511,24 @@ class Core(object):
         entry will be used to construct a Poisson Model for statistical
         significance calculation.
     
+    fE : numpy.ndarray, (ndim = 2)
+        An upper triangular matrix. Each entry represents the fold enrichment
+        of corresponding observed interaction frequency.
+    
     Ps : numpy.ndarray, (ndim = 2)
         An upper triangular matrix. Value in each entry indicates the p-value
         under corresponding Poisson Model.
     
     pos : numpy.ndarray, (shape = (N, 2))
-        Coordinates of selected IFs in **newM**.
+        Coordinates of the selected IFs in *newM*.
     
     Np : int
-        Number of selected IFs.
+        Number of the selected IFs.
     
     After :meth:`tadlib.calfea.analyze.Core.DBSCAN`:
     
     cluster_id : numpy.ndarray, (shape = (N,))
-        Cluster labels for each point in **pos**. -1 indicates noisy points.
+        Cluster labels for each point in *pos*. -1 indicates noisy points.
     
     Nc : int
         Cluster number.
@@ -646,9 +577,6 @@ class Core(object):
         iIFs = np.array(iIFs)
         
         idx = np.where(iIFs > 0)[0][0]
-        
-        if idx > 0:
-            log.warning('''There is no data in diagonal region.''')
         
         self._start = idx
         IFs = iIFs[idx:]
@@ -775,10 +703,15 @@ class Core(object):
         for b in OPool_b:
             BM += OPool_b[b]
             CM += OPool_bc[b]
-            
-        mBM = BM / CM
-        Mask = np.isnan(mBM)
-        mBM[Mask] = 0
+        
+        mBM = np.zeros_like(BM)
+        Mask = CM != 0
+        mBM[Mask] = BM[Mask] / CM[Mask]
+        
+        ## Fold Enrichments
+        self.fE = np.zeros_like(self.cEM)
+        mask = self.cEM != 0
+        self.fE[mask] = upper[mask] / self.cEM[mask]
         
         ## Poisson Models
         Poisses = poisson(cEM)
@@ -804,7 +737,7 @@ class Core(object):
         """Detect natural patterns in selected IFs using DBSCAN.
         
         DBSCAN is a dennsity-based clustering algorithm. [1]_ Two input
-        parameters **eps** and **MinPts** are calculated in an analytical
+        parameters *eps* and *MinPts* are calculated in an analytical
         way. [2]_ Before further analysis, some basic features are
         calculated for each cluster, including "density", "radius" and the
         "area", among which, "area" stands for corresponding convex polygon
@@ -960,7 +893,19 @@ class Core(object):
             self.coverage = csum / self._area
         else:
             self.coverage = 0
-        
+    
+    def convertMatrix(self, M):
+        """
+        Convert an internal gap-free matrix(e.g., newM, cEM, fE, and Ps)
+        into a new matrix with the same shape as the original interaction
+        matrix by using the recorded index map(see the *convert* attribute).
+        """
+        idx = sorted(self.convert[0].values())
+        newM = np.zeros((self.convert[1], self.convert[1]), dtype=M.dtype)
+        y,x = np.meshgrid(idx, idx)
+        newM[x,y] = M
+            
+        return newM
             
     def _epsilon(self):
         """Analytical way of estimating input parameters for DBSCAN.
@@ -1053,7 +998,7 @@ def getmatrix(inter, l_bin, r_bin):
     Notes
     -----
     Original interaction data is always binned under some resolution (10 kb
-    in our research). **inter** is used to store such binned data, which can
+    in our research). *inter* is used to store such binned data, which can
     be seen as a sparse matrix in a numpy-style way.
     
     Sparse matrix is always required for high-resolution analysis of large
@@ -1080,7 +1025,7 @@ def getmatrix(inter, l_bin, r_bin):
     return inter_matrix
 
 def manipulation(matrix, start = 0):
-    """Remove vacant rows and columns of a matrix.
+    """Remove gaps of the original interaction matrix.
     
     Parameters
     ----------
@@ -1093,11 +1038,11 @@ def manipulation(matrix, start = 0):
     Returns
     -------
     newM : numpy.ndarray, (ndim = 2)
-        A modified **matrix** in which all vacant rows and columns are
-        removed.
+        The gap-removed matrix.
     
-    convert : dict
-        Index map from **newM** to **matrix**.
+    convert : list
+        The first element is the index map from *newM* to *matrix*, and
+        the second element records the length of *matrix*.
     
     See Also
     --------
@@ -1122,7 +1067,7 @@ def manipulation(matrix, start = 0):
      [ 0.13022712  0.78674168  0.77068304]]
     
     >>> print convert
-    {0: 0, 1: 2, 2: 3}
+    [{0: 0, 1: 2, 2: 3}, 4]
 
     """
     mask = matrix.sum(axis = 0) == 0
@@ -1131,7 +1076,8 @@ def manipulation(matrix, start = 0):
     temp = np.delete(matrix, index, 0)
     # Vacant columns
     newM = np.delete(temp, index, 1)
-    convert = dict(zip(np.arange(len(newM)),
-                       np.where(np.logical_not(mask))[0] + start))
+    mapidx = dict(zip(np.arange(len(newM)),
+                      np.where(np.logical_not(mask))[0] + start))
+    convert = [mapidx, matrix.shape[0]]
     
     return newM, convert

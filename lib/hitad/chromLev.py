@@ -6,15 +6,33 @@ Created on Tue May 31 15:47:34 2016
 """
 
 from __future__ import division
-import logging, copy, collections
+import copy, collections
 import numpy as np
 from scipy import sparse
 from aligner import BoundSet, DomainSet, DomainAligner, hierFormat, Container
+from tadlib.calfea import analyze
+
+from matplotlib.colors import Normalize
+
+class MidpointNormalize(Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        if self.vmin == self.vmax:
+            return np.ma.masked_array(np.interp(value, [self.vmin], [0.5]))
+        
+        if self.vmin < self.midpoint < self.vmax:
+            x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        elif self.vmin >= self.midpoint:
+            x, y = [self.vmin, self.vmax], [0.5, 1]
+        elif self.vmax <= self.midpoint:
+            x, y = [self.vmin, self.vmax], [0, 0.5]
+            
+        return np.ma.masked_array(np.interp(value, x, y))
 
 np.seterr(divide = "ignore")
-
-## Customize the logger
-log = logging.getLogger(__name__)
 
 class Chrom(object):
     """
@@ -57,15 +75,19 @@ class Chrom(object):
     res : int
         Resolution in base-pair unit.
     
+    maxapart : int
+        Maximum allowable TAD size.
+    
+    replabel : str
+        Biological replicate label.
+    
     chromLen : int
         Total bin number of the chromosome. Obtained from Hi-C data.
     
     rawMatrix : sparse matrix in Compressed Sparse Row format
         CSR sparse matrix is used to extract Hi-C data by slicing conveniently
         while guarantee low memory overhead.
-        
     """
-
     defaultwindow = 2000000
     minsize = 5
 
@@ -259,7 +281,7 @@ class Chrom(object):
         Parameters
         ----------
         start, end : int
-            Specify range of the bins.
+            Specify range of the bin indices.
         
         maxw : int
             Maximum allowable window size.
@@ -297,8 +319,8 @@ class Chrom(object):
             Starting bin index, the window size of which is taken from the
             1st place of *windows*.
     
-        Returns
-        -------
+        Attributes
+        ----------
         DIs : 1-D numpy ndarray, float
             Calculated adaptive DI array, which has the same size as the
             input *windows*.
@@ -459,8 +481,8 @@ class Chrom(object):
         See Also
         --------
         tadlib.hitad.chromLev.Chrom.oriHMMParams : Set initial parameters
-        tadlib.hitad.chromLev.Chrom.splitChrom : where gap-free regions are
-                                                 returned.
+        tadlib.hitad.chromLev.Chrom.splitChrom : Split chromosome into gap-free
+                                                 regions.
         """
         import ghmm
 
@@ -604,7 +626,7 @@ class Chrom(object):
         path : list
             Hidden state series returned by :py:meth:`tadlib.hitad.chromLev.Chrom.viterbi`.
         junctions : list of strings
-            Boundary definitions using state transition modes.
+            Boundary definitions by using state transition modes.
             (Default: ['20','40','42'])
         
         Returns
@@ -647,13 +669,13 @@ class Chrom(object):
         Returns
         -------
         domains : list
-            The elements are also lists in format ``[start bin, end bin,
-            noise level, hierarchical level]``.
+            List of domains in the format ``[start bin, end bin, noise level,
+            hierarchical level]``.
         
         See Also
         --------
-        tadlib.hitad.chromLev.Chrom.refNoise : where domain noise level is
-                                               calculated
+        tadlib.hitad.chromLev.Chrom.refNoise : Calculate the noise level of
+                                               a given domain
         tadlib.hitad.aligner.BoundSet : where the meanings of the hierarchical
                                         level labels are explained in detail.
         """
@@ -701,17 +723,19 @@ class Chrom(object):
                                            procedure has been completed
         """
         self.learning(regionDIs)
-        minDomains = {}
+        tmpDomains = {}
         for region in sorted(regionDIs):
             seq = regionDIs[region]
             domains = self.pipe(seq, region[0])
             cr = (region[0]*self.res, region[1]*self.res)
-            minDomains[cr] = []
+            tmpDomains[cr] = []
             for domain in domains:
                 domain[0] = domain[0] * self.res
                 domain[1] = domain[1] * self.res
                 domain[2] = self.refNoise(domain)
-                minDomains[cr].append(domain)
+                tmpDomains[cr].append(domain)
+        
+        minDomains = self._orifilter(tmpDomains)
 
         return minDomains
 
@@ -738,7 +762,7 @@ class Chrom(object):
 
     def _orifilter(self, oriDomains):
         """
-        Perform size filtering on input domain lists.
+        Perform size filtering on the input domain lists.
         
         Parameters
         ----------
@@ -764,7 +788,7 @@ class Chrom(object):
 
     def iterCore(self, minDomains, tmpDomains):
         """
-        Calculate the mismatch ratio for input two domain lists. Return
+        Calculate the mismatch ratio for the input two domain lists. Return
         1 if *minDomains* is empty.
         
         :py:meth:`tadlib.hitad.chromLev.Chrom.oriIter` uses this method to
@@ -773,9 +797,9 @@ class Chrom(object):
         Parameters
         ----------
         minDomains : dict
-            Target domain list calculated by the last loop.
+            Target domains calculated by the last loop.
         tmpDomains : dict
-            Query domain list of current loop.
+            Query domains returned by the current loop.
         
         Returns
         -------
@@ -806,10 +830,11 @@ class Chrom(object):
         """
         Iteratvely approximate adaptive window sizes and return the final
         bottom domain list which will be used in subsequent procedures. For
-        each loop, window sizes are updated according to identified bottom
+        each loop, window sizes are updated according to the latest bottom
         domains and next loop will re-run the identification pipeline using
         new window sizes. The iteration terminates if domains between two
-        loops are very similar (estimated by :py:meth:`tadlib.hitad.chromLev.Chrom.iterCore`).
+        consecutive loops are very similar (estimated by
+        :py:meth:`tadlib.hitad.chromLev.Chrom.iterCore`).
         
         Parameters
         ----------
@@ -829,17 +854,14 @@ class Chrom(object):
         --------
         tadlib.hitad.chromLev.Chrom.calDI : calculate DI values according to
                                             input window sizes
-        tadlib.hitad.chromLev.Chrom.minCore : learning HMM parameters and
+        tadlib.hitad.chromLev.Chrom.minCore : learn HMM parameters and
                                               identify bottom domains by using
                                               updated adaptive DIs
         tadlib.hitad.chromLev.Chrom.iterCore : estimate the degree of divergence
                                                between two domain lists
         """
         for n_i in range(5):
-            log.debug('Chrom %s (res %dK, %s): calling bottom domains, %d iteration, start ...',
-                      self.chrom, self.res//1000, self.replabel, n_i+1)
-            oriDomains = self.minCore(self.regionDIs)
-            tmpDomains = self._orifilter(oriDomains)
+            tmpDomains = self.minCore(self.regionDIs)
             tol = self.iterCore(minDomains, tmpDomains)
             minDomains = tmpDomains
             for region in minDomains:
@@ -851,8 +873,6 @@ class Chrom(object):
                     self.windows[ds:de] = ws
             self.calDI(self.windows, 0)
             self.splitChrom(self.DIs)
-            log.debug('Chrom %s (res %dK, %s): calling bottom domains, %d iteration, unaligned ratio %.3g%%',
-                      self.chrom, self.res//1000, self.replabel, n_i+1, tol*100)
             if tol < 0.05:
                 break
 
@@ -871,8 +891,8 @@ class Chrom(object):
         
         See Also
         --------
-        tadlib.hitad.chromLev.Chrom.maxCore : identify TADs using bottom
-                                              domain lists
+        tadlib.hitad.chromLev.Chrom.maxCore : identify TADs
+        
         tadlib.hitad.chromLev.Chrom.subDomains : resolve domain hierarchy
                                                  within a given TAD
         """
@@ -895,7 +915,7 @@ class Chrom(object):
                         hdomains.append(list(d)+[noise,subdomains[d]])
             hdomains.sort()
             self.hierDomains[region] = hdomains
-
+    
     def callDomain(self):
         """
         Direct API for our hierarchical domain identification pipeline:
@@ -911,21 +931,12 @@ class Chrom(object):
         - Resolve domain hierarchy within each TAD.
           (:py:meth:`tadlib.hitad.chromLev.Chrom.fineDomain`)
         """
-        log.debug('Chrom %s (res %dK, %s): domain calling start ...',
-                  self.chrom, self.res//1000, self.replabel)
-
         self.minWindows(0, self.chromLen, self._mw)
         self.calDI(self.windows, 0)
         self.splitChrom(self.DIs)
         self.oriIter({})
-        log.debug('Chrom %s (res %dK, %s): identify TADs ...',
-                  self.chrom, self.res//1000, self.replabel)
         self.maxCore()
-        log.debug('Chrom %s (res %dK, %s): resolve domain hierarchy within each TAD ...',
-                  self.chrom, self.res//1000, self.replabel)
         self.fineDomain()
-        log.debug('Chrom %s (res %dK, %s): domain calling completed',
-                  self.chrom, self.res//1000, self.replabel)
 
         self._state = 'Completed'
 
@@ -973,7 +984,7 @@ class Chrom(object):
 
         return up_store, cur_store, down_store
 
-    def stablescore(self, domain):
+    def stablescore(self, domain, bases=[]):
         """
         Calculate TAD score for the given domain. 
         
@@ -981,6 +992,9 @@ class Chrom(object):
         ----------
         domain : [start, end]
             Domain interval in base-pair unit.
+            
+        bases : list
+            List of bottom domains within the given domain region.
         
         Returns
         -------
@@ -994,12 +1008,17 @@ class Chrom(object):
         tadlib.hitad.chromLev.Chrom.idxmatch : Pair intra-domain and inter-domain
                                                interactions with the same
                                                genomic distance
+        tadlib.calfea.analyze.Core.longrange : Assign the weight value for each
+                                               intra-domain interaction according
+                                               to the genomic distance and
+                                               the local interaction background.
         """
         ori = domain[0] // self.res + self.chromLen
         end = domain[1] // self.res + self.chromLen
         P = self.idxmatch(domain)
         if P is None:
-            return 0, None, None
+            return 0
+        
         ## Compare inside-domain interactions with outside ones, larger, better
         inside = np.r_[[]]; outside = np.r_[[]]
         # Pair with upstream interactions
@@ -1013,16 +1032,37 @@ class Chrom(object):
         inside = np.r_[inside, P[1][2][Dmask]]
         outside = np.r_[outside, P[2][2][Dmask]]
         inout = 0
-        if inside.size > 5:
-            diff = (inside - outside) / (inside + outside)
+        if inside.size > 3:
+            weights = 0.5
+            if len(bases):
+                M = self.getSelfMatrix(domain[0], domain[1])
+                newM, convert = analyze.manipulation(M)
+                if newM.shape[0] > 7: # 2*ww + 1
+                    work = analyze.Core(M)
+                    work.longrange(pw=1, ww=3)
+                    fE = work.convertMatrix(work.fE)
+                    for d in bases:
+                        ds = (d[0]-domain[0])//self.res
+                        de = (d[1]-domain[0])//self.res
+                        fE[ds:de,ds:de] = 0
+                    pkv = fE[fE>0]
+                    if pkv.size > 0:
+                        norm = MidpointNormalize(vmin=np.percentile(pkv,1),
+                                                 vmax=np.percentile(pkv,99),
+                                                 midpoint=1)
+                        W = norm(fE).data
+                        W[fE==0] = 0.5
+                        weights = np.r_[W[Umask], W[Dmask]]
+                
+            diff = (inside - outside) / (inside + outside) * weights
             inout = diff.mean()
 
         return inout
 
-    def _updateCache(self, cache, key):
+    def _updateCache(self, cache, key, bases=[]):
         
         if not key in cache:
-            cache[key] = self.stablescore(key)
+            cache[key] = self.stablescore(key, bases)
 
     def scoreCache(self, domainlist, cache = {}):
         """
@@ -1054,7 +1094,8 @@ class Chrom(object):
                 if domainlist[j][2] > 0.2:
                     continue
                 key = (domainlist[i][0], domainlist[j][1])
-                self._updateCache(cache, key)
+                bases = [d[:2] for d in domainlist[i:j+1]]
+                self._updateCache(cache, key, bases)
 
     def maxscorepath(self, domainlist, cache):
         """
@@ -1132,9 +1173,10 @@ class Chrom(object):
         Parameters
         ----------
         cache : dict
-            TAD scores for all combinations of bottom domains will be pre-computed
-            and stored in this dict. The keys are tuples (start, end)
-            representing merged domain intervals. (Default: {})
+            TAD scores for all combinations of consecutive bottom domains
+            will be pre-computed and stored in this dict. The keys are
+            tuples (start, end) representing merged domain intervals.
+            (Default: {})
         
         Attrubutes
         ----------
@@ -1172,9 +1214,10 @@ class Chrom(object):
         self.maxDomains = self._orifilter(maxDomains)
         self.cache = cache
 
-    def subDomains(self, domain, reflist, clv = 0, aM = None, subdomains = {}):
+    def subDomains(self, domain, reflist, clv = 0, aM=None, W=None,
+                   subdomains={}):
         """
-        A recusive method (function) to identify domain hierarchy
+        A recusive method (function) to identify inner domain hierarchy
         of a TAD (or a domain). Sub-TADs of each level are defined as the
         best separation of the outer domain.
         
@@ -1189,9 +1232,11 @@ class Chrom(object):
             0, the sub-TADs within a TAD have the level 1, and sub-sub-TADs
             within a sub-TAD have the level 2, and so forth. (Default: 0)
         aM : 2-D numpy ndarray or None
-            Arrowhead matrix of the outer domain. If None,
-            :py:meth:`tadlib.hitad.chromLev.Chrom.toArrowhead` is used to
-            calculate one using *domain* interval on the fly. (Default: None)
+            Arrowhead matrix of the outer domain. (Default: None)
+        W : 2-D numpy ndarray or None
+            Weight matrix corresponding to the contact matrix of the outer
+            domain. See :py:meth:`tadlib.hitad.chromLev.Chrom.getWeightMatrix`
+            for detailed calculation. (Default: None)
         subdomains : dict
             A container for domains of all hierarchy. The keys are domain
             intervals in base-pair unit, and values are corresponding
@@ -1206,17 +1251,19 @@ class Chrom(object):
         def localUpdate(key):
             ori = key[0]//self.res - domain[0]//self.res
             end = key[1]//self.res - domain[0]//self.res
-            # Upstream bias
+            
             mask1 = common & (yidx >= end) & (xidx < end) & ((2*xidx - ori) >= yidx)
-            # Downstream bias
             mask2 = common & (yidx < end) & (xidx >= ori) & (2*xidx >= yidx) &\
                     ((2*xidx - ori) <= yidx)
-            # Update biases
             part1 = aM[mask1]
             part2 = aM[mask2]
             merge = np.r_[part1, -part2]
-            if merge.size > 5:
-                biases[key] = merge.mean()
+            
+            if merge.size > 3:
+                tx,ty = np.where(mask1)
+                weights = np.r_[W[2*tx-ty,tx], W[mask2]]
+                diff = merge * weights
+                biases[key] = diff.mean()
             else:
                 biases[key] = 0
 
@@ -1230,6 +1277,8 @@ class Chrom(object):
         if aM is None:
             aM = self.toArrowhead(domain[0], domain[1])
         sublist = getsublist((domain[0], domain[1]), reflist)
+        if W is None:
+            W = self.getWeightMatrix(domain[0], domain[1], sublist)
         xidx, yidx = np.indices(aM.shape)
         common = ((yidx - xidx) > self._rm) & (aM != 1) & (aM != -1)
         biases = {}
@@ -1260,7 +1309,49 @@ class Chrom(object):
             tmpori = tmpdomain[0]//self.res - domain[0]//self.res
             tmpend = tmpdomain[1]//self.res - domain[0]//self.res
             taM = aM[tmpori:tmpend, tmpori:tmpend]
-            self.subDomains(tmpdomain, sublist, clv=nlv, aM=taM, subdomains=subdomains)
+            tW = W[tmpori:tmpend, tmpori:tmpend]
+            self.subDomains(tmpdomain, sublist, clv=nlv, aM=taM, W=tW,
+                            subdomains=subdomains)
+    
+    def getWeightMatrix(self, start, end, bases=[]):
+        """
+        Calculate weights for each intra-domain interaction by considering
+        the genomic distance and the local interaction background.
+        
+        Parameters
+        ----------
+        start, end : int
+            The domain interval in base-pair unit.
+        
+        bases : list
+            List of the bottom domains within the given interval.
+        
+        Returns
+        -------
+        W : 2-D numpy.ndarray
+            The weight matrix. (An upper triangular matrix)
+        """
+        M = self.getSelfMatrix(start, end)
+        W = np.ones(M.shape) * 0.5
+        newM, convert = analyze.manipulation(M)
+        if newM.shape[0] > 7: # 2*ww + 1
+            work = analyze.Core(M)
+            work.longrange(pw=1, ww=3)
+            fE = work.convertMatrix(work.fE)
+            for d in bases:
+                ds = (d[0]-start)//self.res
+                de = (d[1]-start)//self.res
+                fE[ds:de,ds:de] = 0
+            pkv = fE[fE>0]
+            if pkv.size > 0:
+                norm = MidpointNormalize(vmin=np.percentile(pkv,1),
+                                         vmax=np.percentile(pkv,99),
+                                         midpoint=1)
+                W = norm(fE).data
+                W[fE==0] = 0.5
+                
+        return W
+        
 
     def getSelfMatrix(self, start, end):
         """
@@ -1353,7 +1444,8 @@ class Chrom(object):
     def plot(self, start, end, Domains, figname = None, arrowhead = False):
         """
         Given a genomic region and a domain list, plot corresponding contact
-        heatmap and all domains (represented as squares) within the region.
+        heatmap and all domains (represented as diagonal squares) within the
+        region.
         
         Parameters
         ----------
@@ -1367,25 +1459,15 @@ class Chrom(object):
             shown in an interactive window. (Default: None)
         arrowhead : bool
             If True, the Arrowhead transformed matrix will be plotted instead
-            of raw contact matrix. (Default: False)
+            of the raw contact matrix. (Default: False)
         """
         import matplotlib
         import matplotlib.pyplot as plt
         from matplotlib.colors import LinearSegmentedColormap
-        from matplotlib.colors import Normalize
-
-        class MidpointNormalize(Normalize):
-            def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
-                self.midpoint = midpoint
-                Normalize.__init__(self, vmin, vmax, clip)
-
-            def __call__(self, value, clip=None):
-                x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
-                return np.ma.masked_array(np.interp(value, x, y))
 
         def caxis_H(ax):
             """
-            Axis Control for HeatMaps.
+            Axis control for the heatmap.
             """
             ax.yaxis.set_ticks_position('left')
             ax.xaxis.set_ticks_position('bottom')
@@ -1393,7 +1475,7 @@ class Chrom(object):
 
         def caxis_S(ax, color):
             """
-            Axis Control for DI track.
+            Axis control for the DI track.
             """
             for spine in ['right', 'top']:
                 ax.spines[spine].set_visible(False)
@@ -1411,8 +1493,7 @@ class Chrom(object):
 
         def properU(pos):
             """
-            Express a genomic position in a proper unit (KB, MB, or both).
-
+            Express a genomic position in proper unit (KB or MB).
             """
             i_part = int(pos) // 1000000 # Integer Part
             d_part = (int(pos) % 1000000) // 1000 # Decimal Part
@@ -1464,7 +1545,8 @@ class Chrom(object):
         fig = plt.figure(figsize = size)
         if arrowhead:
             Matrix = self.toArrowhead(start, end)
-            norm = MidpointNormalize(vmin = Matrix.min(), midpoint = 0, vmax = Matrix.max())
+            norm = MidpointNormalize(vmin=Matrix.min(), midpoint=0,
+                                     vmax=Matrix.max())
             Params = {'norm': norm, 'cmap': arrow_cmap}
         else:
             Matrix = self.getSelfMatrix(start, end)
@@ -1532,9 +1614,9 @@ class MultiReps(DomainAligner):
     
     - Hold Hi-C data of the same chromosome from different biological replicates
       at the same time
-    - Provide an interface to identify hierarchical domains using different
-      replicate data independently and maintain reproducible domains of all
-      levels to form final domain list.
+    - Provide an interface to identify hierarchical domains by using different
+      replicate data independently and maintain the reproducible domains to
+      form the final domain list.
     
     Parameters
     ----------
@@ -1544,7 +1626,8 @@ class MultiReps(DomainAligner):
         Hi-C data resolution in base-pair unit.
     datasets : dict
         The keys are unique replicate labels, and the values are constructed
-        *Chrom* objects using Hi-C data of corresponding biological replicates.
+        *Chrom* objects by using the Hi-C data of corresponding biological
+        replicates.
     """
     def __init__(self, chrom, res, datasets):
 
@@ -1570,14 +1653,9 @@ class MultiReps(DomainAligner):
 
     def callDomain(self):
         """
-        Invoke *callDomain* method for each loaded :py:class:`tadlib.hitad.chromLev.Chrom`
-        object, and find reproducible domains between replicates by using our
+        Find reproducible domains between replicates by using our
         domain-level alignment strategy.
         """
-        for rep in self.Queue:
-            if self.Queue[rep]._state != 'Completed':
-                self.Queue[rep].callDomain()
-        
         reps = sorted(self.Queue)
         tl = self.getDomainList(self.Queue[reps[0]].hierDomains)
         tg = DomainSet(reps[0], tl, self.res)
@@ -1587,9 +1665,25 @@ class MultiReps(DomainAligner):
             tl = self._interp(self.reproducible(tg, qy))
             tg = DomainSet('mtg', tl, self.res)
         
-        self.mergedDomains = tl
+        pool = set()
+        self._correctDomainTree(tg.Domains, pool)
+        
+        self.mergedDomains = hierFormat(pool)
         
         self._state = 'Completed'
+    
+    def _correctDomainTree(self, subtree, pool, cur=None, ref_s=None,
+                           ref_e=None):
+        
+        for node in subtree:
+            chrom, start, end, label = node
+            if (not ref_s is None) and (not ref_e is None) and (not cur is None):
+                if start - cur[1] <= 2*self.res:
+                    start = ref_s
+                if cur[2] - end <= 2*self.res:
+                    end = ref_e
+            pool.add((chrom,start,end))
+            self._correctDomainTree(subtree[node], pool, node, start, end)
 
     def reproducible(self, tg, qy):
         """
@@ -1623,6 +1717,65 @@ class MultiReps(DomainAligner):
             blv = max(lvs[0], lvs[-1])
             return inlv >= blv
     
+    def _correct_core(self, forward, backward, pool, tg, qy, me):
+        
+        for lv in forward:
+            for p in forward[lv]:
+                tl, ql = forward[lv][p].info
+                tcheck = self._iscompatible(tl, tg)
+                qcheck = self._iscompatible(ql, qy)
+                if (not tcheck) or (not qcheck):
+                    if me:
+                        pool[lv][p] = Container([tl,ql,0])
+                    continue
+                found = self._search(backward, p)
+                if found:
+                    if me:
+                        pool[lv][p] = Container([tl,ql,1])
+                else:
+                    mlv = min(set([d[-1] for d in tl]))
+                    if mlv==0:
+                        if me:
+                            pool[lv][p] = Container([tl,ql,0])
+                            continue
+                    if len(ql)==0:
+                        if me:
+                            pool[lv][p] = Container([tl,ql,0])
+                        continue
+                    ck = [ql[0][1],ql[-1][2]]
+                    valid = True
+                    for blv in backward:
+                        for bp in backward[blv]:
+                            q = list(bp[0][1:3])
+                            if ((ck[0]<q[0]<ck[1]) and (q[1]>ck[1])) or \
+                               ((ck[0]<q[1]<ck[1]) and (q[0]<ck[0])):
+                                valid = False
+                                break
+                        if not valid:
+                            break
+                    if valid:
+                        if me:
+                            pool[lv][p] = Container([tl,ql,1])
+                        else:
+                            tl, ql = ql, tl
+                            mlv = min(set([d[-1] for d in tl]))
+                            if not mlv in pool:
+                                pool[mlv] = {p[::-1]:Container([tl,ql,1])}
+                            else:
+                                pool[mlv][p[::-1]] = Container([tl,ql,1])
+                    else:
+                        if me:
+                            pool[lv][p] = Container([tl,ql,0])
+                            
+    
+    def _correct_pairs(self, forward, backward, tg, qy):
+        
+        pool = copy.deepcopy(forward)
+        self._correct_core(forward, backward, pool, tg, qy, True)
+        self._correct_core(backward, forward, pool, qy, tg, False)
+        
+        return pool
+    
     def _customize(self, cache, ref, tg, qy, source):
         
         tcore = {}
@@ -1640,15 +1793,13 @@ class MultiReps(DomainAligner):
             if (len(tl)==1) and (len(ql)>1):
                 # wait for reverse alignment
                 continue
-            tcore[k] = Container(target.info)
+            target = self._correct_pairs(target, hit, tg, qy)
+            tcore[k] = Container(target.info[:2])
             for lv in target:
                 for p in target[lv]:
-                    tl, ql = target[lv][p].info
+                    tl, ql, label = target[lv][p].info
                     tlvs = set([d[-1] for d in tl])
-                    tcheck = self._iscompatible(tl, tg)
-                    qcheck = self._iscompatible(ql, qy)
-                    found = self._search(hit, p)
-                    if found and ((len(tl)==1) or (len(ql)==1)) and tcheck and qcheck:
+                    if label and ((len(tl)==1) or (len(ql)==1)):
                         mlv = min(tlvs)
                         if (mlv==0) and (len(tl)>1):
                             for d in tl:
@@ -1659,9 +1810,9 @@ class MultiReps(DomainAligner):
                                     tcore[k][d[-1]][nk] = Container([[d],[]])
                         else:
                             if not mlv in tcore[k]:
-                                tcore[k][mlv] = {p:target[lv][p]}
+                                tcore[k][mlv] = {p:Container([tl,ql])}
                             else:
-                                tcore[k][mlv][p] = target[lv][p]
+                                tcore[k][mlv][p] = Container([tl,ql])
                     else:
                         for d in tl:
                             nk = (tuple(d[:-1]),None)
@@ -1773,7 +1924,8 @@ class MultiReps(DomainAligner):
         
         See Also
         --------
-        tadlib.hitad.chromLev.Chrom.splitChrom : where gap regions are detected
+        tadlib.hitad.chromLev.Chrom.splitChrom : where the gap regions are
+                                                 detected
         """
         self.gapbins = set()
         for rep in self.Queue:
