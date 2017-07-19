@@ -1,9 +1,15 @@
 Release Notes
 =============
+Version 0.3.1-dev1 (2017-7-19)
+""""""""""""""""""""""""""""""
+- Improved the performance of HiTAD by modifying the objective function
+  used in the TAD and sub-TAD detection procedure.
+- Streamlined the log and the code documentation.
+- Added a new method named *convertMatrix* to *tadlib.calfea.analyze.Core*.
+
 Version 0.3.0-dev2 (2017-5-28)
 """"""""""""""""""""""""""""""
-- Remove the ``--cache`` option from *hitad* command-line tool. Cache data will
-  always be stored under ``~/.hitad``.
+- Removed the ``--cache`` option from *hitad* command-line tool.
 
 Version 0.3.0-dev1 (2017-5-2)
 """""""""""""""""""""""""""""
@@ -20,7 +26,7 @@ Version 0.2.5-r1 (2015-11-10)
 Version 0.2.5 (2015-11-7)
 """""""""""""""""""""""""
 - Added snippets for automatic update checking
-- Added log handler for import case
+- Added a log handler for the import case
 
 Version 0.2.4 (2015-4-14)
 """""""""""""""""""""""""
