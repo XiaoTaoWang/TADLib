@@ -35,10 +35,10 @@ Currently, TADLib consists of two methods:
 
 Links
 =====
-- `Detailed Documentation <https://pythonhosted.org/TADLib/>`_
-    - `Installation <https://pythonhosted.org/TADLib/install.html>`_
-    - `Aggregation Preference <https://pythonhosted.org/TADLib/calfea.html>`_
-    - `Hierarchical TAD <https://pythonhosted.org/TADLib/hitad.html>`_
+- `Detailed Documentation <http://xiaotaowang.github.io/TADLib/>`_
+    - `Installation <http://xiaotaowang.github.io/TADLib/install.html>`_
+    - `Aggregation Preference <http://xiaotaowang.github.io/TADLib/calfea.html>`_
+    - `Hierarchical TAD <http://xiaotaowang.github.io/TADLib/hitad.html>`_
 - `Code Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub, Track the package issue)
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
 	
