@@ -281,7 +281,7 @@ Open a Python interperter and load these domain lists by
 >>> ilist = readHierDomain('IMR90-HindIII-40K-tworeps.txt')
 >>> glist = readHierDomain('GM12878-HindIII-40K-tworeps.txt')
 >>> print len(ilist), len(glist)
-80 75
+81 75
 >>> print ilist[:3]
 [['22', 18240000, 18560000, 0], ['22', 19000000, 19640000, 0], ['22', 19920000, 20120000, 0]]
 
@@ -314,27 +314,27 @@ conserved TADs, semi-conserved TADs, merged TADs, split TADs, and unaligned TADs
 
 >>> conserved = work.conserved('IMR90','GM12878') # Conserved TADs
 >>> print len(conserved)
-20
+10
 >>> print sorted(conserved)[0] # The first conserved TAD pair
-(('22', 19920000, 20120000), ('22', 19920000, 20120000))
+(('22', 19000000, 19640000), ('22', 19160000, 19680000))
 
 >>> semi = work.inner_changed('IMR90','GM12878') # Semi-Conserved TADs
 >>> print len(semi)
-4
+3
 >>> print sorted(semi)[0] # The first semi-conserved TAD pair
 (('22', 27080000, 28240000), ('22', 27080000, 28200000))
 
 >>> merged = work.merged('IMR90','GM12878') # Merged TADs
 >>> print sorted(merged)[0] # The first merged region
-(('22', 31720000, 32360000), ('22', 31720000, 32400000))
->>> merged[(('22', 31720000, 32360000), ('22', 31720000, 32400000))] # Merged details
-[[['22', 31720000, 32040000, 0], ['22', 32040000, 32360000, 0]], [['22', 31720000, 32400000, 0]]]
+(('22', 29680000, 32360000), ('22', 29680000, 32360000))
+>>> merged[(('22', 29680000, 32360000), ('22', 29680000, 32360000))] # Merged details
+[[['22', 29680000, 31720000, 0], ['22', 31720000, 32040000, 0], ['22', 32040000, 32360000, 0]], [['22', 29680000, 32360000, 0]]]
 
 >>> split = work.split('IMR90','GM12878') # Split TADs
 >>> print sorted(split)[0] # The first split region
-(('22', 19000000, 19640000), ('22', 19160000, 19720000))
->>> split[(('22', 19000000, 19640000), ('22', 19160000, 19720000))] # Split details
-[[['22', 19000000, 19640000, 0]], [['22', 19160000, 19440000, 0], ['22', 19440000, 19720000, 0]]]
+(('22', 20800000, 21480000), ('22', 20840000, 21480000))
+>>> split[(('22', 20800000, 21480000), ('22', 20840000, 21480000))] # Split details
+[[['22', 20800000, 21480000, 0]], [['22', 20840000, 21200000, 0], ['22', 21200000, 21480000, 0]]]
 
 Boundary-level change types are defined in :py:class:`tadlib.hitad.aligner.BoundAligner` which
 is also based on our domain-based alignment algorithm:
@@ -342,23 +342,23 @@ is also based on our domain-based alignment algorithm:
 >>> boundview = BoundAligner(iset, gset)
 >>> # Pairs of conserved TAD boundaries
 >>> conserved_bounds = boundview.conserved_tad_bounds('IMR90','GM12878')
->>> print conserved_bounds.items()[:3]
-[(('22', 43560000), ('22', 43560000)), (('22', 45600000), ('22', 45520000)), (('22', 46720000), ('22', 46920000))]
+>>> print sorted(conserved_bounds)[:3]
+[('22', 19000000), ('22', 19640000), ('22', 19920000)]
 
 >>> # Pairs of conserved sub-TAD boundaries.
 >>> conserved_subs = boundview.conserved_sub_bounds('IMR90','GM12878')
 >>> print conserved_subs.items()[:3]
-[(('22', 36000000), ('22', 36000000)), (('22', 34320000), ('22', 34320000)), (('22', 30480000), ('22', 30480000))]
+[('22', 26200000), ('22', 29200000), ('22', 29960000)]
 
 >>> # TAD to sub-TAD switch cases
 >>> tad_sub = boundview.tad2sub('IMR90','GM12878')
 >>> len(tad_sub)
-1
+7
 
 >>> # sub-TAD to TAD switch cases.
 >>> sub_tad = boundview.sub2tad('IMR90','GM12878')
 >>> len(sub_tad)
-6
+8
 
 >>> # TAD boundaries that exist in IMR90, but disappear in GM12878.
 >>> disappear_TAD = boundview.disappeared_tad('IMR90','GM12878')
@@ -368,7 +368,7 @@ is also based on our domain-based alignment algorithm:
 >>> # Sub-TAD boundaries that exist in IMR90, but disappear in GM12878.
 >>> disappear_sub = boundview.disappeared_sub('IMR90','GM12878')
 >>> sorted(disappear_sub)[0] # The first disappeared sub-TAD boundary
-('22', 22720000)
+('22', 23480000)
 
 API Documentation
 =================

@@ -13,7 +13,7 @@ packages are required:
 - GHMM (>= 0.9)
 
 Install Conda
-------------
+-------------
 We strongly recommend using the conda package manager.
 
 .. note:: If you have the Anaconda Distribution installed, you already have it, feel free to jump to

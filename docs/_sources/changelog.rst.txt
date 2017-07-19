@@ -1,11 +1,12 @@
 Release Notes
 =============
-Version 0.3.1-dev1 (2017-7-19)
+Version 0.3.1 (2017-7-19)
 """"""""""""""""""""""""""""""
 - Improved the performance of HiTAD by modifying the objective function
   used in the TAD and sub-TAD detection procedure.
 - Streamlined the log and the code documentation.
 - Added a new method named *convertMatrix* to *tadlib.calfea.analyze.Core*.
+- Migrated the documentation site from PyPI to Github
 
 Version 0.3.0-dev2 (2017-5-28)
 """"""""""""""""""""""""""""""
