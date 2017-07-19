@@ -1,0 +1,453 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tadlib.calfea.polygon &#8212; TADLib 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Install TADLib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calfea.html">Aggregation Preference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Release Notes</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tadlib.calfea.polygon</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Created on Wed Sep 24 15:05:28 2014</span>
+
+<span class="c1"># Author: XiaoTao Wang</span>
+<span class="c1"># Organization: HuaZhong Agricultural University</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">ConvexHull</span>
+
+<div class="viewcode-block" id="Polygon"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.Polygon">[docs]</a><span class="k">class</span> <span class="nc">Polygon</span><span class="p">(</span><span class="n">ConvexHull</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Main class for polygon creation, manipulation and calulation.</span>
+<span class="sd">    </span>
+<span class="sd">    The API is inherited from :class:`scipy.spatial.ConvexHull`, which</span>
+<span class="sd">    constructs convex hull from a point set. So you should input coordinates</span>
+<span class="sd">    of a point set to initiate an instance.</span>
+<span class="sd">    </span>
+<span class="sd">    More general, not all points are required. Vertices alone are enough</span>
+<span class="sd">    to construct the convex hull.</span>
+<span class="sd">    </span>
+<span class="sd">    Also, this class is designed to operate on 2-D space, although</span>
+<span class="sd">    **ConvexHull** is okay for higher dimensions.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points : array_like</span>
+<span class="sd">        Coordinates of points to construct a convex hull from. All objects</span>
+<span class="sd">        that can be converted to a ndarray shaped (npoints, 2) are okay.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Common attributes from **ConvexHull**:</span>
+<span class="sd">    </span>
+<span class="sd">    points : ndarray of double, shape (npoints, 2)</span>
+<span class="sd">        Coordinates of input points. Converted ndarray.</span>
+<span class="sd">    vertices : ndarray of ints, shape (nvertices,)</span>
+<span class="sd">        Indices of points forming the vertices of the convex hull. The</span>
+<span class="sd">        vertices are counter-clockwise ordered.</span>
+<span class="sd">    simplices : ndarray of ints, shape (nfacet, 2)</span>
+<span class="sd">        Indices of points forming the simplical facets of the convex hull.</span>
+<span class="sd">    </span>
+<span class="sd">    Customized attributes:</span>
+<span class="sd">    </span>
+<span class="sd">    anchors : ndarray of double, shape (nvertices,)</span>
+<span class="sd">        Vertices of the convex hull, counter-clockwise ordered.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes after :meth:`tadlib.calfea.polygon.Polygon.calarea` is called:</span>
+<span class="sd">    </span>
+<span class="sd">    area : float</span>
+<span class="sd">        Area of the polygon.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Convex hull of a random set of points:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from tadlib.calfea.polygon import Polygon</span>
+<span class="sd">    &gt;&gt;&gt; points = np.random.rand(20, 2) # 20 random points in 2-D space</span>
+<span class="sd">    &gt;&gt;&gt; P = Polygon(points)</span>
+<span class="sd">    &gt;&gt;&gt; print P.anchors</span>
+<span class="sd">    [[ 0.71119071  0.216714  ]</span>
+<span class="sd">     [ 0.92908323  0.77903127]</span>
+<span class="sd">     [ 0.79530032  0.93279735]</span>
+<span class="sd">     [ 0.02160083  0.98758203]</span>
+<span class="sd">     [ 0.09094998  0.4423167 ]</span>
+<span class="sd">     [ 0.16924963  0.05900692]</span>
+<span class="sd">     [ 0.71119071  0.216714  ]]</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A customized constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ConvexHull</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span>
+        <span class="c1"># Customize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="Polygon.calarea"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.Polygon.calarea">[docs]</a>    <span class="k">def</span> <span class="nf">calarea</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the polygon area.</span>
+<span class="sd">        </span>
+<span class="sd">        An attribute called **area** is assigned.</span>
+<span class="sd">        </span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        tadlib.calfea.polygon.shoelace : Twice the area of polygon</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Our Calculation</span>
+        <span class="c1"># Call external function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">area</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">shoelace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span></div>
+    
+<div class="viewcode-block" id="Polygon.close"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.Polygon.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Close the polygon, i.e., the first point is also the last one.</span>
+<span class="sd">        </span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        tadlib.calfea.polygon.isinside : judge if points are inside a polygon</span>
+<span class="sd">                                         or not.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Must be called before :meth:`tadlib.calfea.polygon.Polygon.isinside`.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">first</span><span class="o">==</span><span class="n">last</span><span class="p">):</span>
+            <span class="c1"># Concatenate along first axis, dim&gt;=2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="s1">&#39;0,2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span></div>
+    
+<div class="viewcode-block" id="Polygon.isinside"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.Polygon.isinside">[docs]</a>    <span class="k">def</span> <span class="nf">isinside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">zerolike</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute point location relative to a polygon.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        query : tuple or array_like</span>
+<span class="sd">            A tuple indicates one point. (The length must be 2)</span>
+<span class="sd">            Or you can input an array-like sequence. Any object that can be</span>
+<span class="sd">            converted to a ndarray shaped (npoints, 2) is okay.</span>
+<span class="sd">        </span>
+<span class="sd">        zerolike : float</span>
+<span class="sd">            A number used to approximate 0.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mindst : scalar or array_like</span>
+<span class="sd">            If mindst &lt; 0, point is outside the polygon.</span>
+<span class="sd">            If mindst = 0, point in on a side of the polygon.</span>
+<span class="sd">            If mindst &gt; 0, point is inside the polygon.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Sloan&#39;s improved version of the Nordbeck and Rydstedt algorithm.</span>
+<span class="sd">        </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        We start with :class:`tadlib.calfea.polygon.Polygon` construction:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from tadlib.calfea.polygon import Polygon</span>
+<span class="sd">        &gt;&gt;&gt; points = np.random.rand(20, 2) # Used for constructing Polygon</span>
+<span class="sd">        &gt;&gt;&gt; P = Polygon(points)</span>
+<span class="sd">        &gt;&gt;&gt; check = np.random.rand(3, 2) # Another 3 random points</span>
+<span class="sd">        &gt;&gt;&gt; P.isinside(check)</span>
+<span class="sd">        array([ 0.21145311,  0.09807244, -0.15341914])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Indicator</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">==</span><span class="nb">tuple</span>
+        <span class="c1"># Unify the interface</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># Close the polygon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+        <span class="c1"># If snear = True, dist to nearest side &lt; nearest vertex</span>
+        <span class="c1"># If snear = False, dist to nearest vertex &lt; nearest side</span>
+        <span class="n">snear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="c1"># Initialization</span>
+        <span class="n">mindst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_all</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="c1"># Number of sides/vertices defining the polygon</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="c1"># Loop over each side of the polygon</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="c1"># Vertex (x1, y1), start of side</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># Vertex (x2, y2), end of side</span>
+            <span class="n">sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">start</span>
+            <span class="c1"># Query has coordinates (qx, qy)</span>
+            <span class="n">devs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">query</span>
+            <span class="c1"># Points on infinite line defined by</span>
+            <span class="c1">#     x = x1 + t * (x1 - x2)</span>
+            <span class="c1">#     y = y1 + t * (y1 - y2)</span>
+            <span class="c1"># Find where normal passing through (qx, qy) intersects</span>
+            <span class="c1"># infinite line</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">devs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">devs</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sec</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> \
+                 <span class="p">(</span><span class="n">sec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">tlt0</span> <span class="o">=</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mi">0</span>
+            <span class="n">tle1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">t</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">t</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Normal intersects side</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">tle1</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">devs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">][</span><span class="n">tle1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span><span class="p">[</span><span class="n">tle1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> 
+                       <span class="p">(</span><span class="n">devs</span><span class="p">[:,</span><span class="mi">1</span><span class="p">][</span><span class="n">tle1</span><span class="p">]</span> <span class="o">+</span> <span class="n">t</span><span class="p">[</span><span class="n">tle1</span><span class="p">]</span> <span class="o">*</span> <span class="n">sec</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># Normal does not intersects side</span>
+            <span class="c1"># Point is closest to vertex (x1, y1)</span>
+            <span class="c1"># Compute square of distance to this vertex</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">tlt0</span><span class="p">]</span> <span class="o">=</span> <span class="n">devs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">][</span><span class="n">tlt0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">devs</span><span class="p">[:,</span><span class="mi">1</span><span class="p">][</span><span class="n">tlt0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="c1"># Store distances</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">mindst</span>
+            <span class="n">mindst</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+            <span class="n">j</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="c1"># Point is closer to (x1, y1) than any other vertex or side</span>
+            <span class="n">snear</span><span class="p">[</span><span class="n">mask</span> <span class="o">&amp;</span> <span class="n">tlt0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># Point is closer to this side than to any other side or vertex</span>
+            <span class="n">snear</span><span class="p">[</span><span class="n">mask</span> <span class="o">&amp;</span> <span class="n">tle1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">snear</span><span class="p">)</span> <span class="o">!=</span> <span class="n">snear</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;Error when computing distances&#39;</span><span class="p">)</span>
+        <span class="n">mindst</span> <span class="o">**=</span> <span class="mf">0.5</span>
+        <span class="c1"># Point is closer to its nearest vertex than its nearest side,</span>
+        <span class="c1"># check if nearest vertex is concave.</span>
+        <span class="c1"># If the nearest vertex is concave then point is inside the polygon,</span>
+        <span class="c1"># else the point is outside the polygon.</span>
+        <span class="n">jo</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">jo</span><span class="p">[</span><span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">shoelace</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">jo</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]])</span>
+        <span class="n">mindst</span><span class="p">[</span><span class="o">~</span><span class="n">snear</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copysign</span><span class="p">(</span><span class="n">mindst</span><span class="p">,</span> <span class="n">area</span><span class="p">)[</span><span class="o">~</span><span class="n">snear</span><span class="p">]</span>
+        <span class="c1"># Point is closer to its nearest side than to its nearest vertex,</span>
+        <span class="c1"># check if point is to left or right of this side.</span>
+        <span class="c1"># If point is to left of side it is inside polygon, else point is</span>
+        <span class="c1"># outside polygon.</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">shoelace</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">query</span><span class="p">])</span>
+        <span class="n">mindst</span><span class="p">[</span><span class="n">snear</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copysign</span><span class="p">(</span><span class="n">mindst</span><span class="p">,</span> <span class="n">area</span><span class="p">)[</span><span class="n">snear</span><span class="p">]</span>
+        <span class="c1"># Point is on side of polygon</span>
+        <span class="n">mindst</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">mindst</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">zerolike</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># If input values were scalar then the output should be too</span>
+        <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+            <span class="n">mindst</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mindst</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">mindst</span></div></div>
+        
+<div class="viewcode-block" id="shoelace"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.shoelace">[docs]</a><span class="k">def</span> <span class="nf">shoelace</span><span class="p">(</span><span class="n">vertices</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;        </span>
+<span class="sd">    Calculate twice the area of polygon using Shoelace formula.</span>
+<span class="sd">    </span>
+<span class="sd">    Polygon is defined by vertices.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vertices : array_like</span>
+<span class="sd">        Vertex coordinates in a 2-D space.</span>
+<span class="sd">        Coordinates must be placed along the last axis. And data points are</span>
+<span class="sd">        along the first axis.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    area : float</span>
+<span class="sd">        You can deduce the order of input vertices from the sign:</span>
+<span class="sd">        area is positive if vertices are in counter-clockwise order.</span>
+<span class="sd">        area is negative if vertices are in clockwise order.</span>
+<span class="sd">        area is zero if all points are colinear.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function can be also used to judge if all points in a data set are</span>
+<span class="sd">    collinear. Collinear points as input for initializing Polygon instance</span>
+<span class="sd">    will raise a QhullError.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Vertices of a square:</span>
+
+<span class="sd">    Clockwise:    </span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from tadlib.calfea.polygon import shoelace</span>
+<span class="sd">    &gt;&gt;&gt; sq = [(0,0), (0,1), (1,1), (1,0)]</span>
+<span class="sd">    &gt;&gt;&gt; shoelace(sq)</span>
+<span class="sd">    -2.0</span>
+<span class="sd">    </span>
+<span class="sd">    Counter-clockwise:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; sq = [(0,0), (1,0), (1,1), (0,1)]</span>
+<span class="sd">    &gt;&gt;&gt; shoelace(sq)</span>
+<span class="sd">    2.0</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asfarray</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span>
+    <span class="c1"># Rule for stacking multiple comma separated arrays</span>
+    <span class="n">rule</span> <span class="o">=</span> <span class="s1">&#39;0,&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="c1"># Slip the array along the first axis</span>
+    <span class="n">slip_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">rule</span><span class="p">,</span> <span class="n">vertices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="c1"># Extract coordinates</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">slip_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">slip_v</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">slip_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">slip_v</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="c1"># Sholelace Foluma</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">slip_x</span> <span class="o">-</span> <span class="n">x</span> <span class="o">*</span> <span class="n">slip_y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">area</span></div>
+
+<div class="viewcode-block" id="collinear"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.collinear">[docs]</a><span class="k">def</span> <span class="nf">collinear</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test whether all given points are collinear.</span>
+<span class="sd">    </span>
+<span class="sd">    Collinear points will trigger an error called **QhullError** when used</span>
+<span class="sd">    to initialize a :class:`tadlib.calfea.polygon.Polygon` instance. However,</span>
+<span class="sd">    other conditions may also trigger **QhullError**. Doing this test in</span>
+<span class="sd">    advance can avoid this error and make things clearer.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points : array_like</span>
+<span class="sd">        Coordinates of points to construct a polygon. Any object that can </span>
+<span class="sd">        be converted to a ndarray shaped (npoints, 2) is okay.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    judge : bool</span>
+<span class="sd">        True if the input points are collinear else False.</span>
+<span class="sd">    </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    tadlib.calfea.polygon.shoelace</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    To judge if all points are collinear, we use a simple heuristic</span>
+<span class="sd">    algorithm. We sort the points at first. Then test whether consecutive</span>
+<span class="sd">    triples are collinear.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Trival but still effective:</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from tadlib.calfea.polygon import collinear</span>
+<span class="sd">    &gt;&gt;&gt; line = [(2, 0.4), (2, 0.8), (2, 4), (2, 100)]</span>
+<span class="sd">    &gt;&gt;&gt; collinear(line)</span>
+<span class="sd">    True</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">:</span>
+        <span class="n">judge</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># Points are always collinear if N&lt;3</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asfarray</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="c1"># Indices for sorting</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+            <span class="n">asort</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">asort</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="c1"># The first point of the triples</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">triples</span> <span class="o">=</span> <span class="p">[</span><span class="n">asort</span><span class="p">[</span><span class="n">first</span><span class="p">],</span> <span class="n">asort</span><span class="p">[</span><span class="n">first</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">asort</span><span class="p">[</span><span class="n">first</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]]</span>
+        <span class="c1"># Calculate triple areas</span>
+        <span class="n">areas</span> <span class="o">=</span> <span class="n">shoelace</span><span class="p">(</span><span class="n">triples</span><span class="p">)</span>
+        <span class="c1"># Triples are collinear if area=0</span>
+        <span class="c1"># If all sorted triples are collinear, then all points are collinear</span>
+        <span class="n">judge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">areas</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">judge</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

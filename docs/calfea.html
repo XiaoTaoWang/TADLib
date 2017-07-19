@@ -1,0 +1,344 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Aggregation Preference &#8212; TADLib 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hi-C Data Loading" href="calfea_api.html" />
+    <link rel="prev" title="Install TADLib" href="install.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install TADLib</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Aggregation Preference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quickstart">QuickStart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#guide-for-calfea">Guide for CALFEA</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-and-explanation">Example and Explanation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-options">Other Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#api-documentation">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="calfea_api.html">Hi-C Data Loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calfea_api.html#tad-data-parsing">TAD Data Parsing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calfea_api.html#intra-tad-interaction-analysis">Intra-TAD Interaction Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calfea_api.html#interaction-matrix-extracting-and-manipulating">Interaction Matrix Extracting and Manipulating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calfea_api.html#polygon-creation-and-operations">Polygon Creation and Operations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="aggregation-preference">
+<h1>Aggregation Preference<a class="headerlink" href="#aggregation-preference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Inspired by the observation that there exist great differences in chromatin interaction
+pattern among TADs, we proposed an empirical parameter called Aggregation Preference(AP)
+to measure the overall aggregation degree of significant chromatin interactions inside
+TAD. Application to human and mouse cell types (including both traditional Hi-C and in situ
+Hi-C data sets) shows that there exist heterogeneous structures among TADs and the structural
+rearrangement across cell types is significantly associated with transcriptional remodelling.</p>
+<p>Generally, it takes 3 steps to calculate the AP value:</p>
+<ol class="arabic simple">
+<li>Select long-range significant chromatin interactions in each TAD</li>
+<li>Find aggregation patterns of selected interactions by using a density-based clustering
+algorithm called DBSCAN</li>
+<li>Calculate the AP value of TAD</li>
+</ol>
+</div>
+<div class="section" id="quickstart">
+<h2>QuickStart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<p>A sample data is also distributed with the source code. First, change to the
+sample directory: (we suppose you are still in the distribution root directory):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ cd lib/calfea/data
+</pre></div>
+</div>
+<p>Open a Python interperter and load Hi-C data:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tadlib.calfea</span> <span class="k">import</span> <span class="n">analyze</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Data happen to lie in the working directory</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workInters</span> <span class="o">=</span> <span class="n">analyze</span><span class="o">.</span><span class="n">Inters</span><span class="p">(</span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;gm12878.chr</span><span class="si">%s</span><span class="s1">_chr</span><span class="si">%s</span><span class="s1">.txt&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workInters</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="c1"># Chromosome 1</span>
+<span class="go">(60016,)</span>
+</pre></div>
+</div>
+<p>Load TAD regions:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;gm12878.domain.txt&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workTAD</span> <span class="o">=</span> <span class="n">analyze</span><span class="o">.</span><span class="n">TAD</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workTAD</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">(&#39;1&#39;, 228780000, 229375000)</span>
+</pre></div>
+</div>
+<p>Consider such a TAD region: chr1:229385000-229665000</p>
+<p>Initialize a <em>Core</em> object using interaction matrix:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">left</span> <span class="o">=</span> <span class="mi">229385000</span> <span class="o">/</span> <span class="mi">5000</span> <span class="c1"># Resolution 5000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">right</span> <span class="o">=</span> <span class="mi">229665000</span> <span class="o">/</span> <span class="mi">5000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">analyze</span><span class="o">.</span><span class="n">getmatrix</span><span class="p">(</span><span class="n">workInters</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">],</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workCore</span> <span class="o">=</span> <span class="n">analyze</span><span class="o">.</span><span class="n">Core</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Extract long-range interactions:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">workCore</span><span class="o">.</span><span class="n">longrange</span><span class="p">(</span><span class="n">pw</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">ww</span> <span class="o">=</span> <span class="mi">7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">workCore</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span> <span class="c1"># Number</span>
+<span class="go">62</span>
+</pre></div>
+</div>
+<p>Aggregation pattern discovery:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">workCore</span><span class="o">.</span><span class="n">DBSCAN</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">workCore</span><span class="o">.</span><span class="n">Nc</span> <span class="c1"># Cluster Number</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+<p>AP calculation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">workCore</span><span class="o">.</span><span class="n">gdensity</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">workCore</span><span class="o">.</span><span class="n">gden</span> <span class="c1"># Subjects to small variations across platforms</span>
+<span class="go">0.627528491366</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="guide-for-calfea">
+<h2>Guide for CALFEA<a class="headerlink" href="#guide-for-calfea" title="Permalink to this headline">¶</a></h2>
+<p>We have wrapped this pipeline into a user-friendly software called CALFEA
+(CALculate FEAture for TADs).</p>
+<div class="section" id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">calfea</span> <span class="pre">[options]</span></code></p>
+</div>
+<div class="section" id="example-and-explanation">
+<h3>Example and Explanation<a class="headerlink" href="#example-and-explanation" title="Permalink to this headline">¶</a></h3>
+<p>Use the sample data again. Create a new directory under the distribution root:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ mkdir working
+</pre></div>
+</div>
+<p>Change current directory to &#8220;working&#8221;:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ cd working
+</pre></div>
+</div>
+<p>And type in command below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ calfea -f test1_feature.txt -s ../lib/calfea/data/gm12878.domain.txt -p ../lib/calfea/data -F TXT -R 5000 -T gm12878.chr%s_chr%s.txt -c 0 1 2 --immortal -S test1 --pw 4 --ww 7
+</pre></div>
+</div>
+<p>As an example, we present most available parameters here.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">-f/--filename</span></code> FILENAME</p>
+<p>Output file name. The output lines have 5 fields: <em>ChromID</em>, <em>TAD Start</em>,
+<em>TAD End</em>, <em>Aggregation Preference</em> and <em>Gap Ratio</em>. We trace <em>Gap Ratio</em> for
+each TAD because gap regions are always eliminated from original interaction
+matrix. By default, results are printed to the standard output streams (&#8220;stdout&#8221;).</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-s/--source</span></code> SOURCE</p>
+<p>Complete TAD source file name. The source file must contain 3 columns,
+indicating <em>ChromID</em>, <em>TAD Start</em> and <em>TAD End</em>, respectively.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-p/--path</span></code> PATH</p>
+<p>The folder containing Hi-C data. Both absoulte and relative path are okay.
+Chromatin are partitioned into bins under a certain resolution and read pairs
+are assigned to these bins. You have to store Hi-C data chromosome by chromosome
+following common naming pattern. For example, under pattern &#8220;chr%s_chr%s.int&#8221;,
+file names shall look like &#8220;chr1_chr1.int&#8221;, &#8220;chr2_chr2.int&#8221;, and so forth. Note
+only intra-chromosome data are allowed, and don&#8217;t place inter-chromosome ones
+under the folder. (Default: .)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-F/--format</span></code> {TXT,NPZ}</p>
+<p>Hi-C data format. Data should be provided in TXT format when you run <em>calfea</em>
+for the first time.  If <code class="docutils literal"><span class="pre">--immortal</span></code> is specified, loaded data will be
+saved to a new file in <em>.npz</em> format, which will speed up data loading process
+greatly next time. (Default: TXT)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-R/--resolution</span></code> RESOLUTION</p>
+<p>Resolution of the binned data. (Default: 10000)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-T/--template</span></code> TEMPLATE</p>
+<p>Naming pattern for matching Hi-C data file names. Regular expression is used.
+(Default: chr%s_chr%s.int)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-c/--cols</span></code> COLS COLS COLS</p>
+<p>3 columns reading from TXT Hi-C data, with 0 being the first. Here,
+<code class="docutils literal"><span class="pre">-c</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">2</span></code> will extract the 1st, 2nd and 3rd columns.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--immortal</span></code></p>
+<p>When specified, a Numpy .npz file will be generated under <strong>PATH</strong>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-S/saveto</span></code> SAVETO</p>
+<p>Of course, you need to give the prefix of output <em>.npz</em> file name with
+<code class="docutils literal"><span class="pre">--immortal</span></code>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--pw</span></code> PW</p>
+<p>Width of the peak region. We use it in interaction selection and noise filtering
+procedure. (Default: 2)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--ww</span></code> WW</p>
+<p>Donut size. We use &#8220;donut&#8221; because the background of a peak looks like a donut
+in 2D contact matrix. (Default: 5)</p>
+</li>
+</ul>
+<p>After this command, two files <strong>test1_feature.txt</strong> and <strong>calfea.log</strong> are
+created under current working directory, and binary file named <strong>test1.npz</strong>
+are created under the sample data folder &#8221;../lib/calfea/data&#8221;. We use a rotating file
+for logging. According to our settings, when the size of <strong>calfea.log</strong>
+gets about 30K, it&#8217;s closed and renamed to <strong>calfea.log.1</strong>, and at the same
+time, a new file <strong>calfea.log</strong> is silently opened for output. In a word,
+the system saves old log files by appending the extensions &#8221;.1&#8221;, &#8221;.2&#8221; etc.,
+and the file being written to is always <strong>calfea.log</strong>.</p>
+</div>
+<div class="section" id="other-options">
+<h3>Other Options<a class="headerlink" href="#other-options" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">-C/--chroms</span></code> [CHROMS [CHROMS ...]]</p>
+<p>Chromosomes to read. Specially, &#8220;#&#8221; stands for chromosomes with
+numerical labels. <code class="docutils literal"><span class="pre">--chroms</span></code> with zero argument will generate an empty
+list, in which case all chromosome data will be loaded. (Default: [&#8216;#&#8217;, &#8216;X&#8217;])</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-P/--prefix</span></code> PREFIX</p>
+<p>Prefix of input <em>.npz</em> file name. Path should not be included.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--chromname</span></code> CHROMNAME</p>
+<p>Leading string of chromosome names contained in TAD source file. If you specify
+<code class="docutils literal"><span class="pre">--chromosome</span> <span class="pre">chr</span></code>, the content should like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chr1</span>    <span class="mi">0</span>   <span class="mi">350000</span>
+<span class="n">chr1</span>    <span class="mi">350000</span>  <span class="mi">800000</span>
+<span class="n">chr1</span>    <span class="mi">800000</span>  <span class="mi">1450000</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--top</span></code> TOP</p>
+<p>Parameter for noisy interaction filtering. By default, 30% noisy interactions
+will be eliminated. (Default: 0.7)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--ratio</span></code> RATIO</p>
+<p>Specifies the sample ratio of significant interactions for TAD. (Default: 0.05)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">--gap</span></code> GAP</p>
+<p>Maximum gap ratio of a TAD. (Default: 0.2)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-v/--version</span></code></p>
+<p>Print version number and exit.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">-h/--help</span></code></p>
+<p>Show help message and exit.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="next-steps">
+<h3>Next Steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h3>
+<p>That concludes the basic tutorial. It should be enough to get you up and
+running our pipeline. However, if you want more details about the underlying
+algorithms and the code, please carry on.</p>
+</div>
+</div>
+<div class="section" id="api-documentation">
+<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<p>API reference of our defined classes and functions for Aggregation Preference(AP)
+calculation.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="calfea_api.html">Hi-C Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calfea_api.html#tad-data-parsing">TAD Data Parsing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calfea_api.html#intra-tad-interaction-analysis">Intra-TAD Interaction Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calfea_api.html#interaction-matrix-extracting-and-manipulating">Interaction Matrix Extracting and Manipulating</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calfea_api.html#polygon-creation-and-operations">Polygon Creation and Operations</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/calfea.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

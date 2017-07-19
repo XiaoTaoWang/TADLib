@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Release Notes &#8212; TADLib 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Hierarchical TAD Identification" href="hitad_api.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install TADLib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calfea.html">Aggregation Preference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-3-1-dev1-2017-7-19">Version 0.3.1-dev1 (2017-7-19)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-3-0-dev2-2017-5-28">Version 0.3.0-dev2 (2017-5-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-3-0-dev1-2017-5-2">Version 0.3.0-dev1 (2017-5-2)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-2-5-r2-2016-4-14">Version 0.2.5-r2 (2016-4-14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-2-5-r1-2015-11-10">Version 0.2.5-r1 (2015-11-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-2-5-2015-11-7">Version 0.2.5 (2015-11-7)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-2-4-2015-4-14">Version 0.2.4 (2015-4-14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1-0-2014-11-25">Version 0.1.0 (2014-11-25)</a></li>
+</ul>
+</li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="release-notes">
+<h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="version-0-3-1-dev1-2017-7-19">
+<h2>Version 0.3.1-dev1 (2017-7-19)<a class="headerlink" href="#version-0-3-1-dev1-2017-7-19" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Improved the performance of HiTAD by modifying the objective function
+used in the TAD and sub-TAD detection procedure.</li>
+<li>Streamlined the log and the code documentation.</li>
+<li>Added a new method named <em>convertMatrix</em> to <em>tadlib.calfea.analyze.Core</em>.</li>
+</ul>
+</div>
+<div class="section" id="version-0-3-0-dev2-2017-5-28">
+<h2>Version 0.3.0-dev2 (2017-5-28)<a class="headerlink" href="#version-0-3-0-dev2-2017-5-28" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Removed the <code class="docutils literal"><span class="pre">--cache</span></code> option from <em>hitad</em> command-line tool.</li>
+</ul>
+</div>
+<div class="section" id="version-0-3-0-dev1-2017-5-2">
+<h2>Version 0.3.0-dev1 (2017-5-2)<a class="headerlink" href="#version-0-3-0-dev1-2017-5-2" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Added the HiTAD module for hierarchical TAD detecting</li>
+</ul>
+</div>
+<div class="section" id="version-0-2-5-r2-2016-4-14">
+<h2>Version 0.2.5-r2 (2016-4-14)<a class="headerlink" href="#version-0-2-5-r2-2016-4-14" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>TADLib will not support python2.6 anymore</li>
+</ul>
+</div>
+<div class="section" id="version-0-2-5-r1-2015-11-10">
+<h2>Version 0.2.5-r1 (2015-11-10)<a class="headerlink" href="#version-0-2-5-r1-2015-11-10" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Only check for update when you are online</li>
+</ul>
+</div>
+<div class="section" id="version-0-2-5-2015-11-7">
+<h2>Version 0.2.5 (2015-11-7)<a class="headerlink" href="#version-0-2-5-2015-11-7" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Added snippets for automatic update checking</li>
+<li>Added a log handler for the import case</li>
+</ul>
+</div>
+<div class="section" id="version-0-2-4-2015-4-14">
+<h2>Version 0.2.4 (2015-4-14)<a class="headerlink" href="#version-0-2-4-2015-4-14" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Changed the significant interaction selection algorithm</li>
+<li>Removed the TAD identification module based on the controversial constrained
+hierarchical clustering algorithm</li>
+</ul>
+</div>
+<div class="section" id="version-0-1-0-2014-11-25">
+<h2>Version 0.1.0 (2014-11-25)<a class="headerlink" href="#version-0-1-0-2014-11-25" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The first release containing the Aggregration Preference(AP) calculation module
+and an optional TAD identification module</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/changelog.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

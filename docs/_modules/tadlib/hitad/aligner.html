@@ -1,0 +1,1387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tadlib.hitad.aligner &#8212; TADLib 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Install TADLib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calfea.html">Aggregation Preference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Release Notes</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tadlib.hitad.aligner</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed May 18 11:05:35 2016</span>
+
+<span class="sd">@author: wxt</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">bisect</span>
+<span class="kn">from</span> <span class="nn">graph</span> <span class="k">import</span> <span class="n">Graph</span>
+
+<span class="c1">#------------------------------------------------------------------------------</span>
+<span class="c1"># Boundary-Based Alignment</span>
+<div class="viewcode-block" id="SingleBound"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.SingleBound">[docs]</a><span class="k">class</span> <span class="nc">SingleBound</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    *SingleBound* is defined to:</span>
+<span class="sd">    </span>
+<span class="sd">    - Represent a single bound (chrom, pos)</span>
+<span class="sd">    - Map the bound to a pool of bounds</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chrom : str</span>
+<span class="sd">        Chromosome label.</span>
+<span class="sd">    </span>
+<span class="sd">    pos : int</span>
+<span class="sd">        Bound position on the chromosome.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chrom : str</span>
+<span class="sd">        Chromosome label.</span>
+<span class="sd">    </span>
+<span class="sd">    pos : int</span>
+<span class="sd">        Position on the chromosome.</span>
+<span class="sd">    </span>
+<span class="sd">    cache : dict</span>
+<span class="sd">        Container for matched details.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">=</span> <span class="n">chrom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+    
+<div class="viewcode-block" id="SingleBound.align"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.SingleBound.align">[docs]</a>    <span class="k">def</span> <span class="nf">align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qn</span><span class="p">,</span> <span class="n">qb</span><span class="p">,</span> <span class="n">tol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Map the bound to *qb* using the binary search method.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        qn : str</span>
+<span class="sd">            Unique identifier for *qb*.</span>
+<span class="sd">        </span>
+<span class="sd">        qb : list of tuples</span>
+<span class="sd">            Reference bound (remember reference genome?) list. Each element</span>
+<span class="sd">            is a tuple (chrom, pos) representing a single bound. And the list</span>
+<span class="sd">            must be sorted in advance for binary search.</span>
+
+<span class="sd">        tol : int</span>
+<span class="sd">            Mismatch tolerance. If the genomic distance between the bound</span>
+<span class="sd">            and the best hit is less than this value, we say we have found</span>
+<span class="sd">            a match, otherwise the bound is missed in *qb*.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Internally, the matched details will be stored in *cache* under the</span>
+<span class="sd">        key *qn*, the value is also a dict recording the matched bound</span>
+<span class="sd">        index (midx) and the indices of the matched neighbors (nindices).</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">tidx</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect</span><span class="p">(</span><span class="n">qb</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
+        <span class="n">lidx</span> <span class="o">=</span> <span class="n">ridx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qb</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Empty query domain list&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span> <span class="o">==</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">lidx</span> <span class="o">=</span> <span class="n">ridx</span> <span class="o">=</span> <span class="n">tidx</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tidx</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qb</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">!=</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">==</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">lidx</span> <span class="o">=</span> <span class="n">ridx</span> <span class="o">=</span> <span class="n">tidx</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lidx</span> <span class="o">=</span> <span class="n">tidx</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">==</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">ridx</span> <span class="o">=</span> <span class="n">tidx</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ridx</span> <span class="o">=</span> <span class="n">lidx</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">==</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">lidx</span> <span class="o">=</span> <span class="n">ridx</span> <span class="o">=</span> <span class="n">tidx</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">tidx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">==</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">lidx</span> <span class="o">=</span> <span class="n">ridx</span> <span class="o">=</span> <span class="n">tidx</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;midx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;nindices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">lidx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">midx</span> <span class="o">=</span> <span class="n">lidx</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="n">qb</span><span class="p">[</span><span class="n">midx</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">rshift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="n">qb</span><span class="p">[</span><span class="n">ridx</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">rshift</span> <span class="o">&lt;</span> <span class="n">shift</span><span class="p">:</span>
+                <span class="n">midx</span> <span class="o">=</span> <span class="n">ridx</span>
+            <span class="c1"># Matched bound infomation</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;midx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">midx</span>
+            <span class="n">nindices</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">lidx</span><span class="p">,</span> <span class="n">ridx</span><span class="p">])</span>
+            <span class="n">tidx</span> <span class="o">=</span> <span class="n">lidx</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">tidx</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">nindices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tidx</span><span class="p">)</span>
+                <span class="n">tshift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">tshift</span><span class="o">&gt;=</span><span class="n">tol</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">tidx</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">tidx</span> <span class="o">=</span> <span class="n">ridx</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">tidx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">qb</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">nindices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tidx</span><span class="p">)</span>
+                <span class="n">tshift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">-</span> <span class="n">qb</span><span class="p">[</span><span class="n">tidx</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">tshift</span><span class="o">&gt;=</span><span class="n">tol</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="n">tidx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;nindices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">nindices</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="BoundSet"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundSet">[docs]</a><span class="k">class</span> <span class="nc">BoundSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    As the name suggests, we use *BoundSet* to hold all bounds of a domain</span>
+<span class="sd">    list.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    en : str</span>
+<span class="sd">        Unique identifier for current set of bounds.</span>
+<span class="sd">    </span>
+<span class="sd">    domainlist : list</span>
+<span class="sd">        List of the domains. Each domain is represented by</span>
+<span class="sd">        ``[chrom,start,end,level]``. I think *chrom*, *start* and *end* are</span>
+<span class="sd">        self-explanatory, all you need to keep in mind is that *start and</span>
+<span class="sd">        *end* should be in base-pair unit. *level* indicates the hierarchical</span>
+<span class="sd">        level of the domain. In our work, TAD is denoted as 0, sub-TAD is</span>
+<span class="sd">        denoted as 1, and subsequent domain level is denoted as 2, etc.</span>
+<span class="sd">    </span>
+<span class="sd">    res : int</span>
+<span class="sd">        Resolution of the Hi-C data in base-pair unit.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Label : str</span>
+<span class="sd">        Unique identifier.</span>
+<span class="sd">    </span>
+<span class="sd">    boundclass : dict</span>
+<span class="sd">        The keys are bound representations (chrom,pos), and the values indicate</span>
+<span class="sd">        corresponding hierarchical level notations. The Level of a bound is</span>
+<span class="sd">        determined by the domain with the lowest level notation. For example,</span>
+<span class="sd">        if we have two domains, [&#39;1&#39;,100000,500000,0] and [&#39;1&#39;,100000,200000,1],</span>
+<span class="sd">        according to our definition, the level of (&#39;1&#39;,200000) is 1, but the</span>
+<span class="sd">        level of (&#39;1&#39;,100000) is 0.</span>
+<span class="sd">    </span>
+<span class="sd">    Bounds : list</span>
+<span class="sd">        Sorted bound list. This attribute can be used as the reference</span>
+<span class="sd">        bound list in :py:meth:`tadlib.hitad.aligner.SingleBound.align`</span>
+<span class="sd">        directly.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">domainlist</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Label</span> <span class="o">=</span> <span class="n">en</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">domainlist</span><span class="p">:</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">domain</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="o">*</span><span class="n">res</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">)]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">)]</span> <span class="o">=</span> <span class="n">label</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">)]</span> <span class="o">=</span> <span class="n">label</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">end</span><span class="p">)]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span> <span class="o">=</span> <span class="n">label</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span> <span class="o">=</span> <span class="n">label</span> 
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bounds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundclass</span><span class="p">)</span> <span class="c1"># bounds of all hierarchy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boundIdx</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Bounds</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Bounds</span><span class="p">))))</span></div>
+
+<span class="c1">#------------------------------------------------------------------------------</span>
+<span class="c1">#  A kind of domain-based hierarchical alignment</span>
+<div class="viewcode-block" id="DomainSet"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainSet">[docs]</a><span class="k">class</span> <span class="nc">DomainSet</span><span class="p">(</span><span class="n">BoundSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse and hold a hierarchical domain set.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    en : str</span>
+<span class="sd">        Unique identifier for input domain set.</span>
+<span class="sd">    domainlist : list</span>
+<span class="sd">        List of domains. See :py:class:`tadlib.hitad.aligner.BoundSet` for</span>
+<span class="sd">        details.</span>
+<span class="sd">    res : int</span>
+<span class="sd">        Resolution of the Hi-C data in base-pair unit.</span>
+<span class="sd">    hier : bool</span>
+<span class="sd">        Whether *domainlist* contains multiple-level domains or not.</span>
+<span class="sd">        (Default: True)</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    res : int</span>
+<span class="sd">        Resolution of the Hi-C data in base-pair unit.</span>
+<span class="sd">    levs : set of int</span>
+<span class="sd">        All possible domain levels contained in *domainlist*.</span>
+<span class="sd">    bychroms : dict</span>
+<span class="sd">        Bychromosomal rearrangement of *domainlist*. The keys are chromosome</span>
+<span class="sd">        labels(1,2,...,22,X,Y), and the values are list of [start,end,level].</span>
+<span class="sd">    pretree : dict</span>
+<span class="sd">        Nested domain list within any domain interval. Returned by</span>
+<span class="sd">        :py:meth:`tadlib.hitad.aligner.DomainSet.NestedDomains`.</span>
+<span class="sd">    subpool : dict</span>
+<span class="sd">        Domain list within any domain interval.</span>
+<span class="sd">        (:py:meth:`tadlib.hitad.aligner.DomainSet.NestedDomains`)</span>
+<span class="sd">    lidx : dict</span>
+<span class="sd">        The smallest indices of left domain boundaries in a by-chromosomal</span>
+<span class="sd">        domain list. (:py:meth:`tadlib.hitad.aligner.DomainSet.NestedDomains`)</span>
+<span class="sd">    ridx : dict</span>
+<span class="sd">        The largest indices of right domain boundaries in a by-chromosomal</span>
+<span class="sd">        domain list. (:py:meth:`tadlib.hitad.aligner.DomainSet.NestedDomains`)</span>
+<span class="sd">    Domains : dict</span>
+<span class="sd">        Store each TAD and its nested domains as a tree. Each node in the</span>
+<span class="sd">        tree indicates one domain, in particular, the root corresponds to</span>
+<span class="sd">        the TAD, and the leaves correspond to bottom domains.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">domainlist</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">hier</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">res</span> <span class="o">=</span> <span class="n">res</span>
+        <span class="n">BoundSet</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">domainlist</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+        <span class="n">bychroms</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">levs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">domainlist</span><span class="p">:</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">domain</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="o">*</span><span class="n">res</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">:</span>
+                <span class="n">bychroms</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">label</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bychroms</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">label</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">levs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bychroms</span> <span class="o">=</span> <span class="n">bychroms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pretree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ridx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">NestedDomains</span><span class="p">(</span><span class="n">bychroms</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Domains</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretree</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hier</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="n">hit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretree</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Domains</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">genDomainTree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Domains</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretree</span><span class="p">,</span> <span class="n">hit</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="DomainSet.getBottoms"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainSet.getBottoms">[docs]</a>    <span class="k">def</span> <span class="nf">getBottoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Link bottom domains to corresponding outer TADs.</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bottoms : dict</span>
+<span class="sd">            Used to quickly retrieve (bottom domain, TAD) pairs.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bottoms</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpool</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpool</span><span class="p">[</span><span class="n">d</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pretree</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sub</span><span class="p">)]):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bottoms</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sub</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="DomainSet.NestedDomains"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainSet.NestedDomains">[docs]</a>    <span class="k">def</span> <span class="nf">NestedDomains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bychroms</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pre-parse domain lists for accelerating subsequent calculations.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bychroms : dict</span>
+<span class="sd">            By-chromosomal domain lists.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tmpdict : dict</span>
+<span class="sd">            Nested domain list within any domain interval. If a domain have</span>
+<span class="sd">            no nested domains, then its value is an empty list.</span>
+<span class="sd">        subpool : dict</span>
+<span class="sd">            Domain list within any domain interval. Different from *tmpdict*,</span>
+<span class="sd">            if a domain have no nested domains, the value is a list only</span>
+<span class="sd">            containing itself.</span>
+<span class="sd">        lidx : dict</span>
+<span class="sd">            The smallest indices of left domain boundaries in a by-chromosomal</span>
+<span class="sd">            domain list.</span>
+<span class="sd">        ridx : dict</span>
+<span class="sd">            The largest indices of right domain boundaries in a by-chromosomal</span>
+<span class="sd">            domain list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tmpdict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Pre-tree</span>
+        <span class="n">subpool</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">lidx</span> <span class="o">=</span> <span class="p">{};</span> <span class="n">ridx</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">:</span>
+            <span class="n">sidx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span>
+                <span class="n">pres</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">pool</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">,)</span><span class="o">+</span><span class="nb">tuple</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+                <span class="n">lk</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">rk</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">lidx</span><span class="p">[</span><span class="n">lk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">lidx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lk</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">sidx</span><span class="p">)</span>
+                <span class="n">lidx</span><span class="p">[</span><span class="n">rk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">lidx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rk</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">sidx</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">sidx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">])):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="k">if</span> <span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="n">q</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="n">pres</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">c</span><span class="p">]</span><span class="o">+</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                        <span class="n">pool</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">c</span><span class="p">]</span><span class="o">+</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="n">label</span><span class="p">:</span>
+                        <span class="n">sidx</span> <span class="o">=</span> <span class="n">i</span>
+                        <span class="n">label</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="k">break</span>
+                <span class="n">ridx</span><span class="p">[</span><span class="n">lk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ridx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lk</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">ridx</span><span class="p">[</span><span class="n">rk</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ridx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rk</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">tmpdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pres</span>
+                <span class="n">subpool</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pool</span>
+        
+        <span class="k">return</span> <span class="n">tmpdict</span><span class="p">,</span> <span class="n">subpool</span><span class="p">,</span> <span class="n">lidx</span><span class="p">,</span> <span class="n">ridx</span></div>
+    
+<div class="viewcode-block" id="DomainSet.genDomainTree"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainSet.genDomainTree">[docs]</a>    <span class="k">def</span> <span class="nf">genDomainTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">pretree</span><span class="p">,</span> <span class="n">cur</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively generate a tree/sub-tree taking *node* as starting point.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        node : Node</span>
+<span class="sd">            A dict-like container for current domain.</span>
+<span class="sd">        pretree : dict</span>
+<span class="sd">            Nested domain list within any domain interval.</span>
+<span class="sd">            (:py:meth:`tadlib.hitad.aligner.DomainSet.NestedDomains`)</span>
+<span class="sd">        cur : list</span>
+<span class="sd">            Nested domain list within current domain interval.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">cur</span><span class="p">:</span>
+            <span class="n">node</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">hit</span> <span class="o">=</span> <span class="n">pretree</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">genDomainTree</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">)],</span> <span class="n">pretree</span><span class="p">,</span> <span class="n">hit</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="DomainSet.getregion"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainSet.getregion">[docs]</a>    <span class="k">def</span> <span class="nf">getregion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">lev</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract all domains (or domains at specific level) within a given</span>
+<span class="sd">        region.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        chrom : str</span>
+<span class="sd">            Chromosome label.</span>
+<span class="sd">        start, end : int</span>
+<span class="sd">            Domain interval in base-pair unit.</span>
+<span class="sd">        lev : int or None</span>
+<span class="sd">            Specify the desired domain level. (Default: None, domains of all</span>
+<span class="sd">            levels will be returned)</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        rdomains : list</span>
+<span class="sd">            Sorted domain list. Each element corresponds to one domain in the</span>
+<span class="sd">            format ``[chrom,start,end,level]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">rdomains</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sidx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lidx</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">)]</span>
+        <span class="n">eidx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ridx</span><span class="p">[(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span><span class="o">+</span><span class="mi">1</span>
+        <span class="n">candis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bychroms</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">sidx</span><span class="p">:</span><span class="n">eidx</span><span class="p">]</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">candis</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">+</span> <span class="n">d</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpool</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tmp</span><span class="p">)]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pretree</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sub</span><span class="p">)]):</span>
+                    <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+                        <span class="n">cache</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sub</span><span class="p">)][</span><span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">tmp</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cache</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sub</span><span class="p">)]</span> <span class="o">=</span> <span class="p">{</span><span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span><span class="n">tmp</span><span class="p">}</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">lev</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">l</span> <span class="o">!=</span> <span class="n">lev</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="nb">max</span><span class="p">(</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">lev</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">l</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]))):</span>
+                        <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">l</span><span class="p">])</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+                    <span class="n">rdomains</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">l</span><span class="p">])</span>
+                    <span class="n">pool</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">l</span><span class="p">]))</span>
+        <span class="n">rdomains</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            
+        <span class="k">return</span> <span class="n">rdomains</span></div></div>
+        
+<div class="viewcode-block" id="SingleDomain"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.SingleDomain">[docs]</a><span class="k">class</span> <span class="nc">SingleDomain</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    We use *SingleDomain* to:</span>
+<span class="sd">    </span>
+<span class="sd">    1. Represent a single domain (chrom, start, end).</span>
+<span class="sd">    2. Map the domain to another domain set</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chrom : str</span>
+<span class="sd">        Chromosome label.</span>
+<span class="sd">    start, end : int</span>
+<span class="sd">        Interval of the domain in base-pair unit.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chrom : str</span>
+<span class="sd">        Chromosome label.</span>
+<span class="sd">    interval : list</span>
+<span class="sd">        [start, end]</span>
+<span class="sd">    cache : dict</span>
+<span class="sd">        Container for matched details.</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">chrom</span> <span class="o">=</span> <span class="n">chrom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interval</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+    
+<div class="viewcode-block" id="SingleDomain.overlap"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.SingleDomain.overlap">[docs]</a>    <span class="k">def</span> <span class="nf">overlap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ti</span><span class="p">,</span> <span class="n">qi</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate overlap ratio of any two regions.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ti, qi : list</span>
+<span class="sd">            Interval ([start,end]) of the region.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        OR : float, 0-1</span>
+<span class="sd">            Overlap ratio.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ti</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">qi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">qi</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">ti</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">mi</span> <span class="o">=</span> <span class="n">ti</span> <span class="o">+</span> <span class="n">qi</span>
+        <span class="n">mi</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">OR</span> <span class="o">=</span> <span class="p">(</span><span class="n">mi</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">mi</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">mi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># intersect / union</span>
+        <span class="k">return</span> <span class="n">OR</span></div>
+    
+<div class="viewcode-block" id="SingleDomain.align"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.SingleDomain.align">[docs]</a>    <span class="k">def</span> <span class="nf">align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qy</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the domain *D* in *qy* maximizing the overlap ratio. Binary</span>
+<span class="sd">        search method is used internally for accelerating the search process.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        qy : a :py:class:`tadlib.hitad.aligner.DomainSet` instance</span>
+<span class="sd">            Reference domain set. (Recall sequence mapping and reference</span>
+<span class="sd">            genome)</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The matched details are stored in *cache* using the unique identifier</span>
+<span class="sd">        of *qy* (``qy.Label``) as the key, the value is also a dict with 2</span>
+<span class="sd">        keys: *hitdomain* records the matched domain interval in</span>
+<span class="sd">        (chrom,start,end) format, and *hitoverlap* records the overlap ratio</span>
+<span class="sd">        between the hitdomain and current query domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qn</span> <span class="o">=</span> <span class="n">qy</span><span class="o">.</span><span class="n">Label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">qb</span> <span class="o">=</span> <span class="n">qy</span><span class="o">.</span><span class="n">Bounds</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">qy</span><span class="o">.</span><span class="n">res</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;hitdomain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;hitoverlap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">left</span> <span class="o">=</span> <span class="n">SingleBound</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">SingleBound</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">left</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">qn</span><span class="p">,</span> <span class="n">qb</span><span class="p">,</span> <span class="mi">5</span><span class="o">*</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">left</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;nindices&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">right</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">qn</span><span class="p">,</span> <span class="n">qb</span><span class="p">,</span> <span class="mi">5</span><span class="o">*</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">right</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;nindices&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+            
+        <span class="n">lidx</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;nindices&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ridx</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;nindices&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">candis</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lidx</span><span class="p">,</span> <span class="n">ridx</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ridx</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">qb</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interval</span><span class="p">,</span> <span class="p">[</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+                <span class="n">candis</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">score</span><span class="p">,</span> <span class="n">tmp</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">candis</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">besthit</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">candis</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">besthit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">hitdomain</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrom</span><span class="p">,</span> <span class="n">besthit</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">besthit</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;hitdomain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hitdomain</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;hitoverlap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">besthit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="Container"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.Container">[docs]</a><span class="k">class</span> <span class="nc">Container</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dict-like. Used in the organizing of domain alignment results.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    info : list</span>
+<span class="sd">        Pair of domain lists from two domain sets.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">info</span></div>
+
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dick-like. We use it to represent nodes of a hierarchical domain tree</span>
+<span class="sd">    in *DomainSet*.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bounds : list or None</span>
+<span class="sd">        Domain interval represented by [chrom,start,end].</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">bounds</span></div>
+
+<div class="viewcode-block" id="DomainAligner"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainAligner">[docs]</a><span class="k">class</span> <span class="nc">DomainAligner</span><span class="p">(</span><span class="n">SingleDomain</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is the work horse we define to:</span>
+<span class="sd">        </span>
+<span class="sd">    1. Hold multiple :py:class:`tadlib.hitad.aligner.DomainSet` instances</span>
+<span class="sd">       at the same time.</span>
+<span class="sd">    2. Perform domain-based hierarchical alignment between any two</span>
+<span class="sd">       :py:class:`tadlib.hitad.aligner.DomainSet`.</span>
+<span class="sd">    3. Define and extract domain-level change types from alignment results</span>
+<span class="sd">       between two :py:class:`tadlib.hitad.aligner.DomainSet`.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : two or more :py:class:`tadlib.hitad.aligner.DomainSet` instances</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    DomainSets : dict</span>
+<span class="sd">        Pool of :py:class:`tadlib.hitad.aligner.DomainSet`. The keys are</span>
+<span class="sd">        unique identifiers extracted from :py:class:`tadlib.hitad.aligner.DomainSet`,</span>
+<span class="sd">        and the values are corresponding :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">        instances.</span>
+<span class="sd">    Results : dict</span>
+<span class="sd">        Container for alignment results between any pair of</span>
+<span class="sd">        :py:class:`tadlib.hitad.aligner.DomainSet` instances.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">domains</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">[</span><span class="n">domains</span><span class="o">.</span><span class="n">Label</span><span class="p">]</span> <span class="o">=</span> <span class="n">domains</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Results</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">def</span> <span class="nf">_getTree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">pool</span><span class="p">):</span>
+        
+        <span class="c1"># all domains contained in *ref* must lie on the same chromosome</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">ref</span><span class="p">:</span> <span class="c1"># four columns</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">end</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">start</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">start</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">end</span><span class="p">):</span>
+                <span class="n">pool</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="mi">3</span><span class="p">])]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getTree</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">ref</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">pool</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_oneway</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">es</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">td</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">Domains</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tk</span> <span class="o">=</span> <span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">,)</span> <span class="o">+</span> <span class="n">td</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tk</span> <span class="o">=</span> <span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">t_ref</span><span class="o">.</span><span class="n">bottoms</span><span class="p">[</span><span class="n">td</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="n">sd</span> <span class="o">=</span> <span class="n">SingleDomain</span><span class="p">(</span><span class="o">*</span><span class="n">td</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">sd</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">qy</span><span class="p">)</span>
+            <span class="n">pse</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">][</span><span class="s1">&#39;hitdomain&#39;</span><span class="p">]</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">pse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pse</span><span class="p">)</span>
+            <span class="n">qds</span> <span class="o">=</span> <span class="n">qy</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">qds</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">q_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">qks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">,)</span><span class="o">+</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">qds</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">qks</span> <span class="o">=</span> <span class="p">[(</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">,)</span><span class="o">+</span><span class="nb">tuple</span><span class="p">(</span><span class="n">q_ref</span><span class="o">.</span><span class="n">bottoms</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">qds</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">qks</span><span class="p">:</span>
+                <span class="n">vs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlap</span><span class="p">([</span><span class="n">td</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">td</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+                <span class="n">es</span><span class="p">[(</span><span class="n">tk</span><span class="p">,</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">op</span>
+    
+    <span class="k">def</span> <span class="nf">_localhits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">):</span>
+        
+        <span class="n">table</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">td</span> <span class="ow">in</span> <span class="n">tg</span><span class="o">.</span><span class="n">Domains</span><span class="p">:</span>
+            <span class="n">sd</span> <span class="o">=</span> <span class="n">SingleDomain</span><span class="p">(</span><span class="o">*</span><span class="n">td</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">sd</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">qy</span><span class="p">)</span>
+            <span class="n">pse</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">cache</span><span class="p">[</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">][</span><span class="s1">&#39;hitdomain&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">pse</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getTree</span><span class="p">(</span><span class="n">pse</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pse</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">qy</span><span class="o">.</span><span class="n">Domains</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[]</span>
+            
+        <span class="n">rmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span>
+        <span class="n">rmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">table</span><span class="p">])</span>
+        <span class="n">reorg</span> <span class="o">=</span> <span class="n">hierFormat</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">nqy</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">reorg</span><span class="p">,</span> <span class="n">qy</span><span class="o">.</span><span class="n">res</span><span class="p">)</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getTree</span><span class="p">(</span><span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">nqy</span><span class="o">.</span><span class="n">Domains</span><span class="p">,</span> <span class="n">pool</span><span class="p">)</span>
+        <span class="n">ql</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">ql</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">+</span><span class="p">[</span><span class="n">table</span><span class="p">[</span><span class="n">d</span><span class="p">]])</span>
+            
+        <span class="k">return</span> <span class="n">ql</span>
+    
+    <span class="k">def</span> <span class="nf">_aligncore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">q_ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        
+        <span class="c1"># *tg* and **qy only contain single-level domains</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">Domains</span><span class="p">):</span>
+            <span class="n">pes</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># The initial edges are directed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_oneway</span><span class="p">(</span><span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">pes</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_oneway</span><span class="p">(</span><span class="n">qy</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">pes</span><span class="p">)</span>
+            <span class="n">es</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Only symmetric edges are retained</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">pes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">pes</span><span class="p">:</span>
+                    <span class="n">es</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="n">pes</span><span class="p">[</span><span class="n">e</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">es</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">tg</span><span class="o">.</span><span class="n">Domains</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">vs</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">,)</span><span class="o">+</span><span class="n">d</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vs</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">,)</span><span class="o">+</span><span class="nb">tuple</span><span class="p">(</span><span class="n">t_ref</span><span class="o">.</span><span class="n">bottoms</span><span class="p">[</span><span class="n">d</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]))</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">es</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pairfromgraph</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">,</span> <span class="n">pairs</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">g</span>
+    
+    <span class="k">def</span> <span class="nf">_pairfromgraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">,</span> <span class="n">pairs</span><span class="p">):</span>
+        
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">find_connected_components</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">med</span> <span class="o">=</span> <span class="p">[[],[]]</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">:</span>
+                    <span class="n">med</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">med</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+            <span class="n">med</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">med</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">med</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">med</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">tk</span><span class="p">,</span> <span class="n">qk</span><span class="p">,</span> <span class="n">med</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toberobust</span><span class="p">(</span><span class="n">med</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">med</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">)</span>
+            <span class="n">pairs</span><span class="p">[(</span><span class="n">tk</span><span class="p">,</span><span class="n">qk</span><span class="p">)]</span> <span class="o">=</span> <span class="n">med</span>
+        
+        <span class="k">return</span> <span class="n">pairs</span>
+    
+    <span class="k">def</span> <span class="nf">_toberobust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">,</span> <span class="n">t_ref</span><span class="p">,</span> <span class="n">q_ref</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="n">t_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tl</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">ql</span> <span class="o">=</span> <span class="n">qy</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tl</span> <span class="o">=</span> <span class="n">t_ref</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">ql</span> <span class="o">=</span> <span class="n">q_ref</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="n">tl</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">ql</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                
+        <span class="n">tk</span> <span class="o">=</span> <span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">qk</span> <span class="o">=</span> <span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="n">tk</span><span class="p">,</span> <span class="n">qk</span><span class="p">,</span> <span class="p">[</span><span class="n">tl</span><span class="p">,</span> <span class="n">ql</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="DomainAligner.align"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainAligner.align">[docs]</a>    <span class="k">def</span> <span class="nf">align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct hierarchical alignment between *tn* and *qn*.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn : str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances which are collected by *arg* during initialization.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The alignment results are organized in a hierarchical way in a</span>
+<span class="sd">        dictionary. The keys are matched chromosome region (corresponds to</span>
+<span class="sd">        either one TAD or several continuous TADs) pairs at the TAD level,</span>
+<span class="sd">        and the values are :py:class:`tadlib.hitad.aligner.Container` instances</span>
+<span class="sd">        with *info* attribute set to be pair of detailed TAD lists; the keys</span>
+<span class="sd">        of these :py:class:`tadlib.hitad.aligner.Container` indicate domain</span>
+<span class="sd">        levels, the values again are dictionaries containing sub-alignment</span>
+<span class="sd">        results within the upper-layer TAD region.</span>
+<span class="sd">        </span>
+<span class="sd">        You can access the results from *Results* attribute:</span>
+<span class="sd">        ``self.Results[tn][qn]`` or ``self.Results[qn][tn]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span>
+        <span class="n">qy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span>
+        <span class="c1"># Originally, *tg* and *qy* are always hierarchical</span>
+        <span class="n">tcache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align</span><span class="p">(</span><span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">)</span>
+        <span class="n">qcache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align</span><span class="p">(</span><span class="n">qy</span><span class="p">,</span> <span class="n">tg</span><span class="p">)</span>
+        <span class="n">tcore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_crosscorrect</span><span class="p">(</span><span class="n">tcache</span><span class="p">,</span> <span class="n">qcache</span><span class="p">)</span>
+        <span class="n">qcore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_crosscorrect</span><span class="p">(</span><span class="n">qcache</span><span class="p">,</span> <span class="n">tcache</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">qn</span><span class="p">:</span><span class="n">tcore</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="n">tcore</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">qn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">tn</span><span class="p">:</span><span class="n">qcore</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">qn</span><span class="p">][</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="n">qcore</span>   </div>
+    
+    <span class="k">def</span> <span class="nf">_align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Match domains of *tg* with domains in *qy*.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tg, qy : :py:class:`tadlib.hitad.aligner.DomainSet` instances</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cache : dict</span>
+<span class="sd">            Hierarchically organized matched domain pairs.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># First, align the top-level domains</span>
+        <span class="n">tg</span><span class="o">.</span><span class="n">getBottoms</span><span class="p">()</span>
+        <span class="n">qy</span><span class="o">.</span><span class="n">getBottoms</span><span class="p">()</span>
+        <span class="n">ttl</span> <span class="o">=</span> <span class="n">hierFormat</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">bottoms</span><span class="p">))</span>
+        <span class="n">tql</span> <span class="o">=</span> <span class="n">hierFormat</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">bottoms</span><span class="p">))</span>
+        <span class="n">ttg</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">res</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">tqy</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">tql</span><span class="p">,</span> <span class="n">qy</span><span class="o">.</span><span class="n">res</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">pairs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligncore</span><span class="p">(</span><span class="n">ttg</span><span class="p">,</span> <span class="n">tqy</span><span class="p">,</span> <span class="n">tg</span><span class="p">,</span> <span class="n">qy</span><span class="p">)</span>
+        
+        <span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pairs</span><span class="p">):</span>
+            <span class="n">tl</span> <span class="o">=</span> <span class="n">tg</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="o">*</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">ftg</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">tg</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">tl</span><span class="p">,</span> <span class="n">tg</span><span class="o">.</span><span class="n">res</span><span class="p">)</span>
+            <span class="n">ql</span> <span class="o">=</span> <span class="n">qy</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="o">*</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">fqy</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">ql</span><span class="p">,</span> <span class="n">qy</span><span class="o">.</span><span class="n">res</span><span class="p">)</span>
+            <span class="n">cache</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="n">pairs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="c1"># Parse the hierarchy step by step</span>
+            <span class="n">ori</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pairs</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">==</span><span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">tv</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ori</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">ftg</span><span class="o">.</span><span class="n">levs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">cache</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">tv</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">tl</span> <span class="o">=</span> <span class="n">ftg</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="p">(</span><span class="n">tv</span><span class="p">,)))</span>
+                <span class="n">ntg</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">ftg</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">tl</span><span class="p">,</span> <span class="n">ftg</span><span class="o">.</span><span class="n">res</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">ql</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_localhits</span><span class="p">(</span><span class="n">ntg</span><span class="p">,</span> <span class="n">fqy</span><span class="p">)</span>
+                <span class="n">nqy</span> <span class="o">=</span> <span class="n">DomainSet</span><span class="p">(</span><span class="n">fqy</span><span class="o">.</span><span class="n">Label</span><span class="p">,</span> <span class="n">ql</span><span class="p">,</span> <span class="n">fqy</span><span class="o">.</span><span class="n">res</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="n">npairs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligncore</span><span class="p">(</span><span class="n">ntg</span><span class="p">,</span> <span class="n">nqy</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">npairs</span><span class="p">:</span>
+                    <span class="n">cache</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">tv</span><span class="p">][</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="n">npairs</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="n">cache</span>
+    
+    <span class="k">def</span> <span class="nf">_crosscorrect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+        
+        <span class="n">tcore</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cache</span><span class="p">):</span>
+            <span class="n">sk</span> <span class="o">=</span> <span class="n">k</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sk</span> <span class="ow">in</span> <span class="n">ref</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">hit</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="n">sk</span><span class="p">]</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">tcore</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">lv</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">target</span><span class="p">[</span><span class="n">lv</span><span class="p">]:</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_search</span><span class="p">(</span><span class="n">hit</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                        <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">target</span><span class="p">[</span><span class="n">lv</span><span class="p">][</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+                        <span class="n">mlv</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">tl</span><span class="p">])</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">mlv</span> <span class="ow">in</span> <span class="n">tcore</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                            <span class="n">tcore</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">mlv</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span><span class="n">target</span><span class="p">[</span><span class="n">lv</span><span class="p">][</span><span class="n">p</span><span class="p">]}</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">tcore</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">mlv</span><span class="p">][</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">target</span><span class="p">[</span><span class="n">lv</span><span class="p">][</span><span class="n">p</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">tcore</span>
+    
+    <span class="k">def</span> <span class="nf">_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hit</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">lv</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">hit</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hit</span><span class="p">[</span><span class="n">lv</span><span class="p">]:</span>  
+                <span class="k">if</span> <span class="n">h</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
+                <span class="k">break</span>
+            
+        <span class="k">return</span> <span class="n">found</span>
+    
+<div class="viewcode-block" id="DomainAligner.conserved"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainAligner.conserved">[docs]</a>    <span class="k">def</span> <span class="nf">conserved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return conserved TAD pairs.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn : str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : set of tuples</span>
+<span class="sd">            Each tuple has two elements (domain intervals), corresponding to</span>
+<span class="sd">            *tn* and *qn* respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">]</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ql</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">pairs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pairs</span></div>
+    
+    <span class="k">def</span> <span class="nf">_lowlevel_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        
+        <span class="n">pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">]</span>
+        <span class="n">dset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pool</span><span class="p">):</span>
+            <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ql</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">alls</span> <span class="o">=</span> <span class="n">dset</span><span class="o">.</span><span class="n">getregion</span><span class="p">(</span><span class="o">*</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">):</span><span class="mi">0</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">alls</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">lv</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">lv</span><span class="p">]:</span>
+                    <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">lv</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ql</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">labels</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="n">pairs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">pairs</span>
+    
+<div class="viewcode-block" id="DomainAligner.inner_changed"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainAligner.inner_changed">[docs]</a>    <span class="k">def</span> <span class="nf">inner_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span> <span class="p">,</span><span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return semi-conserved TAD pairs.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn : str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : set of tuples</span>
+<span class="sd">            Each tuple has two elements (domain intervals), corresponding to</span>
+<span class="sd">            *tn* and *qn* respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lowlevel_changed</span><span class="p">(</span><span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">)</span>
+        <span class="n">r_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lowlevel_changed</span><span class="p">(</span><span class="n">qn</span><span class="p">,</span> <span class="n">tn</span><span class="p">)</span>
+        <span class="n">pairs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">k</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">r_pairs</span><span class="p">]))</span>
+        
+        <span class="k">return</span> <span class="n">pairs</span></div>
+    
+<div class="viewcode-block" id="DomainAligner.merged"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainAligner.merged">[docs]</a>    <span class="k">def</span> <span class="nf">merged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return merged region pairs and merged TAD details.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn : str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : dict</span>
+<span class="sd">            The keys are merged region pairs in tuple, and the values are</span>
+<span class="sd">            corresponding TAD list pairs within the region.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">]</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ql</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">pairs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">tl</span><span class="p">,</span> <span class="n">ql</span><span class="p">]</span>
+                
+        <span class="k">return</span> <span class="n">pairs</span></div>
+    
+<div class="viewcode-block" id="DomainAligner.split"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.DomainAligner.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return split region pairs and split TAD details.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn : str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : dict</span>
+<span class="sd">            The keys are split region pairs in tuple, and the values are</span>
+<span class="sd">            corresponding TAD list pairs within the region.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merged</span><span class="p">(</span><span class="n">qn</span><span class="p">,</span> <span class="n">tn</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">r_pairs</span><span class="p">:</span>
+            <span class="n">pairs</span><span class="p">[</span><span class="n">k</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">r_pairs</span><span class="p">[</span><span class="n">k</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">pairs</span></div></div>
+
+<div class="viewcode-block" id="BoundAligner"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner">[docs]</a><span class="k">class</span> <span class="nc">BoundAligner</span><span class="p">(</span><span class="n">DomainAligner</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on our hierarchical domain alignment scheme, we also define several</span>
+<span class="sd">    change types on boundary level between two datasets, including conserved</span>
+<span class="sd">    TAD boundary, conserved sub-TAD boundary, disappeared TAD boundary,</span>
+<span class="sd">    disappeared sub-TAD boundary, and TAD-to-sub-TAD boundary switch.</span>
+<span class="sd">    </span>
+<span class="sd">    Boundaries are expressed in (chrom,pos) format in this class.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : two or more :py:class:`tadlib.hitad.aligner.DomainSet` instances</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    byclass : dict</span>
+<span class="sd">        Cache boundary pairs of each change type between datasets.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">DomainAligner</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pairwise_alignment</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">pairwise_alignment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="n">completed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">qn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tn</span><span class="o">==</span><span class="n">qn</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">tn</span><span class="p">,</span><span class="n">qn</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">completed</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">)</span>
+                    <span class="n">completed</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">all_in_one</span><span class="p">(</span><span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">])</span>
+    
+<div class="viewcode-block" id="BoundAligner.all_in_one"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.all_in_one">[docs]</a>    <span class="k">def</span> <span class="nf">all_in_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">,</span> <span class="n">cache</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse domain alignment results between *tn* and *qn* and cache all</span>
+<span class="sd">        detected cases of 6 defined change types.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn : str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        cache : dict</span>
+<span class="sd">            An empty dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tad_c</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">sub_c</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">sub2tad</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">tad2sub</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">tad_dp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">sub_dp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">tset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span>
+        <span class="n">qset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DomainSets</span><span class="p">[</span><span class="n">qn</span><span class="p">]</span>
+        <span class="n">topbounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">tset</span><span class="o">.</span><span class="n">Bounds</span> <span class="k">if</span> <span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lowbounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">tset</span><span class="o">.</span><span class="n">Bounds</span> <span class="k">if</span> <span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">b</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pool</span><span class="p">):</span>
+            <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+            <span class="n">tt_1</span> <span class="o">=</span> <span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># left target top bounds </span>
+            <span class="n">tt_2</span> <span class="o">=</span> <span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">qt_1</span> <span class="o">=</span> <span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># left query top bounds</span>
+            <span class="n">qt_2</span> <span class="o">=</span> <span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">qt_1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">tad_c</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">qt_1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">sub_c</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">qt_1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">tad2sub</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub2tad</span><span class="p">[</span><span class="n">tt_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">qt_2</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">tad_c</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_2</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">qt_2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">sub_c</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_2</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">qt_2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                <span class="n">tad2sub</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub2tad</span><span class="p">[</span><span class="n">tt_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">qt_2</span>
+            <span class="k">for</span> <span class="n">lv</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">lv</span><span class="p">]:</span>
+                    <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">lv</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
+                    <span class="n">tl_1</span> <span class="o">=</span> <span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># left target low bounds</span>
+                    <span class="n">tl_2</span> <span class="o">=</span> <span class="p">(</span><span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">tl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="n">ql_1</span> <span class="o">=</span> <span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># left query low bounds</span>
+                    <span class="n">ql_2</span> <span class="o">=</span> <span class="p">(</span><span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">ql</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">ql_1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">tad_c</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_1</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">ql_1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">sub_c</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_1</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">ql_1</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">tad2sub</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sub2tad</span><span class="p">[</span><span class="n">tl_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_1</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">ql_2</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">tad_c</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_2</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">ql_2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">sub_c</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_2</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">tset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">qset</span><span class="o">.</span><span class="n">boundclass</span><span class="p">[</span><span class="n">ql_2</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                        <span class="n">tad2sub</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_2</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sub2tad</span><span class="p">[</span><span class="n">tl_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ql_2</span>
+        <span class="n">tad_dp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">topbounds</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">tad_c</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">tad2sub</span><span class="p">)</span>
+        <span class="n">sub_dp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">lowbounds</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">sub_c</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">sub2tad</span><span class="p">)</span>
+        <span class="n">cache</span><span class="p">[</span><span class="s1">&#39;Conserved TAD boundaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tad_c</span>
+        <span class="n">cache</span><span class="p">[</span><span class="s1">&#39;Conserved sub-TAD boundaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_c</span>
+        <span class="n">cache</span><span class="p">[</span><span class="s1">&#39;TAD to sub-TAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tad2sub</span>
+        <span class="n">cache</span><span class="p">[</span><span class="s1">&#39;sub-TAD to TAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub2tad</span>
+        <span class="n">cache</span><span class="p">[</span><span class="s1">&#39;Disappeared TAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tad_dp</span>
+        <span class="n">cache</span><span class="p">[</span><span class="s1">&#39;Disappeared sub-TAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_dp</span></div>
+    
+<div class="viewcode-block" id="BoundAligner.conserved_tad_bounds"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.conserved_tad_bounds">[docs]</a>    <span class="k">def</span> <span class="nf">conserved_tad_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return pairs of conserved TAD boundaries.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn: str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : dict</span>
+<span class="sd">            Keys and values indicate TAD boundaries in *tn* and *qn*,</span>
+<span class="sd">            respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;Conserved TAD boundaries&#39;</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="BoundAligner.conserved_sub_bounds"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.conserved_sub_bounds">[docs]</a>    <span class="k">def</span> <span class="nf">conserved_sub_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return pairs of conserved sub-TAD boundaries.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn: str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : dict</span>
+<span class="sd">            Keys and values indicate sub-TAD boundaries in *tn* and *qn*,</span>
+<span class="sd">            respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;Conserved sub-TAD boundaries&#39;</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="BoundAligner.tad2sub"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.tad2sub">[docs]</a>    <span class="k">def</span> <span class="nf">tad2sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return TAD to sub-TAD switch cases.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn: str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : dict</span>
+<span class="sd">            Keys are TAD boundaries in *tn*, and values indicate corresponding</span>
+<span class="sd">            sub-TAD boundaries in *qn*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;TAD to sub-TAD&#39;</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="BoundAligner.sub2tad"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.sub2tad">[docs]</a>    <span class="k">def</span> <span class="nf">sub2tad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return sub-TAD to TAD switch cases.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn: str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : dict</span>
+<span class="sd">            Keys are sub-TAD boundaries in *tn*, and values indicate corresponding</span>
+<span class="sd">            TAD boundaries in *qn*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;sub-TAD to TAD&#39;</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="BoundAligner.disappeared_tad"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.disappeared_tad">[docs]</a>    <span class="k">def</span> <span class="nf">disappeared_tad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TAD boundaries that exist in *tn*, but disappear in *qn*.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn: str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : set of tuples</span>
+<span class="sd">            TAD boundary positions in *tn*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;Disappeared TAD&#39;</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="BoundAligner.disappeared_sub"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.BoundAligner.disappeared_sub">[docs]</a>    <span class="k">def</span> <span class="nf">disappeared_sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sub-TAD boundaries that exist in *tn*, but disappear in *qn*.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tn, qn: str</span>
+<span class="sd">            Unique identifiers of :py:class:`tadlib.hitad.aligner.DomainSet`</span>
+<span class="sd">            instances.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pairs : set of tuples</span>
+<span class="sd">            Sub-TAD boundary positions in *tn*.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">byclass</span><span class="p">[</span><span class="n">tn</span><span class="p">][</span><span class="n">qn</span><span class="p">][</span><span class="s1">&#39;Disappeared sub-TAD&#39;</span><span class="p">]</span></div></div>
+        
+<span class="c1">#------------------------------------------------------------------------------</span>
+<span class="c1"># Functions for parsing domain data        </span>
+<div class="viewcode-block" id="readHierDomain"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.readHierDomain">[docs]</a><span class="k">def</span> <span class="nf">readHierDomain</span><span class="p">(</span><span class="n">domainfile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load hierarchical domain list from a text file.</span>
+<span class="sd">    </span>
+<span class="sd">    The source file should contain 4 columns indicating chromosome label</span>
+<span class="sd">    (1,2,...,X,Y), domain start (bp), domain end (bp), and hierarchical level</span>
+<span class="sd">    (0,1,2,...), respectively.</span>
+<span class="sd">    </span>
+<span class="sd">    In our paper, TAD is denoted as level 0, sub-TAD is denoted as level 1,</span>
+<span class="sd">    and subsequent domain level is denoted as level 2, etc.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    domainfile : str</span>
+<span class="sd">        Domain file path.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    domainlist : list</span>
+<span class="sd">        Each element of the list indicates one domain represented by</span>
+<span class="sd">        [chrom,start,end,level].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">domainlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">domainfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">source</span><span class="p">:</span>
+            <span class="n">parse</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">domainlist</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">chrom</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">label</span><span class="p">)])</span>
+    
+    <span class="k">return</span> <span class="n">domainlist</span></div>
+
+<div class="viewcode-block" id="readPlainDomain"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.readPlainDomain">[docs]</a><span class="k">def</span> <span class="nf">readPlainDomain</span><span class="p">(</span><span class="n">domainfile</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="s1">&#39;chr&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load domain list from a text file.</span>
+<span class="sd">    </span>
+<span class="sd">    The source file should contain 3 columns indicating chromosome name,</span>
+<span class="sd">    domain start (bp) and domain end (bp), respectively.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    domainfile : str</span>
+<span class="sd">        Domain file path.</span>
+<span class="sd">    pre : str</span>
+<span class="sd">        Leading string of the chromosome name. (Default: chr)</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    domainlist : list</span>
+<span class="sd">        Each element indicates one domain represented by</span>
+<span class="sd">        [chrom(leading string removed),start,end].</span>
+<span class="sd">    </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    tadlib.hitad.aligner.hierFormat : parse hierarchical relationships between</span>
+<span class="sd">                                      domains</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">domainlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">domainfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">source</span><span class="p">:</span>
+            <span class="n">parse</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+            <span class="n">chrom</span> <span class="o">=</span> <span class="n">chrom</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="n">pre</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">domainlist</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">chrom</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">end</span><span class="p">)])</span>
+            
+    <span class="k">return</span> <span class="n">domainlist</span></div>
+    
+
+<div class="viewcode-block" id="hierFormat"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.aligner.hierFormat">[docs]</a><span class="k">def</span> <span class="nf">hierFormat</span><span class="p">(</span><span class="n">domainlist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve the nested/hierarchical relationships between domains, and</span>
+<span class="sd">    transform the input [chrom,start,end] format domains into a format</span>
+<span class="sd">    including hierarchical level information.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    domainlist : list</span>
+<span class="sd">        Domains with the format [chrom,start,end].</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    domainlist : list</span>
+<span class="sd">        Domains with the format [chrom,start,end,level].</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bychroms</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">hierlabel</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">domainlist</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">:</span>
+            <span class="n">bychroms</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="p">];</span> <span class="n">hierlabel</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bychroms</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">hierlabel</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">:</span>
+        <span class="n">bychroms</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">nested</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">:</span>
+        <span class="n">sidx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">nested</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">sidx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">pool</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="n">label</span><span class="p">:</span>
+                    <span class="n">sidx</span> <span class="o">=</span> <span class="n">i</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">bychroms</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">break</span>
+            <span class="n">nested</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">q</span><span class="p">]</span> <span class="o">=</span> <span class="n">pool</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span> <span class="o">!=</span> <span class="n">q</span><span class="p">:</span>
+                    <span class="n">hierlabel</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">p</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">domainlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">hierlabel</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">hierlabel</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">hierlabel</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">d</span><span class="p">]]</span>
+            <span class="n">domainlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">domainlist</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">domainlist</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

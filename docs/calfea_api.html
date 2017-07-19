@@ -1,0 +1,880 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hi-C Data Loading &#8212; TADLib 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hierarchical TAD" href="hitad.html" />
+    <link rel="prev" title="Aggregation Preference" href="calfea.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install TADLib</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="calfea.html">Aggregation Preference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="calfea.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calfea.html#quickstart">QuickStart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calfea.html#guide-for-calfea">Guide for CALFEA</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="calfea.html#api-documentation">API Documentation</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Hi-C Data Loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tad-data-parsing">TAD Data Parsing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#intra-tad-interaction-analysis">Intra-TAD Interaction Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#interaction-matrix-extracting-and-manipulating">Interaction Matrix Extracting and Manipulating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#polygon-creation-and-operations">Polygon Creation and Operations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hi-c-data-loading">
+<h1>Hi-C Data Loading<a class="headerlink" href="#hi-c-data-loading" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="tadlib.calfea.analyze.Inters">
+<em class="property">class </em><code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">Inters</code><span class="sig-paren">(</span><em>path='.', Format='TXT', resolution=10000, template='chr%s_chr%s.int', chroms=['#', 'X'], cols=None, prefix=None, immortal=False, saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Inters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Inters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load bin-level Hi-C data from TXT or Numpy .npz file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
+<blockquote>
+<div><p>Data path. (Default: &#8216;.&#8217;, current working directory)</p>
+</div></blockquote>
+<p><strong>Format</strong> : {&#8216;TXT&#8217;, &#8216;NPZ&#8217;}</p>
+<blockquote>
+<div><p>Two choices of the source format. (Default: &#8216;TXT&#8217;)</p>
+</div></blockquote>
+<p><strong>template</strong> : str</p>
+<blockquote>
+<div><p>Template of the source file names. Only required for TXT.
+(Default: &#8216;chr%s_chr%s.int&#8217;, in which &#8216;%s&#8217; indicates chromosome
+ID)</p>
+</div></blockquote>
+<p><strong>resolution</strong> : int</p>
+<blockquote>
+<div><p>Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)</p>
+</div></blockquote>
+<p><strong>chroms</strong> : list</p>
+<blockquote>
+<div><p>List of chromosome labels. Only Hi-C data within the specified chromosomes
+will be included. Specially, &#8216;#&#8217; stands for chromosomes with numerical
+labels. If an empty list is provided, all chromosome data will be loaded.
+(Default: [&#8216;#&#8217;, &#8216;X&#8217;])</p>
+</div></blockquote>
+<p><strong>cols</strong> : None or list of int (length: 3)</p>
+<blockquote>
+<div><p>Which columns to read, with 0 being the first. For example,
+<code class="docutils literal"><span class="pre">cols</span> <span class="pre">=</span> <span class="pre">[1,</span> <span class="pre">3,</span> <span class="pre">4]</span></code> will extract the 2nd, 4th and 5th columns.
+(Default: None, the automatic recognization will be triggered)</p>
+</div></blockquote>
+<p><strong>prefix</strong> : str or None</p>
+<blockquote>
+<div><p>Prefix of input .npz file name. For example, <code class="docutils literal"><span class="pre">prefix</span> <span class="pre">=</span> <span class="pre">'h1hesc'</span></code>
+will load a file named &#8220;h1hesc.npz&#8221;. (Default: None)</p>
+</div></blockquote>
+<p><strong>immortal</strong> : bool</p>
+<blockquote>
+<div><p>If True, save the loaded data to a new Numpy .npz file.
+(Default: False)</p>
+</div></blockquote>
+<p><strong>saveto</strong> : str or None</p>
+<blockquote class="last">
+<div><p>Prefix of the output .npz file name. (Default: None)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html#numpy.load" title="(in NumPy v1.13)"><code class="xref py py-obj docutils literal"><span class="pre">numpy.load</span></code></a></dt>
+<dd>Load an array(s) from .npy or .npz files.</dd>
+<dt><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.savez.html#numpy.savez" title="(in NumPy v1.13)"><code class="xref py py-obj docutils literal"><span class="pre">numpy.savez</span></code></a></dt>
+<dd>Save several arrays into a single .npz file.</dd>
+<dt><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.13)"><code class="xref py py-obj docutils literal"><span class="pre">numpy.dtype</span></code></a></dt>
+<dd>Create a data type object.</dd>
+</dl>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="4%" />
+<col width="96%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>location</td>
+<td>(str) Absolute path to the data folder.</td>
+</tr>
+<tr class="row-even"><td>chroms</td>
+<td>(set) Set of the input chromosome labels.</td>
+</tr>
+<tr class="row-odd"><td>template</td>
+<td>(str) Template of the TXT source file names.</td>
+</tr>
+<tr class="row-even"><td>resolution</td>
+<td>(int) Resolution of the data.</td>
+</tr>
+<tr class="row-odd"><td>cols</td>
+<td>(None or list of int (length: 3)) Which columns in TXT source file to read.</td>
+</tr>
+<tr class="row-even"><td>data</td>
+<td>(dict) Loaded Hi-C data, with chromosome ID as the key and a customized Numpy Structured Array as the value. The structured array, which is defined through numpy.dtype object, has 3 fields named &#8220;bin1&#8221;, &#8220;bin2&#8221; and &#8220;IF&#8221;, respectively.</td>
+</tr>
+<tr class="row-odd"><td>interFiles</td>
+<td>(list of str) List of TXT source files. Only created if <code class="docutils literal"><span class="pre">Format</span> <span class="pre">=</span> <span class="pre">'TXT'</span></code>.</td>
+</tr>
+<tr class="row-even"><td>labels</td>
+<td>(list of str) List of sorted chromosome labels.</td>
+</tr>
+<tr class="row-odd"><td>label2idx</td>
+<td>(dict) Map from chromosomes labels to zero-based indices.</td>
+</tr>
+<tr class="row-even"><td>idx2label</td>
+<td>(dict) Map from zero-based indices to chromosome labels.</td>
+</tr>
+<tr class="row-odd"><td>map</td>
+<td>(dict) Mapping from labels to interFiles. Only available when <code class="docutils literal"><span class="pre">Format</span> <span class="pre">=</span> <span class="pre">'TXT'</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="tad-data-parsing">
+<h1>TAD Data Parsing<a class="headerlink" href="#tad-data-parsing" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="tadlib.calfea.analyze.TAD">
+<em class="property">class </em><code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">TAD</code><span class="sig-paren">(</span><em>source, chromname=None, cols=[0, 1, 2]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#TAD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.TAD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load TAD data from a TXT file.</p>
+<p>TAD &#8211; Topologically Associating Domain.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>source</strong> : str</p>
+<blockquote>
+<div><p>The complete source file name.
+Suppose a file named &#8220;h1hesc.domain&#8221; is located in
+&#8220;/home/xtwang/data/TAD&#8221;, then <code class="docutils literal"><span class="pre">source</span> <span class="pre">=</span> <span class="pre">'~/data/TAD/h1hesc.domain'</span></code>
+or <code class="docutils literal"><span class="pre">source</span> <span class="pre">=</span> <span class="pre">'/home/xtwang/data/TAD/h1hesc.domain'</span></code>.</p>
+</div></blockquote>
+<p><strong>chromname</strong> : None or str</p>
+<blockquote>
+<div><p>Template of chromosome names.
+Suppose <code class="docutils literal"><span class="pre">chromname</span> <span class="pre">=</span> <span class="pre">'chr'</span></code>, then the source data should be as
+follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chr1</span>    <span class="mi">0</span>   <span class="mi">350000</span>
+<span class="n">chr1</span>    <span class="mi">350000</span>  <span class="mi">800000</span>
+<span class="n">chr1</span>    <span class="mi">800000</span>  <span class="mi">1450000</span>
+</pre></div>
+</div>
+<p>Default: None</p>
+</div></blockquote>
+<p><strong>cols</strong> : list of int (length: 3)</p>
+<blockquote class="last">
+<div><p>Which columns to read, with 0 being the first. For example,
+<code class="docutils literal"><span class="pre">cols</span> <span class="pre">=</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></code> will extract the 1st, 2nd and 3rd columns.
+(Default: [0, 1, 2])</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.13)"><code class="xref py py-obj docutils literal"><span class="pre">numpy.dtype</span></code></a></dt>
+<dd>Create a data type object</dd>
+</dl>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="3%" />
+<col width="97%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>data</td>
+<td>( Numpy Structured Array) The parsed TAD intervals are contained in a numpy structured array containing 3 fields: &#8220;chr&#8221;, &#8220;start&#8221; and &#8220;end&#8221;.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="intra-tad-interaction-analysis">
+<h1>Intra-TAD Interaction Analysis<a class="headerlink" href="#intra-tad-interaction-analysis" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="tadlib.calfea.analyze.Core">
+<em class="property">class </em><code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">Core</code><span class="sig-paren">(</span><em>matrix</em>, <em>left=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Core"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Core" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interaction analysis at TAD level.</p>
+<p>High IFs off the diagonal region can be identified using
+<a class="reference internal" href="#tadlib.calfea.analyze.Core.longrange" title="tadlib.calfea.analyze.Core.longrange"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.longrange()</span></code></a>. <a class="reference internal" href="#tadlib.calfea.analyze.Core.DBSCAN" title="tadlib.calfea.analyze.Core.DBSCAN"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.DBSCAN()</span></code></a>
+performs a density-based clustering algorithm to detect aggregation patterns
+in those IFs. Furthermore, two structural features, called AP
+(Aggregation Preference) and Coverage in our original research, can be
+calculated by <a class="reference internal" href="#tadlib.calfea.analyze.Core.gdensity" title="tadlib.calfea.analyze.Core.gdensity"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.gdensity()</span></code></a> and
+<a class="reference internal" href="#tadlib.calfea.analyze.Core.totalCover" title="tadlib.calfea.analyze.Core.totalCover"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.totalCover()</span></code></a> respectively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>matrix</strong> : numpy.ndarray, (ndim = 2)</p>
+<blockquote>
+<div><p>Interaction matrix of a TAD.</p>
+</div></blockquote>
+<p><strong>left</strong> : int</p>
+<blockquote class="last">
+<div><p>Starting point of TAD. For example, if the bin size is 10kb,
+<code class="docutils literal"><span class="pre">left</span> <span class="pre">=</span> <span class="pre">50</span></code> means position 500000(bp) on the genome.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#tadlib.calfea.analyze.getmatrix" title="tadlib.calfea.analyze.getmatrix"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.analyze.getmatrix</span></code></a></p>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>newM</td>
+<td>(numpy.ndarray, (ndim = 2)) Gap-free interaction matrix.</td>
+</tr>
+<tr class="row-even"><td>convert</td>
+<td>(list) Information required for converting <em>newM</em> to <em>matrix</em>.</td>
+</tr>
+<tr class="row-odd"><td>After <a class="reference internal" href="#tadlib.calfea.analyze.Core.longrange" title="tadlib.calfea.analyze.Core.longrange"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.longrange()</span></code></a>:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>cEM</td>
+<td>(numpy.ndarray, (ndim = 2)) Expected interaction matrix. An upper triangular matrix. Value in each entry will be used to construct a Poisson Model for statistical significance calculation.</td>
+</tr>
+<tr class="row-odd"><td>fE</td>
+<td>(numpy.ndarray, (ndim = 2)) An upper triangular matrix. Each entry represents the fold enrichment of corresponding observed interaction frequency.</td>
+</tr>
+<tr class="row-even"><td>Ps</td>
+<td>(numpy.ndarray, (ndim = 2)) An upper triangular matrix. Value in each entry indicates the p-value under corresponding Poisson Model.</td>
+</tr>
+<tr class="row-odd"><td>pos</td>
+<td>(numpy.ndarray, (shape = (N, 2))) Coordinates of the selected IFs in <em>newM</em>.</td>
+</tr>
+<tr class="row-even"><td>Np</td>
+<td>(int) Number of the selected IFs.</td>
+</tr>
+<tr class="row-odd"><td>After <a class="reference internal" href="#tadlib.calfea.analyze.Core.DBSCAN" title="tadlib.calfea.analyze.Core.DBSCAN"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.DBSCAN()</span></code></a>:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>cluster_id</td>
+<td>(numpy.ndarray, (shape = (N,))) Cluster labels for each point in <em>pos</em>. -1 indicates noisy points.</td>
+</tr>
+<tr class="row-odd"><td>Nc</td>
+<td>(int) Cluster number.</td>
+</tr>
+<tr class="row-even"><td>clusters</td>
+<td>(dict) Details of each cluster. &#8220;Average density&#8221;, &#8220;radius&#8221;, &#8220;area (polygon)&#8221;, &#8220;point coordinates&#8221;, and &#8220;object number&#8221; are all recorded.</td>
+</tr>
+<tr class="row-odd"><td>Hulls</td>
+<td>(dict) Details of each convex hull (clusters which can be enclosed by a convex polygon).</td>
+</tr>
+<tr class="row-even"><td>ptrace</td>
+<td>(list of int) Labels of clusters in which all points are collinear. These clusters cannot be enclosed by a convex polygon.</td>
+</tr>
+<tr class="row-odd"><td>After <a class="reference internal" href="#tadlib.calfea.analyze.Core.gdensity" title="tadlib.calfea.analyze.Core.gdensity"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.gdensity()</span></code></a>:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>gden</td>
+<td>(float, [0, 1]) Weighted average density. Calculated using cluster density information.</td>
+</tr>
+<tr class="row-odd"><td>After <a class="reference internal" href="#tadlib.calfea.analyze.Core.totalCover" title="tadlib.calfea.analyze.Core.totalCover"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.totalCover()</span></code></a>:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>coverage</td>
+<td>(float, [0, 1]) Total coverage of clusters.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="tadlib.calfea.analyze.Core.DBSCAN">
+<code class="descname">DBSCAN</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Core.DBSCAN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Core.DBSCAN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect natural patterns in selected IFs using DBSCAN.</p>
+<p>DBSCAN is a dennsity-based clustering algorithm. <a class="reference internal" href="#r1" id="id1">[R1]</a> Two input
+parameters <em>eps</em> and <em>MinPts</em> are calculated in an analytical
+way. <a class="reference internal" href="#r2" id="id2">[R2]</a> Before further analysis, some basic features are
+calculated for each cluster, including &#8220;density&#8221;, &#8220;radius&#8221; and the
+&#8220;area&#8221;, among which, &#8220;area&#8221; stands for corresponding convex polygon
+area.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html#sklearn.cluster.DBSCAN" title="(in scikit-learn v0.18.2)"><code class="xref py py-obj docutils literal"><span class="pre">sklearn.cluster.DBSCAN</span></code></a></dt>
+<dd>an implementation of DBSCAN</dd>
+<dt><a class="reference internal" href="#tadlib.calfea.polygon.Polygon" title="tadlib.calfea.polygon.Polygon"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon</span></code></a></dt>
+<dd>calculations based on polygon.</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>Both &#8220;radius&#8221; and &#8220;density&#8221; are defined based on core objects of a
+cluster. &#8220;radius&#8221; is the average distance from the core object to its
+MinPts-nearest neighbors while &#8220;density&#8221; is the inverse of it.</p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id3">2</a>)</em> Ester M, Kriegel H, Sander J, Xu X. A density-based
+algorithm for discovering clusters in large spatial databases
+with noise. Proc. 2nd Int. Conf. on Knowledge Discovery and Data
+Mining, Portland, OR, AAAI, Press, 1996, pp. 226-231</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R2]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> Daszykowski M, Walczak B, Massart DL. Looking for Natural
+Patterns in Data, Part 1: Density Based Approach. Chemom. Intell.
+Lab. Syst., 2001, 56: 83-92.</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.calfea.analyze.Core.convertMatrix">
+<code class="descname">convertMatrix</code><span class="sig-paren">(</span><em>M</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Core.convertMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Core.convertMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an internal gap-free matrix(e.g., newM, cEM, fE, and Ps)
+into a new matrix with the same shape as the original interaction
+matrix by using the recorded index map(see the <em>convert</em> attribute).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.calfea.analyze.Core.gdensity">
+<code class="descname">gdensity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Core.gdensity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Core.gdensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted density calculation.</p>
+<p><a class="reference internal" href="#tadlib.calfea.analyze.Core.longrange" title="tadlib.calfea.analyze.Core.longrange"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.longrange()</span></code></a> and
+<a class="reference internal" href="#tadlib.calfea.analyze.Core.DBSCAN" title="tadlib.calfea.analyze.Core.DBSCAN"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.DBSCAN()</span></code></a> have to be called in advance.</p>
+<p>Density of a TAD is the weighted average density of each cluster.
+Weight is the ratio of object number of a cluster to <code class="xref py py-attr docutils literal"><span class="pre">Np</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.calfea.analyze.Core.longrange">
+<code class="descname">longrange</code><span class="sig-paren">(</span><em>pw=2</em>, <em>ww=5</em>, <em>top=0.7</em>, <em>ratio=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Core.longrange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Core.longrange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select statistically significant interactions of the TAD. Both
+genomic distance and local interaction background are taken into
+account.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pw</strong> : int</p>
+<blockquote>
+<div><p>Width of the interaction region surrounding the peak. Default: 2</p>
+</div></blockquote>
+<p><strong>ww</strong> : int</p>
+<blockquote>
+<div><p>The size of the donut sampled. Default: 5</p>
+</div></blockquote>
+<p><strong>top</strong> : float, [0.5, 1]</p>
+<blockquote>
+<div><p>Parameter for noisy interaction filtering. Default: 0.7</p>
+</div></blockquote>
+<p><strong>ratio</strong> : float, [0.01, 0.1]</p>
+<blockquote class="last">
+<div><p>Specifies the sample size of significant interactions.
+Default: 0.05</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p><em>pw</em> and <em>ww</em> are sensitive to data resolution. It performs well
+when we set <em>pw</em> to 4 and <em>ww</em> to 7 at 5 kb, and (2, 5) at 10 kb. <a class="reference internal" href="#r3" id="id5">[R3]</a></p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R3]</td><td><em>(<a class="fn-backref" href="#id5">1</a>, <a class="fn-backref" href="#id6">2</a>)</em> Rao, S.S., Huntley, M.H., Durand, N.C. et al. A 3D map of the
+human genome at kilobase resolution reveals principles of chromatin
+looping. Cell, 2014, 159: 1665-1680.</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.calfea.analyze.Core.totalCover">
+<code class="descname">totalCover</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Core.totalCover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Core.totalCover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total coverage of clusters.</p>
+<p><a class="reference internal" href="#tadlib.calfea.analyze.Core.longrange" title="tadlib.calfea.analyze.Core.longrange"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.longrange()</span></code></a> and
+<a class="reference internal" href="#tadlib.calfea.analyze.Core.DBSCAN" title="tadlib.calfea.analyze.Core.DBSCAN"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.analyze.Core.DBSCAN()</span></code></a> have to be called in advance.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="interaction-matrix-extracting-and-manipulating">
+<h1>Interaction Matrix Extracting and Manipulating<a class="headerlink" href="#interaction-matrix-extracting-and-manipulating" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="tadlib.calfea.analyze.getmatrix">
+<code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">getmatrix</code><span class="sig-paren">(</span><em>inter</em>, <em>l_bin</em>, <em>r_bin</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#getmatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.getmatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract regional interaction data and place it into a matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>inter</strong> : numpy structured array</p>
+<blockquote>
+<div><p>Three fields are required, &#8220;bin1&#8221;, &#8220;bin2&#8221; and &#8220;IF&#8221;, data types of
+which are int, int and float, respectively.</p>
+</div></blockquote>
+<p><strong>l_bin</strong> : int</p>
+<blockquote>
+<div><p>Left bin index of the region.</p>
+</div></blockquote>
+<p><strong>r_bin</strong> : int</p>
+<blockquote>
+<div><p>Right bin index of the region.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>inter_matrix</strong> : numpy.ndarray</p>
+<blockquote class="last">
+<div><p>The value of each entry is the interaction frequency between
+corresponding two bins.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Original interaction data is always binned under some resolution (10 kb
+in our research). <em>inter</em> is used to store such binned data, which can
+be seen as a sparse matrix in a numpy-style way.</p>
+<p>Sparse matrix is always required for high-resolution analysis of large
+genome, such as human and mouse.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="tadlib.calfea.analyze.manipulation">
+<code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">manipulation</code><span class="sig-paren">(</span><em>matrix</em>, <em>start=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#manipulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.manipulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove gaps of the original interaction matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>matrix</strong> : numpy.ndarray, (ndim = 2)</p>
+<blockquote>
+<div><p>Interaction matrix generated by <a class="reference internal" href="#tadlib.calfea.analyze.getmatrix" title="tadlib.calfea.analyze.getmatrix"><code class="xref py py-func docutils literal"><span class="pre">tadlib.calfea.analyze.getmatrix()</span></code></a>.</p>
+</div></blockquote>
+<p><strong>start</strong> : int</p>
+<blockquote>
+<div><p>The begining of the region. (Default: 0)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>newM</strong> : numpy.ndarray, (ndim = 2)</p>
+<blockquote>
+<div><p>The gap-removed matrix.</p>
+</div></blockquote>
+<p><strong>convert</strong> : list</p>
+<blockquote class="last">
+<div><p>The first element is the index map from <em>newM</em> to <em>matrix</em>, and
+the second element records the length of <em>matrix</em>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#tadlib.calfea.analyze.getmatrix" title="tadlib.calfea.analyze.getmatrix"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.analyze.getmatrix</span></code></a></p>
+</div>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tadlib.calfea.analyze</span> <span class="k">import</span> <span class="n">manipulation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">matrix</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">matrix</span>
+<span class="go">[[ 0.24822414  0.          0.07782508  0.01812965]</span>
+<span class="go"> [ 0.          0.          0.          0.        ]</span>
+<span class="go"> [ 0.93870151  0.          0.21986474  0.20462965]</span>
+<span class="go"> [ 0.13022712  0.          0.78674168  0.77068304]]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">newM</span><span class="p">,</span> <span class="n">convert</span> <span class="o">=</span> <span class="n">manipulation</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">newM</span>
+<span class="go">[[ 0.24822414  0.07782508  0.01812965]</span>
+<span class="go"> [ 0.93870151  0.21986474  0.20462965]</span>
+<span class="go"> [ 0.13022712  0.78674168  0.77068304]]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">convert</span>
+<span class="go">[{0: 0, 1: 2, 2: 3}, 4]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="polygon-creation-and-operations">
+<h1>Polygon Creation and Operations<a class="headerlink" href="#polygon-creation-and-operations" title="Permalink to this headline">¶</a></h1>
+<p>Here, polygon means convex polygon. In the simplest case, a polygon can be
+created or presented by vertices. More ofen, you don&#8217;t know the vertices but
+want a polygon enclosing a set of points.</p>
+<p><strong>ConvexHull</strong> defined in <strong>scipy.spatial</strong> module uses the Qhull library to
+compute convex hull for a finite set of points, but doesn&#8217;t provide any
+further polygon operations.</p>
+<p>We fix these problems by customizing more methods for <strong>ConvexHull</strong>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Obviously, collinear point sets cannot be used to construct polygon.</p>
+</div>
+<p>So a collinear test should be performed in advance.</p>
+<dl class="class">
+<dt id="tadlib.calfea.polygon.Polygon">
+<em class="property">class </em><code class="descclassname">tadlib.calfea.polygon.</code><code class="descname">Polygon</code><span class="sig-paren">(</span><em>points</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#Polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.Polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main class for polygon creation, manipulation and calulation.</p>
+<p>The API is inherited from <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html#scipy.spatial.ConvexHull" title="(in SciPy v0.19.1)"><code class="xref py py-class docutils literal"><span class="pre">scipy.spatial.ConvexHull</span></code></a>, which
+constructs convex hull from a point set. So you should input coordinates
+of a point set to initiate an instance.</p>
+<p>More general, not all points are required. Vertices alone are enough
+to construct the convex hull.</p>
+<p>Also, this class is designed to operate on 2-D space, although
+<strong>ConvexHull</strong> is okay for higher dimensions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : array_like</p>
+<blockquote class="last">
+<div><p>Coordinates of points to construct a convex hull from. All objects
+that can be converted to a ndarray shaped (npoints, 2) are okay.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Convex hull of a random set of points:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tadlib.calfea.polygon</span> <span class="k">import</span> <span class="n">Polygon</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># 20 random points in 2-D space</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">P</span><span class="o">.</span><span class="n">anchors</span>
+<span class="go">[[ 0.71119071  0.216714  ]</span>
+<span class="go"> [ 0.92908323  0.77903127]</span>
+<span class="go"> [ 0.79530032  0.93279735]</span>
+<span class="go"> [ 0.02160083  0.98758203]</span>
+<span class="go"> [ 0.09094998  0.4423167 ]</span>
+<span class="go"> [ 0.16924963  0.05900692]</span>
+<span class="go"> [ 0.71119071  0.216714  ]]</span>
+</pre></div>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="66%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Common attributes from <strong>ConvexHull</strong>:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>points</td>
+<td>(ndarray of double, shape (npoints, 2)) Coordinates of input points. Converted ndarray.</td>
+</tr>
+<tr class="row-odd"><td>vertices</td>
+<td>(ndarray of ints, shape (nvertices,)) Indices of points forming the vertices of the convex hull. The vertices are counter-clockwise ordered.</td>
+</tr>
+<tr class="row-even"><td>simplices</td>
+<td>(ndarray of ints, shape (nfacet, 2)) Indices of points forming the simplical facets of the convex hull.</td>
+</tr>
+<tr class="row-odd"><td>Customized attributes:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>anchors</td>
+<td>(ndarray of double, shape (nvertices,)) Vertices of the convex hull, counter-clockwise ordered.</td>
+</tr>
+<tr class="row-odd"><td>Attributes after <a class="reference internal" href="#tadlib.calfea.polygon.Polygon.calarea" title="tadlib.calfea.polygon.Polygon.calarea"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon.calarea()</span></code></a> is called:</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>area</td>
+<td>(float) Area of the polygon.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="tadlib.calfea.polygon.Polygon.calarea">
+<code class="descname">calarea</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#Polygon.calarea"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.Polygon.calarea" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the polygon area.</p>
+<p>An attribute called <strong>area</strong> is assigned.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#tadlib.calfea.polygon.shoelace" title="tadlib.calfea.polygon.shoelace"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.polygon.shoelace</span></code></a></dt>
+<dd>Twice the area of polygon</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.calfea.polygon.Polygon.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#Polygon.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.Polygon.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the polygon, i.e., the first point is also the last one.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.polygon.isinside</span></code></dt>
+<dd>judge if points are inside a polygon or not.</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>Must be called before <a class="reference internal" href="#tadlib.calfea.polygon.Polygon.isinside" title="tadlib.calfea.polygon.Polygon.isinside"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon.isinside()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.calfea.polygon.Polygon.isinside">
+<code class="descname">isinside</code><span class="sig-paren">(</span><em>query</em>, <em>zerolike=1e-12</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#Polygon.isinside"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.Polygon.isinside" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute point location relative to a polygon.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>query</strong> : tuple or array_like</p>
+<blockquote>
+<div><p>A tuple indicates one point. (The length must be 2)
+Or you can input an array-like sequence. Any object that can be
+converted to a ndarray shaped (npoints, 2) is okay.</p>
+</div></blockquote>
+<p><strong>zerolike</strong> : float</p>
+<blockquote>
+<div><p>A number used to approximate 0.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mindst</strong> : scalar or array_like</p>
+<blockquote class="last">
+<div><p>If mindst &lt; 0, point is outside the polygon.
+If mindst = 0, point in on a side of the polygon.
+If mindst &gt; 0, point is inside the polygon.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Sloan&#8217;s improved version of the Nordbeck and Rydstedt algorithm.</p>
+<p class="rubric">Examples</p>
+<p>We start with <a class="reference internal" href="#tadlib.calfea.polygon.Polygon" title="tadlib.calfea.polygon.Polygon"><code class="xref py py-class docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon</span></code></a> construction:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tadlib.calfea.polygon</span> <span class="k">import</span> <span class="n">Polygon</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># Used for constructing Polygon</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># Another 3 random points</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span><span class="o">.</span><span class="n">isinside</span><span class="p">(</span><span class="n">check</span><span class="p">)</span>
+<span class="go">array([ 0.21145311,  0.09807244, -0.15341914])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tadlib.calfea.polygon.shoelace">
+<code class="descclassname">tadlib.calfea.polygon.</code><code class="descname">shoelace</code><span class="sig-paren">(</span><em>vertices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#shoelace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.shoelace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate twice the area of polygon using Shoelace formula.</p>
+<p>Polygon is defined by vertices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vertices</strong> : array_like</p>
+<blockquote>
+<div><p>Vertex coordinates in a 2-D space.
+Coordinates must be placed along the last axis. And data points are
+along the first axis.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>area</strong> : float</p>
+<blockquote class="last">
+<div><p>You can deduce the order of input vertices from the sign:
+area is positive if vertices are in counter-clockwise order.
+area is negative if vertices are in clockwise order.
+area is zero if all points are colinear.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This function can be also used to judge if all points in a data set are
+collinear. Collinear points as input for initializing Polygon instance
+will raise a QhullError.</p>
+<p class="rubric">Examples</p>
+<p>Vertices of a square:</p>
+<p>Clockwise:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tadlib.calfea.polygon</span> <span class="k">import</span> <span class="n">shoelace</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sq</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shoelace</span><span class="p">(</span><span class="n">sq</span><span class="p">)</span>
+<span class="go">-2.0</span>
+</pre></div>
+</div>
+<p>Counter-clockwise:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sq</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">shoelace</span><span class="p">(</span><span class="n">sq</span><span class="p">)</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="tadlib.calfea.polygon.collinear">
+<code class="descclassname">tadlib.calfea.polygon.</code><code class="descname">collinear</code><span class="sig-paren">(</span><em>points</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#collinear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.collinear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test whether all given points are collinear.</p>
+<p>Collinear points will trigger an error called <strong>QhullError</strong> when used
+to initialize a <a class="reference internal" href="#tadlib.calfea.polygon.Polygon" title="tadlib.calfea.polygon.Polygon"><code class="xref py py-class docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon</span></code></a> instance. However,
+other conditions may also trigger <strong>QhullError</strong>. Doing this test in
+advance can avoid this error and make things clearer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>points</strong> : array_like</p>
+<blockquote>
+<div><p>Coordinates of points to construct a polygon. Any object that can 
+be converted to a ndarray shaped (npoints, 2) is okay.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>judge</strong> : bool</p>
+<blockquote class="last">
+<div><p>True if the input points are collinear else False.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#tadlib.calfea.polygon.shoelace" title="tadlib.calfea.polygon.shoelace"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.polygon.shoelace</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>To judge if all points are collinear, we use a simple heuristic
+algorithm. We sort the points at first. Then test whether consecutive
+triples are collinear.</p>
+<p class="rubric">Examples</p>
+<p>Trival but still effective:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tadlib.calfea.polygon</span> <span class="k">import</span> <span class="n">collinear</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">100</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">collinear</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/calfea_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

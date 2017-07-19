@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Install TADLib &#8212; TADLib 0.3.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Aggregation Preference" href="calfea.html" />
+    <link rel="prev" title="TADLib" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install TADLib</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-conda">Install Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#set-up-channels">Set up Channels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-the-required-packages">Install the Required Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Install TADLib</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="calfea.html">Aggregation Preference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="install-tadlib">
+<h1>Install TADLib<a class="headerlink" href="#install-tadlib" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>TADLib is developed and tested on UNIX-like operating system, and following Python
+packages are required:</p>
+<ul class="simple">
+<li>Python (2.7, not compatible with 3.x for now)</li>
+<li>Numpy (&gt;= 1.11)</li>
+<li>Scipy (&gt;= 0.18)</li>
+<li>Scikit-Learn (&gt;= 0.18)</li>
+<li>GHMM (&gt;= 0.9)</li>
+</ul>
+</div>
+<div class="section" id="install-conda">
+<h2>Install Conda<a class="headerlink" href="#install-conda" title="Permalink to this headline">¶</a></h2>
+<p>We strongly recommend using the conda package manager.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you have the Anaconda Distribution installed, you already have it, feel free to jump to
+the <a class="reference internal" href="#set-up-channels">Set up Channels</a> section.</p>
+</div>
+<p>Download the lastest <a class="reference external" href="https://conda.io/miniconda.html">Linux Miniconda installer for Python 2.7</a>,
+then in your terminal window type the following and follow the prompts on the installer screens:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ bash Miniconda2-latest-Linux-x86_64.sh
+</pre></div>
+</div>
+<p>After that, update the environment variables to finish the Conda installation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ source ~/.bashrc
+</pre></div>
+</div>
+</div>
+<div class="section" id="set-up-channels">
+<h2>Set up Channels<a class="headerlink" href="#set-up-channels" title="Permalink to this headline">¶</a></h2>
+<p>Conda allows separation of packages into separate repositories, or channels. The main <em>defaults</em>
+channel has a large amount of common packages including <em>Numpy</em>, <em>Scipy</em>, and <em>Scikit-Learn</em> listed
+above. <em>GHMM</em> is not available in the <em>defaults</em> channel but included in the <em>bioconda</em> channel, and
+to make it accessible, you will need to add the <em>bioconda</em> channel as well as the other channels bioconda
+depends on(note that the order is important to guarantee the correct priority):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda config --add channels conda-forge
+$ conda config --add channels defaults
+$ conda config --add channels r
+$ conda config --add channels bioconda
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-the-required-packages">
+<h2>Install the Required Packages<a class="headerlink" href="#install-the-required-packages" title="Permalink to this headline">¶</a></h2>
+<p>Then it&#8217;s straightforward to install all the required packages through the following one-line command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install setuptools numpy scipy scikit-learn ghmm
+</pre></div>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>Install TADLib<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Download the <a class="reference external" href="https://pypi.python.org/pypi/TADLib">source code</a> of TADLib, extract it and run
+the setup.py script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ python setup.py install
+</pre></div>
+</div>
+<p>TADLib has been installed successfully if no exception occurs in the above process.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/install.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
