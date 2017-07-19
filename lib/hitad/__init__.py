@@ -6,5 +6,5 @@ Created on Sun May 22 14:45:01 2016
 """
 
 __author__ = 'XiaoTao Wang'
-__version__ = '0.1.0-dev2'
+__version__ = '0.1.1-dev1'
 Me = __file__

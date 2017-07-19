@@ -4,7 +4,7 @@
 # Organization: HuaZhong Agricultural University
 
 __author__ = 'XiaoTao Wang'
-__version__ = '0.2.5-r2'
+__version__ = '0.2.6-dev1'
 Me = __file__
 
 
