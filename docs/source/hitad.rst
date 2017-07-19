@@ -347,7 +347,7 @@ is also based on our domain-based alignment algorithm:
 
 >>> # Pairs of conserved sub-TAD boundaries.
 >>> conserved_subs = boundview.conserved_sub_bounds('IMR90','GM12878')
->>> print conserved_subs.items()[:3]
+>>> print sorted(conserved_subs)[:3]
 [('22', 26200000), ('22', 29200000), ('22', 29960000)]
 
 >>> # TAD to sub-TAD switch cases

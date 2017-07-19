@@ -443,7 +443,7 @@ is also based on our domain-based alignment algorithm:</p>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pairs of conserved sub-TAD boundaries.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conserved_subs</span> <span class="o">=</span> <span class="n">boundview</span><span class="o">.</span><span class="n">conserved_sub_bounds</span><span class="p">(</span><span class="s1">&#39;IMR90&#39;</span><span class="p">,</span><span class="s1">&#39;GM12878&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">conserved_subs</span><span class="o">.</span><span class="n">items</span><span class="p">()[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conserved_subs</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
 <span class="go">[(&#39;22&#39;, 26200000), (&#39;22&#39;, 29200000), (&#39;22&#39;, 29960000)]</span>
 </pre></div>
 </div>
