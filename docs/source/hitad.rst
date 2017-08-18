@@ -310,11 +310,11 @@ to initialize a :py:class:`tadlib.hitad.aligner.DomainAligner` and invoke the
 >>> work.align('IMR90','GM12878')
 
 :py:class:`tadlib.hitad.aligner.DomainAligner` also defines domain-level change types, including
-conserved TADs, semi-conserved TADs, merged TADs, split TADs, and unaligned TADs:
+conserved TADs, semi-conserved TADs, merged TADs and split TADs:
 
 >>> conserved = work.conserved('IMR90','GM12878') # Conserved TADs
 >>> print len(conserved)
-10
+7
 >>> print sorted(conserved)[0] # The first conserved TAD pair
 (('22', 19000000, 19640000), ('22', 19160000, 19680000))
 
@@ -342,13 +342,22 @@ is also based on our domain-based alignment algorithm:
 >>> boundview = BoundAligner(iset, gset)
 >>> # Pairs of conserved TAD boundaries
 >>> conserved_bounds = boundview.conserved_tad_bounds('IMR90','GM12878')
->>> print sorted(conserved_bounds)[:3]
-[('22', 19000000), ('22', 19640000), ('22', 19920000)]
+>>> for i in sorted(conserved_bounds)[:3]:
+...     print i, '<-->', conserved_bounds[i]
+...
+('22', 19000000) <--> ('22', 19160000)
+('22', 19640000) <--> ('22', 19680000)
+('22', 19920000) <--> ('22', 19920000)
+>>>
 
 >>> # Pairs of conserved sub-TAD boundaries.
 >>> conserved_subs = boundview.conserved_sub_bounds('IMR90','GM12878')
->>> print sorted(conserved_subs)[:3]
-[('22', 26200000), ('22', 29200000), ('22', 29960000)]
+>>> for i in sorted(conserved_subs)[:3]:
+...     print i, '<-->', conserved_subs[i]
+...
+('22', 26200000) <--> ('22', 26200000)
+('22', 29200000) <--> ('22', 29240000)
+('22', 29960000) <--> ('22', 29960000)
 
 >>> # TAD to sub-TAD switch cases
 >>> tad_sub = boundview.tad2sub('IMR90','GM12878')
