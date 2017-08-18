@@ -109,18 +109,18 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    path : str</span>
-<span class="sd">        Data path. (Default: &#39;.&#39;, current working directory)</span>
-<span class="sd">        </span>
+<span class="sd">        Data path.</span>
+<span class="sd">    </span>
 <span class="sd">    Format : {&#39;TXT&#39;, &#39;NPZ&#39;}</span>
 <span class="sd">        Two choices of the source format. (Default: &#39;TXT&#39;)</span>
 <span class="sd">        </span>
+<span class="sd">    resolution : int</span>
+<span class="sd">        Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)</span>
+<span class="sd">    </span>
 <span class="sd">    template : str</span>
 <span class="sd">        Template of the source file names. Only required for TXT.</span>
 <span class="sd">        (Default: &#39;chr%s_chr%s.int&#39;, in which &#39;%s&#39; indicates chromosome</span>
 <span class="sd">        ID)</span>
-<span class="sd">        </span>
-<span class="sd">    resolution : int</span>
-<span class="sd">        Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)</span>
 <span class="sd">        </span>
 <span class="sd">    chroms : list</span>
 <span class="sd">        List of chromosome labels. Only Hi-C data within the specified chromosomes</span>
@@ -191,7 +191,7 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">Format</span> <span class="o">=</span> <span class="s1">&#39;TXT&#39;</span><span class="p">,</span> <span class="n">resolution</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">Format</span> <span class="o">=</span> <span class="s1">&#39;TXT&#39;</span><span class="p">,</span> <span class="n">resolution</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
                  <span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;chr</span><span class="si">%s</span><span class="s1">_chr</span><span class="si">%s</span><span class="s1">.int&#39;</span><span class="p">,</span> <span class="n">chroms</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">],</span>
                  <span class="n">cols</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">immortal</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saveto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Set main attributes</span>

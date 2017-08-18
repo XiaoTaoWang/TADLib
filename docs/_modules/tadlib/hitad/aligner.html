@@ -917,6 +917,8 @@
             <span class="n">tl</span><span class="p">,</span> <span class="n">ql</span> <span class="o">=</span> <span class="n">pool</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">info</span>
             <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ql</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">):</span>
                 <span class="n">pairs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="n">pairs</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_changed</span><span class="p">(</span><span class="n">tn</span><span class="p">,</span><span class="n">qn</span><span class="p">)</span>
+        
         <span class="k">return</span> <span class="n">pairs</span></div>
     
     <span class="k">def</span> <span class="nf">_lowlevel_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">qn</span><span class="p">):</span>

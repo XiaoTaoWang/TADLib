@@ -1131,10 +1131,10 @@ determination.</p>
 <dd><p><em>Genome</em> is built on top of <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>. We
 use it to:</p>
 <ul class="simple">
-<li>Load bin-level HiC data</li>
+<li>Load bin-level Hi-C data</li>
 <li>Initialize, pickle and organize <em>Chrom</em> objects</li>
 <li>Call hierarchical domains of each chromosome in parallel</li>
-<li>Optionally save HiC data into <em>Numpy</em> .npz files for accelerating
+<li>Optionally save Hi-C data into <em>Numpy</em> .npz files for accelerating
 IO in future.</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1144,17 +1144,17 @@ IO in future.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>datasets</strong> : 2-level dict, {resolution(int):{biological_replicate_label(str):data_path,...}}</p>
 <blockquote>
 <div><p><em>resolution</em> should be in base-pair unit. <em>data_path</em> indicates the
-absolute HiC data path under corresponding resolution and biological
+absolute Hi-C data path under corresponding resolution and biological
 replicate label.</p>
-<p>If your HiC data are stored in <em>NPZ</em> format, <em>data_path</em> should point
+<p>If your Hi-C data are stored in <em>NPZ</em> format, <em>data_path</em> should point
 to the npz file. Otherwise, you may provide with data in <em>TXT</em> format,
-in this case, HiC data of each chromosome must be stored separately,
+in this case, Hi-C data of each chromosome must be stored separately,
 and data with the same resolution and replicate label should be placed
 in the same folder, and naturally <em>data_path</em> should point to the folder.</p>
 <p>You can generate <em>NPZ</em> files in two ways:1.By runHiC pipeline. runHiC
-is a user-friendly command-line software developed by our lab for HiC
+is a user-friendly command-line software developed by our lab for Hi-C
 data processing. Refer to the <a class="reference external" href="https://github.com/XiaoTaoWang/HiC_pipeline">link</a>
-for more details. 2.By hitad itself, provide TXT HiC data and run
+for more details. 2.By hitad itself, provide TXT Hi-C data and run
 <em>hitad</em> with <code class="docutils literal"><span class="pre">--npzpre</span></code> specified, or, if you are familiar with Python
 environment, just open a Python interpreter and initialize a <em>Genome</em>
 object and set the parameter <em>npzpre</em> explicitly.</p>
@@ -1165,14 +1165,14 @@ object and set the parameter <em>npzpre</em> explicitly.</p>
 </div></blockquote>
 <p><strong>chroms</strong> : list</p>
 <blockquote>
-<div><p>List of chromosome labels. Only HiC data within the specified chromosomes
+<div><p>List of chromosome labels. Only Hi-C data within the specified chromosomes
 will be included. Specially, &#8216;#&#8217; stands for chromosomes with numerical
 labels. If an empty list is provided, all chromosome data will be loaded.
 (Default: [&#8216;#&#8217;, &#8216;X&#8217;])</p>
 </div></blockquote>
 <p><strong>npzpre</strong> : str or None</p>
 <blockquote>
-<div><p>If not None, loaded HiC data will be stored in <em>Numpy</em> .npz format
+<div><p>If not None, loaded Hi-C data will be stored in <em>Numpy</em> .npz format
 to accelerate IO extremely for further use, and this parameter indicates
 the prefix of these <em>NPZ</em> filenames. Path may be included, if no path
 is contained, <em>NPZ</em> files will be placed under current working directory.

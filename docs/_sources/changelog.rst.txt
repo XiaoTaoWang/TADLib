@@ -1,5 +1,9 @@
 Release Notes
 =============
+Version 0.3.1 (2017-8-18)
+"""""""""""""""""""""""""
+- Fixed a bug in the definition of conserved TADs
+
 Version 0.3.1 (2017-7-19)
 """"""""""""""""""""""""""""""
 - Improved the performance of HiTAD by modifying the objective function

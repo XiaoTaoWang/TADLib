@@ -100,7 +100,7 @@
 <h1>Hi-C Data Loading<a class="headerlink" href="#hi-c-data-loading" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="tadlib.calfea.analyze.Inters">
-<em class="property">class </em><code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">Inters</code><span class="sig-paren">(</span><em>path='.', Format='TXT', resolution=10000, template='chr%s_chr%s.int', chroms=['#', 'X'], cols=None, prefix=None, immortal=False, saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Inters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Inters" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">tadlib.calfea.analyze.</code><code class="descname">Inters</code><span class="sig-paren">(</span><em>path, Format='TXT', resolution=10000, template='chr%s_chr%s.int', chroms=['#', 'X'], cols=None, prefix=None, immortal=False, saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/analyze.html#Inters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.analyze.Inters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load bin-level Hi-C data from TXT or Numpy .npz file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -108,21 +108,21 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
 <blockquote>
-<div><p>Data path. (Default: &#8216;.&#8217;, current working directory)</p>
+<div><p>Data path.</p>
 </div></blockquote>
 <p><strong>Format</strong> : {&#8216;TXT&#8217;, &#8216;NPZ&#8217;}</p>
 <blockquote>
 <div><p>Two choices of the source format. (Default: &#8216;TXT&#8217;)</p>
+</div></blockquote>
+<p><strong>resolution</strong> : int</p>
+<blockquote>
+<div><p>Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)</p>
 </div></blockquote>
 <p><strong>template</strong> : str</p>
 <blockquote>
 <div><p>Template of the source file names. Only required for TXT.
 (Default: &#8216;chr%s_chr%s.int&#8217;, in which &#8216;%s&#8217; indicates chromosome
 ID)</p>
-</div></blockquote>
-<p><strong>resolution</strong> : int</p>
-<blockquote>
-<div><p>Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)</p>
 </div></blockquote>
 <p><strong>chroms</strong> : list</p>
 <blockquote>
@@ -384,7 +384,7 @@ area.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html#sklearn.cluster.DBSCAN" title="(in scikit-learn v0.18.2)"><code class="xref py py-obj docutils literal"><span class="pre">sklearn.cluster.DBSCAN</span></code></a></dt>
+<dt><a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html#sklearn.cluster.DBSCAN" title="(in scikit-learn v0.19.0)"><code class="xref py py-obj docutils literal"><span class="pre">sklearn.cluster.DBSCAN</span></code></a></dt>
 <dd>an implementation of DBSCAN</dd>
 <dt><a class="reference internal" href="#tadlib.calfea.polygon.Polygon" title="tadlib.calfea.polygon.Polygon"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon</span></code></a></dt>
 <dd>calculations based on polygon.</dd>

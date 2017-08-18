@@ -403,10 +403,10 @@ to initialize a <a class="reference internal" href="hitad_api.html#tadlib.hitad.
 </pre></div>
 </div>
 <p><a class="reference internal" href="hitad_api.html#tadlib.hitad.aligner.DomainAligner" title="tadlib.hitad.aligner.DomainAligner"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainAligner</span></code></a> also defines domain-level change types, including
-conserved TADs, semi-conserved TADs, merged TADs, split TADs, and unaligned TADs:</p>
+conserved TADs, semi-conserved TADs, merged TADs and split TADs:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conserved</span> <span class="o">=</span> <span class="n">work</span><span class="o">.</span><span class="n">conserved</span><span class="p">(</span><span class="s1">&#39;IMR90&#39;</span><span class="p">,</span><span class="s1">&#39;GM12878&#39;</span><span class="p">)</span> <span class="c1"># Conserved TADs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">len</span><span class="p">(</span><span class="n">conserved</span><span class="p">)</span>
-<span class="go">10</span>
+<span class="go">7</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conserved</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># The first conserved TAD pair</span>
 <span class="go">((&#39;22&#39;, 19000000, 19640000), (&#39;22&#39;, 19160000, 19680000))</span>
 </pre></div>
@@ -437,14 +437,22 @@ is also based on our domain-based alignment algorithm:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">boundview</span> <span class="o">=</span> <span class="n">BoundAligner</span><span class="p">(</span><span class="n">iset</span><span class="p">,</span> <span class="n">gset</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pairs of conserved TAD boundaries</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conserved_bounds</span> <span class="o">=</span> <span class="n">boundview</span><span class="o">.</span><span class="n">conserved_tad_bounds</span><span class="p">(</span><span class="s1">&#39;IMR90&#39;</span><span class="p">,</span><span class="s1">&#39;GM12878&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conserved_bounds</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
-<span class="go">[(&#39;22&#39;, 19000000), (&#39;22&#39;, 19640000), (&#39;22&#39;, 19920000)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conserved_bounds</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;&lt;--&gt;&#39;</span><span class="p">,</span> <span class="n">conserved_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">...</span>
+<span class="go">(&#39;22&#39;, 19000000) &lt;--&gt; (&#39;22&#39;, 19160000)</span>
+<span class="go">(&#39;22&#39;, 19640000) &lt;--&gt; (&#39;22&#39;, 19680000)</span>
+<span class="go">(&#39;22&#39;, 19920000) &lt;--&gt; (&#39;22&#39;, 19920000)</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Pairs of conserved sub-TAD boundaries.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">conserved_subs</span> <span class="o">=</span> <span class="n">boundview</span><span class="o">.</span><span class="n">conserved_sub_bounds</span><span class="p">(</span><span class="s1">&#39;IMR90&#39;</span><span class="p">,</span><span class="s1">&#39;GM12878&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conserved_subs</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
-<span class="go">[(&#39;22&#39;, 26200000), (&#39;22&#39;, 29200000), (&#39;22&#39;, 29960000)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conserved_subs</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;&lt;--&gt;&#39;</span><span class="p">,</span> <span class="n">conserved_subs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="gp">...</span>
+<span class="go">(&#39;22&#39;, 26200000) &lt;--&gt; (&#39;22&#39;, 26200000)</span>
+<span class="go">(&#39;22&#39;, 29200000) &lt;--&gt; (&#39;22&#39;, 29240000)</span>
+<span class="go">(&#39;22&#39;, 29960000) &lt;--&gt; (&#39;22&#39;, 29960000)</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># TAD to sub-TAD switch cases</span>
