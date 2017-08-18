@@ -348,7 +348,6 @@ is also based on our domain-based alignment algorithm:
 ('22', 19000000) <--> ('22', 19160000)
 ('22', 19640000) <--> ('22', 19680000)
 ('22', 19920000) <--> ('22', 19920000)
->>>
 
 >>> # Pairs of conserved sub-TAD boundaries.
 >>> conserved_subs = boundview.conserved_sub_bounds('IMR90','GM12878')
