@@ -833,6 +833,8 @@ class DomainAligner(SingleDomain):
             tl, ql = pool[k].info
             if (len(tl)==1) and (len(ql)==1):
                 pairs.add(k)
+        pairs = pairs - self.inner_changed(tn,qn)
+        
         return pairs
     
     def _lowlevel_changed(self, tn, qn):

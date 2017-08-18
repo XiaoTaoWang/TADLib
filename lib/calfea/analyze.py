@@ -25,18 +25,18 @@ class Inters(object):
     Parameters
     ----------
     path : str
-        Data path. (Default: '.', current working directory)
-        
+        Data path.
+    
     Format : {'TXT', 'NPZ'}
         Two choices of the source format. (Default: 'TXT')
         
+    resolution : int
+        Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)
+    
     template : str
         Template of the source file names. Only required for TXT.
         (Default: 'chr%s_chr%s.int', in which '%s' indicates chromosome
         ID)
-        
-    resolution : int
-        Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)
         
     chroms : list
         List of chromosome labels. Only Hi-C data within the specified chromosomes
@@ -107,7 +107,7 @@ class Inters(object):
     
     """
     
-    def __init__(self, path = '.', Format = 'TXT', resolution = 10000,
+    def __init__(self, path, Format = 'TXT', resolution = 10000,
                  template = 'chr%s_chr%s.int', chroms = ['#', 'X'],
                  cols = None, prefix = None, immortal = False, saveto = None):
         # Set main attributes

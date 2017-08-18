@@ -20,29 +20,29 @@ class Genome(object):
     *Genome* is built on top of :py:class:`tadlib.hitad.chromLev.Chrom`. We
     use it to:
         
-    - Load bin-level HiC data
+    - Load bin-level Hi-C data
     - Initialize, pickle and organize *Chrom* objects
     - Call hierarchical domains of each chromosome in parallel
-    - Optionally save HiC data into *Numpy* .npz files for accelerating
+    - Optionally save Hi-C data into *Numpy* .npz files for accelerating
       IO in future.
     
     Parameters
     ----------
     datasets : 2-level dict, {resolution(int):{biological_replicate_label(str):data_path,...}}
         *resolution* should be in base-pair unit. *data_path* indicates the
-        absolute HiC data path under corresponding resolution and biological
+        absolute Hi-C data path under corresponding resolution and biological
         replicate label.
         
-        If your HiC data are stored in *NPZ* format, *data_path* should point
+        If your Hi-C data are stored in *NPZ* format, *data_path* should point
         to the npz file. Otherwise, you may provide with data in *TXT* format,
-        in this case, HiC data of each chromosome must be stored separately,
+        in this case, Hi-C data of each chromosome must be stored separately,
         and data with the same resolution and replicate label should be placed
         in the same folder, and naturally *data_path* should point to the folder.
         
         You can generate *NPZ* files in two ways:1.By runHiC pipeline. runHiC
-        is a user-friendly command-line software developed by our lab for HiC
+        is a user-friendly command-line software developed by our lab for Hi-C
         data processing. Refer to the `link <https://github.com/XiaoTaoWang/HiC_pipeline>`_
-        for more details. 2.By hitad itself, provide TXT HiC data and run
+        for more details. 2.By hitad itself, provide TXT Hi-C data and run
         *hitad* with ``--npzpre`` specified, or, if you are familiar with Python
         environment, just open a Python interpreter and initialize a *Genome*
         object and set the parameter *npzpre* explicitly.
@@ -51,13 +51,13 @@ class Genome(object):
         Maximum allowable domain size in base-pair unit. (Default: 4000000)
     
     chroms : list
-        List of chromosome labels. Only HiC data within the specified chromosomes
+        List of chromosome labels. Only Hi-C data within the specified chromosomes
         will be included. Specially, '#' stands for chromosomes with numerical
         labels. If an empty list is provided, all chromosome data will be loaded.
         (Default: ['#', 'X'])
     
     npzpre : str or None
-        If not None, loaded HiC data will be stored in *Numpy* .npz format
+        If not None, loaded Hi-C data will be stored in *Numpy* .npz format
         to accelerate IO extremely for further use, and this parameter indicates
         the prefix of these *NPZ* filenames. Path may be included, if no path
         is contained, *NPZ* files will be placed under current working directory.
