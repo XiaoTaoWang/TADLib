@@ -48,5 +48,6 @@ Citation
    of topologically associating domains in mammalian genomes. Nucleic Acids Research, 2015,
    doi: 10.1093/nar/gkv684
 
-.. [2] Wang XT, Cui W, Peng C. HiTAD: detecting the structural and functional hierarchy of
-   topologically associating domain from chromatin interactions.
+.. [2] Wang XT, Cui W, Peng C. HiTAD: detecting the structural and functional hierarchies of
+   topologically associating domains from chromatin interactions. Nucleic Acids Research, 2017,
+   doi: 10.1093/nar/gkx735
