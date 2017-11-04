@@ -35,13 +35,6 @@ above. To install these packages, just type and execute the following command::
 
     $ conda install setuptools numpy scipy scikit-learn
 
-
-Then it's straightforward to install all the required packages through the following one-line command::
-
-    $ conda install setuptools numpy scipy scikit-learn ghmm 
-
-Set up Channels
----------------
 *GHMM* is not available in the *defaults* channel but included in the *bioconda* channel, and
 to make it accessible, you need to add the *bioconda* channel as well as the other channels bioconda
 depends on(note that the order is important to guarantee the correct priority)::
