@@ -32,7 +32,7 @@ further polygon operations.
 We fix these problems by customizing more methods for **ConvexHull**.
 
 .. note:: Obviously, collinear point sets cannot be used to construct polygon.
-So a collinear test should be performed in advance.
+   So a collinear test should be performed in advance.
 
 .. autoclass:: tadlib.calfea.polygon.Polygon
    :members:
