@@ -63,7 +63,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Install TADLib</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-conda">Install Conda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#set-up-channels">Set up Channels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-the-required-packages">Install the Required Packages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id1">Install TADLib</a></li>
 </ul>
@@ -109,8 +108,7 @@ packages are required:</p>
 <p>We strongly recommend using the conda package manager.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you have the Anaconda Distribution installed, you already have it, feel free to jump to
-the <a class="reference internal" href="#set-up-channels">Set up Channels</a> section.</p>
+<p class="last">If you have the Anaconda Distribution installed, you already have it.</p>
 </div>
 <p>Download the latest <a class="reference external" href="https://conda.io/miniconda.html">Linux Miniconda installer for Python 2.7</a>,
 then in your terminal window type the following and follow the prompts on the installer screens:</p>
@@ -122,12 +120,16 @@ then in your terminal window type the following and follow the prompts on the in
 </pre></div>
 </div>
 </div>
-<div class="section" id="set-up-channels">
-<h2>Set up Channels<a class="headerlink" href="#set-up-channels" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-the-required-packages">
+<h2>Install the Required Packages<a class="headerlink" href="#install-the-required-packages" title="Permalink to this headline">¶</a></h2>
 <p>Conda allows separation of packages into separate repositories, or channels. The main <em>defaults</em>
 channel has a large amount of common packages including <em>Numpy</em>, <em>Scipy</em>, and <em>Scikit-Learn</em> listed
-above. <em>GHMM</em> is not available in the <em>defaults</em> channel but included in the <em>bioconda</em> channel, and
-to make it accessible, you will need to add the <em>bioconda</em> channel as well as the other channels bioconda
+above. To install these packages, just type and execute the following command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install setuptools numpy scipy scikit-learn
+</pre></div>
+</div>
+<p><em>GHMM</em> is not available in the <em>defaults</em> channel but included in the <em>bioconda</em> channel, and
+to make it accessible, you need to add the <em>bioconda</em> channel as well as the other channels bioconda
 depends on(note that the order is important to guarantee the correct priority):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ conda config --add channels conda-forge
 $ conda config --add channels defaults
@@ -135,11 +137,8 @@ $ conda config --add channels r
 $ conda config --add channels bioconda
 </pre></div>
 </div>
-</div>
-<div class="section" id="install-the-required-packages">
-<h2>Install the Required Packages<a class="headerlink" href="#install-the-required-packages" title="Permalink to this headline">¶</a></h2>
-<p>Then it&#8217;s straightforward to install all the required packages through the following one-line command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install setuptools numpy scipy scikit-learn ghmm
+<p>Then you can install <em>GHMM</em> by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ conda install ghmm
 </pre></div>
 </div>
 </div>
@@ -165,7 +164,7 @@ the setup.py script:</p>
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="_sources/install.rst.txt"

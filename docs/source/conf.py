@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # TADLib documentation build configuration file, created by
-# sphinx-quickstart on Tue May  2 09:18:37 2017.
+# sphinx-quickstart on Sat Nov  4 20:47:16 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -32,6 +32,7 @@
 # ones.
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.imgmath',
@@ -96,7 +97,6 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-
 html_sidebars = {
     '**': [
         'about.html',

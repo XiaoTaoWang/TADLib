@@ -153,7 +153,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A customized constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ConvexHull</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="n">ConvexHull</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span>
         <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span>
         <span class="c1"># Customize</span>
@@ -193,7 +193,7 @@
             <span class="c1"># Concatenate along first axis, dim&gt;=2</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="s1">&#39;0,2&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span></div>
     
-<div class="viewcode-block" id="Polygon.isinside"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.Polygon.isinside">[docs]</a>    <span class="k">def</span> <span class="nf">isinside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">zerolike</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">):</span>
+<div class="viewcode-block" id="Polygon.isinside"><a class="viewcode-back" href="../../../calfea_api.html#tadlib.calfea.polygon.Polygon.isinside">[docs]</a>    <span class="k">def</span> <span class="nf">isinside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">zerolike</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compute point location relative to a polygon.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -438,7 +438,7 @@
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
 

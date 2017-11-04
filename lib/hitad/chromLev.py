@@ -1178,8 +1178,8 @@ class Chrom(object):
             tuples (start, end) representing merged domain intervals.
             (Default: {})
         
-        Attrubutes
-        ----------
+        Attributes
+        -----------
         maxDomains : dict
             Optimized TADs.
         

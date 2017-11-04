@@ -384,7 +384,7 @@ area.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html#sklearn.cluster.DBSCAN" title="(in scikit-learn v0.19.0)"><code class="xref py py-obj docutils literal"><span class="pre">sklearn.cluster.DBSCAN</span></code></a></dt>
+<dt><a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html#sklearn.cluster.DBSCAN" title="(in scikit-learn v0.19.1)"><code class="xref py py-obj docutils literal"><span class="pre">sklearn.cluster.DBSCAN</span></code></a></dt>
 <dd>an implementation of DBSCAN</dd>
 <dt><a class="reference internal" href="#tadlib.calfea.polygon.Polygon" title="tadlib.calfea.polygon.Polygon"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.polygon.Polygon</span></code></a></dt>
 <dd>calculations based on polygon.</dd>
@@ -602,14 +602,14 @@ further polygon operations.</p>
 <p>We fix these problems by customizing more methods for <strong>ConvexHull</strong>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Obviously, collinear point sets cannot be used to construct polygon.</p>
+<p class="last">Obviously, collinear point sets cannot be used to construct polygon.
+So a collinear test should be performed in advance.</p>
 </div>
-<p>So a collinear test should be performed in advance.</p>
 <dl class="class">
 <dt id="tadlib.calfea.polygon.Polygon">
 <em class="property">class </em><code class="descclassname">tadlib.calfea.polygon.</code><code class="descname">Polygon</code><span class="sig-paren">(</span><em>points</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/calfea/polygon.html#Polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.calfea.polygon.Polygon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Main class for polygon creation, manipulation and calulation.</p>
-<p>The API is inherited from <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html#scipy.spatial.ConvexHull" title="(in SciPy v0.19.1)"><code class="xref py py-class docutils literal"><span class="pre">scipy.spatial.ConvexHull</span></code></a>, which
+<p>The API is inherited from <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html#scipy.spatial.ConvexHull" title="(in SciPy v1.0.0)"><code class="xref py py-class docutils literal"><span class="pre">scipy.spatial.ConvexHull</span></code></a>, which
 constructs convex hull from a point set. So you should input coordinates
 of a point set to initiate an instance.</p>
 <p>More general, not all points are required. Vertices alone are enough
@@ -862,7 +862,7 @@ triples are collinear.</p>
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="_sources/calfea_api.rst.txt"
