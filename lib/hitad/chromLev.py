@@ -1876,8 +1876,6 @@ class MultiReps(DomainAligner):
                     d = self._updateTopo(topo[k], None, bounds)
                 else:
                     d = self._updateTopo(topo[k], d, bounds)
-                if d is None:
-                    break
             else:
                 topo[k].bounds = bounds
                 self._updateTopo(topo[k], None, bounds)
