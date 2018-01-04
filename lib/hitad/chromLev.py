@@ -1829,17 +1829,17 @@ class MultiReps(DomainAligner):
         
         for k in sorted(base):
             tl, ql = base[k].info
-            topobounds = {}  # bounds of higher levels should be passed down
+            topobounds = {}  # bound positions should be passed down
+            new = self.intersect(k[0],k[1])
             if len(tl)==len(ql)==1:
                 d = tuple(tl[0])
                 topobounds[d] = tg.Domains[d]
-                new = self.intersect(k[0],k[1])
                 pool.add(tuple(new))
                 self._updateTopo(topobounds, d, new)
             else:
                 for d in map(tuple, tl):
                     topobounds[d] = tg.Domains[d]
-                    self._updateTopo(topobounds, d, [])
+                    self._updateTopo(topobounds, d, new)
 
             for lv in base[k]:
                 for t in base[k][lv]:
