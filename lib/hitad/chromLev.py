@@ -99,10 +99,10 @@ class Chrom(object):
         self.replabel = replabel
         self._rm = 1
         self._dw = self.defaultwindow // res
-        self._mw = self.maxapart // res
 
         x = hicdata['bin1']; y = hicdata['bin2']; IF = hicdata['IF']
         self.chromLen, self.rawMatrix = self._genSparseMatrix(x, y, IF)
+        self._mw = min(self.maxapart//res, self.chromLen)
 
         del x, y, IF, hicdata
 
@@ -245,9 +245,9 @@ class Chrom(object):
                                                   (0-1) sequence
         """
         noise = P == 0
-        check = noise[:50]
+        check = noise[:20]
         noiselevel = check.sum() / check.size
-        if noiselevel > 0.2:
+        if noiselevel > 0.4:
             return 0
 
         indices = np.arange(1, P.size+1)

@@ -245,7 +245,7 @@ Other Options
 
 - ``-p/--cpu-core`` CPU_CORE
 
-  Number of processes to launch. (default: 1)
+  Number of processes to launch. (Default: 1)
 
 - ``-v/--version``
 
