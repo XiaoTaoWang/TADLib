@@ -194,7 +194,7 @@ class Genome(object):
         # Full filename including path prefix
         _, interName = os.path.split(filename)
         regexp = 'chr(.*).txt'
-        search_results = re.search(regexp, filename)
+        search_results = re.search(regexp, interName)
         label = search_results.group(1)
         
         # Remove leading zeroes.
