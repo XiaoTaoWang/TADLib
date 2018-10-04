@@ -12,38 +12,37 @@ or even mix it with other GPL-compatible codes. See the file LICENSE
 included with the distribution for more details.
 
 """
-import os, sys, lib
-from distutils.core import setup
+import os, sys, glob, setuptools, tadlib
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 if (sys.version_info.major != 2) or (sys.version_info.minor != 7):
-    print 'PYTHON 2.7 IS REQUIRED. YOU ARE CURRENTLY USING PYTHON ' + sys.version
+    print('PYTHON 2.7 IS REQUIRED. YOU ARE CURRENTLY USING PYTHON {}'.format(sys.version.split()[0]))
     sys.exit(2)
 
 # Guarantee Unix Format
-for src in ['scripts/calfea','scripts/hitad']:
-    text = open(src, 'rb').read().replace('\r\n', '\n')
-    open(src, 'wb').write(text)
+for src in glob.glob('scripts/*'):
+    text = open(src, 'r').read().replace('\r\n', '\n')
+    open(src, 'w').write(text)
 
-setup(
+setuptools.setup(
     name = 'TADLib',
-    version = lib.__version__,
-    author = lib.__author__,
-    author_email = 'wangxiaotao868@163.com',
+    version = tadlib.__version__,
+    author = tadlib.__author__,
+    author_email = 'wangxiaotao686@gmail.com',
     url = 'https://github.com/XiaoTaoWang/TADLib/',
     description = 'A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains',
-    keywords = 'TAD Aggregation Preference AP sub-TAD hierarchy Hi-C',
-    package_dir = {'tadlib':'lib'},
-    packages = ['tadlib', 'tadlib.calfea', 'tadlib.hitad'],
-    scripts = ['scripts/calfea', 'scripts/hitad'],
+    keywords = 'TAD Aggregation Preference AP sub-TAD hierarchy Hi-C cooler',
+    long_description = read('README.rst'),
+    long_description_content_type='text/x-rst',
+    scripts = glob.glob('scripts/*'),
+    packages = setuptools.find_packages(),
     package_data = {'tadlib.calfea':['data/*'],
                     'tadlib.hitad':['data/NPZ/*',
                                     'data/TXT/datasets*',
                                     'data/TXT/IMR90-HindIII-rep1/*',
                                     'data/TXT/IMR90-HindIII-rep2/*']},
-    long_description = read('README.rst'),
     classifiers = [
         'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
