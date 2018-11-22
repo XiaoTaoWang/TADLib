@@ -247,7 +247,7 @@ class Chrom(object):
         noise = P == 0
         check = noise[:20]
         noiselevel = check.sum() / check.size
-        if noiselevel > 0.4:
+        if noiselevel > 0.7:
             return 0
 
         indices = np.arange(1, P.size+1)

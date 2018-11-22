@@ -314,7 +314,7 @@ class DomainSet(BoundSet):
                 rk = (c, q[1])
                 lidx[lk] = min(lidx.get(lk, len(bychroms[c])-1), sidx)
                 lidx[rk] = min(lidx.get(rk, len(bychroms[c])-1), sidx)
-                for i in xrange(sidx, len(bychroms[c])):
+                for i in range(sidx, len(bychroms[c])):
                     if (bychroms[c][i][0]>=q[0]) and (bychroms[c][i][1]<=q[1]):
                         if bychroms[c][i][-1]==q[-1]+1:
                             pres.append([c]+bychroms[c][i])
@@ -1258,7 +1258,7 @@ def hierFormat(domainlist):
         for q in bychroms[c]:
             pool = []
             label = 1
-            for i in xrange(sidx, len(bychroms[c])):
+            for i in range(sidx, len(bychroms[c])):
                 if (bychroms[c][i][0]>=q[0]) and (bychroms[c][i][1]<=q[1]):
                     pool.append(bychroms[c][i])
                 if (bychroms[c][i][0]>=q[0]) and label:
