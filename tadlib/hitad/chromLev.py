@@ -39,11 +39,10 @@ class Chrom(object):
     *Chrom* is defined to:
     
     - Hold Hi-C data within a certain chromosome
-    - Identify hierarchical domains in 4 steps: 1.Calculate adaptive DIs for
-      all bins of the considered chromosome. 2.Identify original candidate
-      bounds by 5-state Gaussian mixture Hidden Markov Model using adaptive
-      DIs as input. 3.Select TAD bounds from candidate bounds. 4.Recursively
-      identify inner domain structures of each TAD.
+    - Identify hierarchical domains in 4 steps: 1.Calculate adaptive DIs.
+      2.Identify original candidate bounds by 5-state Gaussian mixture Hidden
+      Markov Model using adaptive DIs as input. 3.Select TAD bounds from
+      candidate bounds. 4.Recursively identify inner domain structures of each TAD.
     - Visualize any region of the chromosome. Hierarchical domains will be
       plotted as boxes along with the diagonal of the heatmap, and adaptive
       DI track will be placed on top of the heatmap.
@@ -56,10 +55,8 @@ class Chrom(object):
     res : int
         Resolution of the Hi-C data in base-pair unit.
     
-    hicdata : numpy.ndarray
-        Hi-C data stored in our customized Numpy Structured Array. The
-        structured array is defined in :py:class:`tadlib.hitad.genomeLev.Genome`,
-        and it has 3 fields named "bin1", "bin2" and "IF", respectively.
+    hicdata : CSR sparse matrix
+        Bin-level Hi-C matrix of the specified chromosome.
     
     replabel : str
         Biological replicate label.
@@ -82,7 +79,7 @@ class Chrom(object):
         Biological replicate label.
     
     chromLen : int
-        Total bin number of the chromosome. Obtained from Hi-C data.
+        Total bin number of the chromosome.
     
     rawMatrix : sparse matrix in Compressed Sparse Row format
         CSR sparse matrix is used to extract Hi-C data by slicing conveniently
@@ -99,9 +96,12 @@ class Chrom(object):
         self.replabel = replabel
         self._rm = 1
         self._dw = self.defaultwindow // res
+        self.chromLen = hicdata.shape[0]
 
-        x = hicdata['bin1']; y = hicdata['bin2']; IF = hicdata['IF']
-        self.chromLen, self.rawMatrix = self._genSparseMatrix(x, y, IF)
+        x, y = hicdata.nonzero()
+        IF = np.array(hicdata[x, y]).ravel()
+        IF[np.isnan(IF)] = 0
+        self.rawMatrix = self._genSparseMatrix(x, y, IF)
         self._mw = min(self.maxapart//res, self.chromLen)
 
         del x, y, IF, hicdata
@@ -110,15 +110,11 @@ class Chrom(object):
 
     def _genSparseMatrix(self, x, y, IF):
 
-        indices = np.r_['0,2,1', x, y]
-        indices.sort(axis = 0)
-        x, y = indices
-        chromLen = y.max() + 1
-        extendLen = chromLen + 2*chromLen
-        rawMatrix = sparse.csr_matrix((IF, (x + chromLen, y + chromLen)),
+        extendLen = self.chromLen + 2*self.chromLen
+        rawMatrix = sparse.csr_matrix((IF, (x + self.chromLen, y + self.chromLen)),
                                       shape = (extendLen, extendLen))
 
-        return chromLen, rawMatrix
+        return rawMatrix
 
     def detectPeaks(self, trends, mph=0, mpd=5):
         """
@@ -190,10 +186,9 @@ class Chrom(object):
             True if we should reject the null hypothesis (the sequence is
             generated randomly) under the selected significance level.
         """
-        from itertools import izip
         from scipy.stats import chisquare
 
-        pairwise = izip(seq[1:], seq[:-1])
+        pairwise = zip(seq[1:], seq[:-1])
         d = collections.defaultdict(int)
         for k in pairwise:
             d[k] += 1
@@ -213,31 +208,6 @@ class Chrom(object):
         Estimate the most appropriate window size for current bin to best
         capture the local interaction bias direction.
         
-        Parameters
-        ----------
-        P : 1-D numpy.ndarray
-            Calculated by the formula P\ :sub:`i`\ (k) = M\ :sub:`i-k,k` -
-            M\ :sub:`i,i+k`, where *M* represents the contact matrix, *i*
-            represents current bin index, and *k* indicates bin-level genomic
-            distances. This is an intuitive definition of interaction bias
-            for each genomic distance: if the sign of an entry is positive,
-            then bin *i* is more likely to contact with the upstream bin
-            *i-k*; otherwise it's more inclined to contact with the downstream
-            bin *i+k*.
-        
-        Design
-        ------
-        Because of the presence of local domains, we can see runs of values
-        in *P* with consistent signs. The object of this method is to determine
-        the cut of the first run. For the beginning of a domain, the values
-        in the first run tend to be negative, and for the end of a domain,
-        they are almost positive.
-        
-        The cut sites of the runs can be approximated by detecting peaks on
-        the trend of positive/negative value ratio under increasing *k*. And
-        the existence of runs under certain *k* can be determined by checking
-        the randomness of the sequence.
-        
         See Also
         --------
         tadlib.hitad.chromLev.Chrom.detectPeaks : detect peaks given a 1-D array
@@ -247,7 +217,7 @@ class Chrom(object):
         noise = P == 0
         check = noise[:20]
         noiselevel = check.sum() / check.size
-        if noiselevel > 0.7:
+        if noiselevel > 0.6:
             return 0
 
         indices = np.arange(1, P.size+1)
@@ -276,7 +246,7 @@ class Chrom(object):
 
     def minWindows(self, start, end, maxw):
         """
-        Estimate best window size for every bin of a given range.
+        Estimate best window size for each bin of a given range.
         
         Parameters
         ----------
@@ -298,7 +268,7 @@ class Chrom(object):
 
         start += self.chromLen; end += self.chromLen
         self.windows = np.zeros(end - start, dtype = np.int32)
-        for i in xrange(start, end):
+        for i in range(start, end):
             down = self.rawMatrix[i, i:(i+maxw)].toarray().ravel()
             up = self.rawMatrix[(i-maxw+1):(i+1), i].toarray().ravel()[::-1]
             down[:self._rm+1] = 0; up[:self._rm+1] = 0
@@ -329,7 +299,7 @@ class Chrom(object):
         start = start + self.chromLen
 
         self.DIs = np.zeros(len(windows))
-        for i in xrange(start, start + len(windows)):
+        for i in range(start, start + len(windows)):
             w = windows[i-start]
             if w > 0:
                 down = self.rawMatrix[i, i:(i+w)].toarray().ravel()
@@ -409,7 +379,7 @@ class Chrom(object):
     def splitChrom(self, DIs):
         """
         Split a chromosome into gap-free regions. HMM learning and domain
-        identification procedure will be performed on these region separately.
+        identification procedures will be performed on these regions separately.
         
         Parameters
         ----------
@@ -546,8 +516,7 @@ class Chrom(object):
 
     def viterbi(self, seq):
         """
-        Find the most likely hidden state series given the observed *seq*
-        using the viterbi algorithm.
+        Find the most likely hidden state series using the viterbi algorithm.
         
         Parameters
         ----------
@@ -617,9 +586,9 @@ class Chrom(object):
     def _getBounds(self, path, junctions=['20','40','42']):
         """
         Call boundary sites from hidden state series. By default, these
-        transition modes will be detected as boundaries: "no bias(2) 🡒
-        domain start(0)", "domain end(4) 🡒 domain start(0)", and "domain end(4)
-        🡒 no bias(2)".
+        transition modes will be detected as boundaries: "no bias(2) >
+        domain start(0)", "domain end(4) > domain start(0)", and "domain end(4)
+        > no bias(2)".
         
         Parameters
         ----------
@@ -651,7 +620,7 @@ class Chrom(object):
 
             pieces = gen
             
-        bounds = np.r_[0, np.r_[map(len, pieces)]].cumsum()
+        bounds = np.r_[0, np.r_[list(map(len, pieces))]].cumsum()
 
         return bounds
 
@@ -681,7 +650,7 @@ class Chrom(object):
         """
         # bin-level domain (not base-pair-level domain!)
         bounds = self._getBounds(self.viterbi(seq))
-        pairs = [[bounds[i], bounds[i+1]] for i in xrange(len(bounds)-1)]
+        pairs = [[bounds[i], bounds[i+1]] for i in range(len(bounds)-1)]
         domains = []
         for b in pairs:
             # start, end, noise level, hierarchical level
@@ -1084,11 +1053,11 @@ class Chrom(object):
                                                   genomic interval
             
         """
-        for i in xrange(len(domainlist)):
+        for i in range(len(domainlist)):
             self._updateCache(cache, tuple(domainlist[i][:2]))
             if domainlist[i][2] > 0.2:# Noise domains will stay alone
                 continue
-            for j in xrange(i+1, len(domainlist)):
+            for j in range(i+1, len(domainlist)):
                 if (domainlist[j][1] - domainlist[i][0] > self.maxapart):
                     break
                 if domainlist[j][2] > 0.2:
@@ -1123,7 +1092,7 @@ class Chrom(object):
         # Dynamic programming
         # paths uses domain index intervals
         paths = {}
-        for i in xrange(len(domainlist)):
+        for i in range(len(domainlist)):
             Len = domainlist[i][1]//self.res - domainlist[i][0]//self.res
             paths[i] = {}
             pre = paths.get(i-1, {(-1,-1): [0,None]})
@@ -1135,7 +1104,7 @@ class Chrom(object):
                 else:
                     if pre[pp][0] > maxs:
                         maxs = pre[pp][0]; maxp = pp
-            for j in xrange(i, len(domainlist)):
+            for j in range(i, len(domainlist)):
                 key = (domainlist[i][0], domainlist[j][1])
                 if (key[1] - key[0] > self.maxapart) and (j > i):
                     break
@@ -1938,7 +1907,7 @@ class MultiReps(DomainAligner):
             D.add(tuple(d[:3])) # Hash the domain list
             newlist.append(d[:3])
 
-        for i in xrange(len(bo.Bounds)-1):
+        for i in range(len(bo.Bounds)-1):
             if bo.Bounds[i+1][0] != bo.Bounds[i][0]:
                 continue
             td = (bo.Bounds[i][0], bo.Bounds[i][1], bo.Bounds[i+1][1])
@@ -2014,6 +1983,7 @@ class repAligner(DomainAligner):
             else:
                 olev = d[-1]
                 bylev.append([d])
+                
         if len(bylev) > 1:
             # query domain levels are heterogeneous
             ref = self.overlap([tl[0][1],tl[-1][2]], [ql[0][1],ql[-1][2]])

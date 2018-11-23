@@ -8,6 +8,7 @@ from __future__ import division
 import os, pickle, tempfile, time, logging, cooler
 import multiprocessing as mp
 import numpy as np
+from scipy.sparse import triu
 from chromLev import Chrom, MultiReps
 
 total_cpu = mp.cpu_count()
@@ -81,9 +82,9 @@ class Genome(object):
                 for rep in ms[res]:
                     log.debug('  resolution: {0}, {1}'.format(res, rep))
                     if 'weight' in ms[res][rep].bins().keys(): # ICE correction
-                        tdata = ms[res][rep].matrix(balance=True, sparse=True).fetch(chrom).tocsr()
+                        tdata = triu(ms[res][rep].matrix(balance=True, sparse=True).fetch(chrom).tocsr())
                     else:
-                        tdata = ms[res][rep].matrix(balance=False, sparse=True).fetch(chrom).tocsr()
+                        tdata = triu(ms[res][rep].matrix(balance=False, sparse=True).fetch(chrom).tocsr())
                     work = Chrom(chrom, res, tdata, rep, maxsize)
                     work.Label = rep
                     tl = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
