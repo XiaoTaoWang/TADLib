@@ -6,11 +6,9 @@ Created on Sun May 22 14:37:37 2016
 @author: wxt
 
 """
-import argparse, sys, os, logging, logging.handlers, traceback
+import argparse, sys, os, logging, logging.handlers, traceback, tadlib
 
-from tadlib import hitad
-
-currentVersion = hitad.__version__
+currentVersion = tadlib.__version__
 
 def datasets_convert(metadata):
     
@@ -45,17 +43,8 @@ def getargs():
     parser.add_argument('-d', '--datasets', type = datasets_convert,
                         help = 'Metadata file describing Hi-C datasets. Refer to our '
                         'online documentation for more details.')
-    parser.add_argument('-C', '--chroms', nargs = '*', default = ['#', 'X'],
-                        help = 'List of chromosome labels. Only HiC data within the specified '
-                        'chromosomes will be included. Specially, "#" stands for chromosomes '
-                        'with numerical labels. "--chroms" with zero argument will include '
-                        'all chromosome data.')
     parser.add_argument('--maxsize', default = 4000000, type=int, help = 'Maximum domain size in '
                         'base-pair unit.')
-    parser.add_argument('--npzpre', help = 'Prefix of output .npz file name. If specified, '
-                        'loaded Hi-C data will be stored in Numpy .npz format to accelerate '
-                        'IO extremely for further use. If no path is contained, NPZ files '
-                        'will be placed under current working directory.')
     parser.add_argument('-p', '--cpu-core', type = int, default = 1,
                         help = 'Number of processes to launch.')
     parser.add_argument('--removeCache', action = 'store_true',
@@ -100,9 +89,7 @@ def run():
         arglist = ['# ARGUMENT LIST:',
                    '# Output file name = %s' % args.output,
                    '# Hi-C datasets = %s' % args.datasets,
-                   '# Chromosomes = %s' % args.chroms,
                    '# Maximum domain size = %s' % args.maxsize,
-                   '# Output NPZ prefix = %s' % args.npzpre,
                    '# Number of processes used = %d' % args.cpu_core,
                    '# Remove cache data = %s' % args.removeCache,
                    '# Log file name = %s' % args.logFile
@@ -116,7 +103,7 @@ def run():
         try:
             logger.info('Parsing Hi-C datasets ...')
             cachefolder = os.path.expanduser('~/.hitad')
-            G = Genome(args.datasets, args.chroms, args.maxsize, args.npzpre, cachefolder)
+            G = Genome(args.datasets, args.maxsize, cachefolder)
             logger.info('Done!')
             logger.info('Identifying hierarchical domains ...')
             kwargs = {'cpu_core':args.cpu_core}

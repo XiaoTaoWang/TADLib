@@ -12,13 +12,15 @@ or even mix it with other GPL-compatible codes. See the file LICENSE
 included with the distribution for more details.
 
 """
-import os, sys, glob, setuptools, tadlib
+import os, sys, tadlib, glob
+import setuptools
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-if (sys.version_info.major != 2) or (sys.version_info.minor != 7):
-    print('PYTHON 2.7 IS REQUIRED. YOU ARE CURRENTLY USING PYTHON {}'.format(sys.version.split()[0]))
+if ((sys.version_info.major==2) and (sys.version_info.minor!=7)) or \
+   ((sys.version_info.major==3) and (sys.version_info.minor<5)):
+    print('PYTHON 2.7/3.5+ IS REQUIRED. YOU ARE CURRENTLY USING PYTHON {}'.format(sys.version.split()[0]))
     sys.exit(2)
 
 # Guarantee Unix Format
@@ -38,18 +40,12 @@ setuptools.setup(
     long_description_content_type='text/x-rst',
     scripts = glob.glob('scripts/*'),
     packages = setuptools.find_packages(),
-    package_data = {'tadlib.calfea':['data/*'],
-                    'tadlib.hitad':['data/NPZ/*',
-                                    'data/TXT/datasets*',
-                                    'data/TXT/IMR90-HindIII-rep1/*',
-                                    'data/TXT/IMR90-HindIII-rep2/*']},
     classifiers = [
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX',
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
-        'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'Topic :: Scientific/Engineering :: Mathematics'
+        'Topic :: Scientific/Engineering :: Bio-Informatics'
         ]
     )

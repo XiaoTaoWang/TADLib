@@ -168,8 +168,9 @@ class Core(object):
     def __init__(self, matrix, left = 0):
 
         # rescale matrix
-        min_nonzero = matrix[matrix.nonzero()].min()
-        if min_nonzero < 1:
+        nonzero = matrix[matrix.nonzero()]
+        if np.median(nonzero) < 1:
+            min_nonzero = nonzero.min()
             scale = 1 / min_nonzero
             matrix = matrix * scale
         

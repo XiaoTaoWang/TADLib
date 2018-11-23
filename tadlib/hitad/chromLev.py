@@ -9,6 +9,7 @@ from __future__ import division
 import copy, collections
 import numpy as np
 from scipy import sparse
+from pomegranate import NormalDistribution, HiddenMarkovModel, GeneralMixtureModel, State
 from aligner import BoundSet, DomainSet, DomainAligner, hierFormat, Container
 from tadlib.calfea import analyze
 
@@ -352,29 +353,38 @@ class Chrom(object):
                                                      from sequence data.
         """
 
-        if not 'HMMParams' in self.__dict__:
-            # Five Hidden States:
-            # 0--start, 1--downstream, 2--no bias, 3--upstream, 4--end
-            A = [[0., 1., 0., 0., 0.],
-                 [0., 0.4, 0.3, 0.3, 0.],
-                 [0.05, 0., 0.5, 0.45, 0.],
-                 [0., 0., 0., 0.5, 0.5],
-                 [0.99, 0., 0.01, 0., 0.]]
-            pi = [0.05, 0.3, 0.3, 0.3, 0.05]
-            numdists = 3 # Three-distribution Gaussian Mixtures
-            W = 1. / numdists
-            var = 7.5 / (numdists - 1)
-            means = [[], [], [], [], []]
-            for i in range(numdists):
-                means[4].append(i * 7.5 / ( numdists - 1 ) + 2.5)
-                means[3].append(i * 7.5 / ( numdists - 1 ))
-                means[2].append((i - (numdists-1)/2) * 7.5 / (numdists - 1))
-                means[1].append(-i * 7.5 / ( numdists - 1 ))
-                means[0].append(-i * 7.5 / ( numdists - 1 ) - 2.5)
+        # Transmission matrix
+        # Five Hidden States:
+        # 0--start, 1--downstream, 2--no bias, 3--upstream, 4--end
+        A = [[0., 1., 0., 0., 0.],
+            [0., 0.4, 0.3, 0.3, 0.],
+            [0.05, 0., 0.5, 0.45, 0.],
+            [0., 0., 0., 0.5, 0.5],
+            [0.99, 0., 0.01, 0., 0.]]
+        
+        # GMM emissions
+        numdists = 3 # Three-distribution Gaussian Mixtures
+        var = 7.5 / (numdists - 1)
+        dists = []
+        means = [[], [], [], [], []]
+        for i in range(numdists):
+            means[4].append(i * 7.5 / ( numdists - 1 ) + 2.5)
+            means[3].append(i * 7.5 / ( numdists - 1 ))
+            means[2].append((i - (numdists-1)/2) * 7.5 / (numdists - 1))
+            means[1].append(-i * 7.5 / ( numdists - 1 ))
+            means[0].append(-i * 7.5 / ( numdists - 1 ) - 2.5)
+        for m in means:
+            tmp = []
+            for i in m:
+                tmp.append(NormalDistribution(i, var))
+            mixture = GeneralMixtureModel(tmp)
+            dists.append(mixture)
+        
+        starts = np.array([0.05, 0.3, 0.3, 0.3, 0.05])
+        ends = np.array([0.05, 0.3, 0.3, 0.3, 0.05])
+        names = ['0', '1', '2', '3', '4']
 
-            B = [[means[i], [var for j in range(numdists)], [W for k in range(numdists)]] for i in range(len(pi))]
-
-            self.HMMParams = {'A': A, 'B': B, 'pi': pi}
+        self.hmm = HiddenMarkovModel.from_matrix(A, dists, starts, ends, names)
 
     def splitChrom(self, DIs):
         """
@@ -440,8 +450,7 @@ class Chrom(object):
 
     def paramFromModel(self, seqs):
         """
-        Train HMM model on *seqs* using `GHMM <http://ghmm.sourceforge.net/index.html>`_.
-        Update *HMMParams* attribute after training.
+        Train HMM model on *seqs*.
         
         Parameters
         ----------
@@ -454,38 +463,7 @@ class Chrom(object):
         tadlib.hitad.chromLev.Chrom.splitChrom : Split chromosome into gap-free
                                                  regions.
         """
-        import ghmm
-
-        HMMParams = getattr(self, 'HMMParams')
-
-        F = ghmm.Float()
-        trainset = ghmm.SequenceSet(F, seqs)
-
-        # Training ...
-        model = ghmm.HMMFromMatrices(F, ghmm.GaussianMixtureDistribution(F),
-                                     **HMMParams)
-        model.baumWelch(trainset)
-
-        state_num = len(HMMParams['B'])
-        numdists = len(HMMParams['B'][0][0])
-
-        A = np.zeros((state_num, state_num))
-        B = np.zeros((state_num, 3, numdists))
-        pi = np.zeros(state_num)
-
-        for i in range(state_num):
-            for j in range(state_num):
-                A[i, j] = model.getTransition(i, j)
-            for j in range(numdists): # num of distributions
-                temp = model.getEmission(i, j)
-                for k in range(3): # Mean, var, weight
-                    B[i, k, j] = temp[k]
-
-            pi[i] = model.getInitial(i)
-
-        HMMParams['A'] = A
-        HMMParams['B'] = B
-        HMMParams['pi'] = pi
+        self.hmm.fit(seqs, algorithm='baum-welch')
 
     def learning(self, regionDIs):
         """
@@ -508,7 +486,7 @@ class Chrom(object):
 
         seqs = []
         for region in regionDIs:
-            seqs.append(list(regionDIs[region]))
+            seqs.append(regionDIs[region])
 
         random.shuffle(seqs)
 
@@ -534,52 +512,7 @@ class Chrom(object):
         tadlib.hitad.chromLev.Chrom.paramFromModel : parameter learning
                                                      using Baum-Welch algorithm
         """
-        from scipy.stats import norm
-
-        HMMParams = getattr(self, 'HMMParams')
-
-        num_states = HMMParams['pi'].shape[0]
-        numdists = HMMParams['B'].shape[2]
-        seq_len = seq.shape[0]
-        costs = np.zeros((num_states, seq_len))
-        paths = np.zeros((num_states, seq_len - 1), np.int8)
-        transition_costs = -np.log(HMMParams['A'])
-
-        for i in range(num_states):
-            for j in range(numdists):
-                costs[i,:] += norm.pdf(seq, loc = HMMParams['B'][i, 0, j],
-                                       scale = HMMParams['B'][i, 1, j] ** 0.5) * \
-                                       HMMParams['B'][i, 2, j]
-        costs = -np.log(costs)
-        costs[:,0] -= np.log(HMMParams['pi'])
-        for i in range(seq_len - 1):
-            for j in range(num_states):
-                min_cost = costs[0, i] + transition_costs[0, j]
-                min_state = 0
-                for k in range(1, num_states):
-                    next_cost = costs[k, i] + transition_costs[k, j]
-                    if next_cost < min_cost:
-                        min_cost = next_cost
-                        min_state = k
-                costs[j, i + 1] += min_cost
-                paths[j, i] = min_state
-        for j in range(num_states):
-            min_cost = costs[0, -1] + transition_costs[0, j]
-            min_state = 0
-            for k in range(1, num_states):
-                next_cost = costs[k, -1] + transition_costs[k, j]
-                if next_cost < min_cost:
-                    min_cost = next_cost
-                    min_state = k
-        
-        min_state = 0
-        for j in range(1, num_states):
-            if costs[j, -1] < costs[min_state, -1]:
-                min_state = j
-
-        path = [min_state]
-        for i in range(paths.shape[1])[::-1]:
-            path = [paths[path[0], i]] + path
+        path = [int(s.name) for i, s in self.hmm.viterbi(seq)[1]]
 
         return path
 

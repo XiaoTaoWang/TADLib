@@ -1,0 +1,26 @@
+root                      INFO    @ 11/23/18 15:58:59: Python Version: 3.6.6
+root                      INFO    @ 11/23/18 15:58:59: 
+# ARGUMENT LIST:
+# Output cooler path = test-parts.cool
+# Hi-C datasets = {40000: '/Users/xtwang/Documents/GitHub/TADLib/tadlib/hitad/data/TXT/IMR90-HindIII-rep1'}
+# Chromosomes = ['#', 'X']
+# Include trans-chromosomal data = False
+# Genome Assembly = hg19
+# Chromosome size file = None
+# Number of processes = 1
+# Log file name = tocooler.log
+hicpeaks.utilities        INFO    @ 11/23/18 15:58:59: Fetch chromosome sizes from UCSC ...
+hicpeaks.utilities        INFO    @ 11/23/18 15:59:00: Done
+hicpeaks.utilities        INFO    @ 11/23/18 15:59:00: Extract and save data into cooler format for each resolution ...
+hicpeaks.utilities        INFO    @ 11/23/18 15:59:00: Current resolution: 40000bp
+hicpeaks.utilities        INFO    @ 11/23/18 15:59:00: Generate bin table ...
+cooler                    INFO    @ 11/23/18 15:59:00: Creating cooler at "/Users/xtwang/Documents/GitHub/TADLib/tadlib/hitad/data/TXT/test-parts.cool::/40000"
+cooler                    INFO    @ 11/23/18 15:59:00: Writing chroms
+cooler                    INFO    @ 11/23/18 15:59:00: Writing bins
+cooler                    INFO    @ 11/23/18 15:59:00: Writing pixels
+cooler                    INFO    @ 11/23/18 15:59:01: Writing indexes
+cooler                    INFO    @ 11/23/18 15:59:01: Writing info
+cooler                    INFO    @ 11/23/18 15:59:01: Done
+hicpeaks.utilities        INFO    @ 11/23/18 15:59:01: Balancing /Users/xtwang/Documents/GitHub/TADLib/tadlib/hitad/data/TXT/test-parts.cool::40000
+cooler                    INFO    @ 11/23/18 15:59:01: 22
+root                      INFO    @ 11/23/18 15:59:01: Done
