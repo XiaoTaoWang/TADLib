@@ -97,6 +97,8 @@ class Genome(object):
                     self.data[chrom][res][rep] = tmpfil
 
                     time.sleep(3)
+
+        self.cools = datasets
         
     def callHierDomain(self, cpu_core = 1):
         """
@@ -160,6 +162,7 @@ class Genome(object):
         
         log.debug('Extract reproducible domains from replicates ...')
         self.Results = []
+        self.DIs = {}
         for chrom in self.data:
             log.debug('Chrom {0} ...'.format(chrom))
             pool = {}
@@ -174,6 +177,22 @@ class Genome(object):
                 pool[res] = mrep
             minres = min(pool)
             self.Results.extend(pool[minres].mergedDomains)
+        
+        log.debug('Add the DI column into cools ...')
+        for res in self.cools:
+            for rep in self.cools[res]:
+                lib = cooler.Cooler(self.cools[res][rep])
+                DIs = np.r_[[]]
+                for c in lib.chromnames:
+                    tmpfil = self.data[c][res][rep]
+                    with open(tmpfil, 'rb') as source:
+                        tmpcache = pickle.load(source)
+                    DIs = np.r_[DIs, tmpcache.DIs]
+                with lib.open('r+') as grp:
+                    if 'DIs' in grp['bins']:
+                        del grp['bins']['DIs']
+                    h5opts = dict(compression='gzip', compression_opts=6)
+                    grp['bins'].create_dataset('DIs', data=DIs, **h5opts)
     
     def outputDomain(self, filename):
         
