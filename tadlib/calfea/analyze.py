@@ -18,387 +18,14 @@ from sklearn import cluster
 ## Customize the logger
 log = logging.getLogger(__name__)
 
-class Inters(object):
-    """
-    Load bin-level Hi-C data from TXT or Numpy .npz file.
-    
-    Parameters
-    ----------
-    path : str
-        Data path.
-    
-    Format : {'TXT', 'NPZ'}
-        Two choices of the source format. (Default: 'TXT')
-        
-    resolution : int
-        Data resolution. (Default: 10000, i.e., the bin size equals to 10kb)
-    
-    template : str
-        Template of the source file names. Only required for TXT.
-        (Default: 'chr%s_chr%s.int', in which '%s' indicates chromosome
-        ID)
-        
-    chroms : list
-        List of chromosome labels. Only Hi-C data within the specified chromosomes
-        will be included. Specially, '#' stands for chromosomes with numerical
-        labels. If an empty list is provided, all chromosome data will be loaded.
-        (Default: ['#', 'X'])
-        
-    cols : None or list of int (length: 3)
-        Which columns to read, with 0 being the first. For example,
-        ``cols = [1, 3, 4]`` will extract the 2nd, 4th and 5th columns.
-        (Default: None, the automatic recognization will be triggered)
-        
-    prefix : str or None
-        Prefix of input .npz file name. For example, ``prefix = 'h1hesc'``
-        will load a file named "h1hesc.npz". (Default: None)
-        
-    immortal : bool
-        If True, save the loaded data to a new Numpy .npz file.
-        (Default: False)
-        
-    saveto : str or None
-        Prefix of the output .npz file name. (Default: None)
-        
-    Attributes
-    ----------
-    location : str
-        Absolute path to the data folder.
-        
-    chroms : set
-        Set of the input chromosome labels.
-        
-    template : str
-        Template of the TXT source file names.
-        
-    resolution : int
-        Resolution of the data.
-        
-    cols : None or list of int (length: 3)
-        Which columns in TXT source file to read.
-        
-    data : dict
-        Loaded Hi-C data, with chromosome ID as the key and a
-        customized Numpy Structured Array as the value. The structured
-        array, which is defined through numpy.dtype object, has 3 fields
-        named "bin1", "bin2" and "IF", respectively.
-        
-    interFiles : list of str
-        List of TXT source files. Only created if ``Format = 'TXT'``.
-        
-    labels : list of str
-        List of sorted chromosome labels.
-    
-    label2idx : dict
-        Map from chromosomes labels to zero-based indices.
-    
-    idx2label : dict
-        Map from zero-based indices to chromosome labels.
-        
-    map : dict
-        Mapping from labels to interFiles. Only available when
-        ``Format = 'TXT'``.
-    
-    See Also
-    --------
-    numpy.load : Load an array(s) from .npy or .npz files.
-    numpy.savez : Save several arrays into a single .npz file.
-    numpy.dtype : Create a data type object.
-    
-    """
-    
-    def __init__(self, path, Format = 'TXT', resolution = 10000,
-                 template = 'chr%s_chr%s.int', chroms = ['#', 'X'],
-                 cols = None, prefix = None, immortal = False, saveto = None):
-        # Set main attributes
-        self.location = os.path.abspath(os.path.expanduser(path))
-        self.chroms = set(chroms)
-        self.template = template
-        self.resolution = resolution
-        self.cols = cols
-        
-        log.debug('Initializing an Inters object ...')
-        
-        # Argument types and dependency relationships
-        if (immortal == True) and (not saveto):
-            log.error('Setting Error: saveto is required if immortal'
-                      ' is True')
-            sys.exit(1)
-        
-        if (Format == 'TXT') and (not self.template):
-            log.error('Setting Error: template is required if Format '
-                      'is set to be TXT')
-            sys.exit(1)
-        
-        if (Format == 'NPZ') and (not prefix):
-            log.error('Setting Error: prefix is required if Format '
-                      'is set to be NPZ')
-            sys.exit(1)
-
-        if not Format in ['TXT', 'NPZ']:
-            log.error('Setting Error: Unknown source format')
-            sys.exit(1)
-        
-        # Summary of actions
-        log.debug('Following tasks will be done:')
-        if (Format == 'NPZ') and immortal:
-            log.debug('    The input template and cols will be ignored')
-            log.debug('    Load Hi-C data from a Numpy .npz file')
-            log.debug('    Save Hi-C data to another Numpy .npz file')
-        elif (Format == 'NPZ') and (not immortal):
-            log.debug('    The input template and cols will be ignored')
-            log.debug('    Load Hi-C data from a Numpy .npz file')
-        elif (Format == 'TXT') and (immortal):
-            log.debug('    Load Hi-C data from TXT files')
-            log.debug('    Save Hi-C data to a binary file in Numpy .npz format')
-        else:
-            log.debug('    Load Hi-C data from TXT files')
-        
-        # Interaction data will be stored in a dict, with chromosome labels
-        # as the keys
-        self.data = {}
-        
-        if Format == 'NPZ':
-            npzfile = '.'.join([prefix, 'npz'])
-            log.debug('Data source: %s', npzfile)
-            log.debug('Loading ...')
-            if not os.path.exists(os.path.join(self.location, npzfile)):
-                log.error('There is no file named %s at %s ', 
-                          (npzfile, self.location))
-                sys.exit(2)
-            else:
-                tempfile = np.load(os.path.join(self.location, npzfile))
-                self.labels = []
-                for i in tempfile.files:
-                    # Filter using chroms argument
-                    if ((not self.chroms) or (i.isdigit() and '#' in self.chroms)
-                        or (i in self.chroms)):
-                        self.data[i] = tempfile[i]
-                        self.labels.append(i)
-                # Sort labels, compatible with 'TXT' case
-                self._sortlabels()
-                self.labels = zip(*sorted(self.idx2label.items(),
-                                          key = lambda x: x[0]))[1]
-                
-                log.debug('Done!')
-                tempfile.close()
-        else:
-            log.debug('Scanning folder: %s' % self.location)
-            # Scan the folder and obtain a list of chromosome labels
-            self._scanFolder()
-            log.debug('Loading Hi-C data from TXT files, this '
-                      'process may be time/space consuming')
-            self._readInters()
-        
-        if immortal:
-            npzfile = '.'.join([saveto, 'npz'])
-            tempfile = os.path.join(self.location, npzfile)
-            log.debug('Saving data into %s', tempfile)
-            np.savez(tempfile, **self.data)
-            log.debug('Done!')
-            
-    
-    def _extractChrLabel(self, filename):
-        
-        # Full filename including path prefix
-        _, interName = os.path.split(filename)
-        regexp = self.template % (('(.*)',) * self.template.count('%s'))
-        search_results = re.search(regexp, filename)
-        label = search_results.group(1)
-        
-        # Remove leading zeroes.
-        if label.isdigit():
-            label = str(int(label))
-    
-        return label
-
-    def _scanFolder(self):
-        
-        if not os.path.isdir(self.location):
-            log.error('%s is not a folder', self.location)
-            sys.exit(2)
-        
-        # Interaction file names
-        self.interFiles = [os.path.join(self.location, i)
-                           for i in glob.glob(os.path.join(self.location,
-                           self.template % (('*',) * self.template.count('%s'))))]
-        
-        if len(self.interFiles) == 0:
-            log.error('There is no file found at %s', self.location)
-            sys.exit(2)
-        
-        log.debug('%d valid TXT files are found in total', len(self.interFiles))
-        
-        # Read chromosome labels
-        log.debug('Filter TXT files according to the specified chromosome labels ...')
-        self.labels = []
-        filtered = [] # Depend on user's selection
-        for i in self.interFiles:
-            label = self._extractChrLabel(i)
-            if ((not self.chroms) or (label.isdigit() and '#' in self.chroms)
-                or (label in self.chroms)):
-                self.labels.append(label)
-                filtered.append(i)
-        
-        self.interFiles = filtered
-        if len(self.interFiles) == 0:
-            log.error('No TXT file left after filtering!')
-            sys.exit(2)
-        
-        log.debug('%d files are left after filtering', len(self.interFiles))
-        
-        self._sortlabels()
-        
-        # Sort interaction file names and labels according to the
-        # indices
-        self.labels = zip(*sorted(self.idx2label.items(),
-                                  key = lambda x: x[0]))[1]
-        self.interFiles.sort(key = lambda path: 
-                             self.label2idx[self._extractChrLabel(path)])
-        
-        # Map from labels to files
-        self.map = dict(zip(self.labels, self.interFiles))
-        log.debug('The following Hi-C data files will be considered for'
-                  ' further analysis:')
-        for i in self.interFiles:
-            log.debug(i)
-    
-    def _sortlabels(self):
-        """Sort chromosome labels and construct map between chromosome
-        labels and zero-based indices.
-        
-        Numerical labels are sorted naturally. For non-numerical labels,
-        give the priority to XYM over the rest.
-        """
-        if ('#' in self.chroms) or (not self.chroms):
-            # Convert labels to indices:
-            # For numerical labels
-            num_labels = [i for i in self.labels if i.isdigit()]
-            # Sort labels naturally, i.e. place '2' before '10'.
-            num_labels.sort(key=lambda x: int(re.findall(r'\d+$', x)[0]))
-            count = len(num_labels)
-            self.label2idx = dict(
-                [(num_labels[i], int(i)) for i in xrange(len(num_labels))])
-            self.idx2label = dict(
-                [(int(i), num_labels[i]) for i in xrange(len(num_labels))])
-            # For non-numerical labels. Give the priority to XYM over
-            # the rest
-            nonnum_labels = [i for i in self.labels if not i.isdigit()]
-            for i in ['M', 'Y', 'X']:
-                if i in nonnum_labels:
-                    nonnum_labels.pop(nonnum_labels.index(i))
-                    nonnum_labels.insert(0, i)
-            for i in nonnum_labels:
-                self.label2idx[i] = count
-                self.idx2label[count] = i
-                count += 1
-        else:
-            self.label2idx = dict(
-                [(self.labels[i], int(i)) for i in xrange(len(self.labels))])
-            self.idx2label = dict(
-                [(int(i), self.labels[i]) for i in xrange(len(self.labels))])
-        
-    def _readInters(self):
-        """
-        Read the Hi-C data chromosome by chromosome.
-        """
-        itype = np.dtype({'names':['bin1', 'bin2', 'IF'],
-                          'formats':[np.int, np.int, np.float]})
-        
-        # Try to parse the interaction file format
-        # We assume the columns are separated by comma or any space
-        log.debug('Parsing the source files ...')
-        if not self.cols:
-            log.warning('You haven\'t specify the desired columns! An '
-                        'automatic recognization will be performed, but '
-                        'unexpected consequences may happen.')
-        # Loop
-        for i in self.labels:
-            log.debug('Current file: %s', self.map[i])
-            tempfile = open(self.map[i])
-            skip = -1
-            for line in tempfile:
-                # Skip all comment lines
-                skip += 1
-                if not line.startswith('#'):
-                    delimiter = None
-                    parse = line.strip().split()
-                    if len(parse) < 3:
-                        delimiter = ','
-                        parse = line.strip().split(',')
-                    break
-            if line.isspace():
-                log.error('Empty! Please check your file!')
-                sys.exit(2)
-            
-            if len(parse) < 3:
-                log.error('This format "%s" is not allowed!', line.strip())
-                sys.exit(2)
-            
-            cols = [idx for idx in range(len(parse)) if isnumber(parse[idx])]
-            if len(cols) < 3:
-                # Header? Try next line!
-                line = tempfile.readline()
-                skip += 1
-                parse = line.strip().split(delimiter)
-                cols = [idx for idx in range(len(parse)) if isnumber(parse[idx])]
-                if len(cols) < 3:
-                    # Format Error
-                    log.error('Illegal Format: "%s"!', line.strip())
-                    sys.exit(2)
-            
-            # When label is contained in the main text
-            if len(cols) > 3:
-                for line in tempfile:
-                    parse = line.strip().split(delimiter)
-                    cols = [idx for idx in range(len(parse)) if 
-                            ((isnumber(parse[idx])) and (parse[idx] != i))]
-                    if len(cols) == 3:
-                        break
-            if len(cols) != 3:
-                log.error('Format "%s" cannot be resolved, more than '
-                          '3 numerical columns may exist! Computer '
-                          'is puzzled!', line.strip())
-                sys.exit(2)
-            else:
-                if self.cols:
-                    if (set(self.cols) & set(cols)) != set(self.cols):
-                        warnings.warn('Your column setting may have a trouble!'
-                                      ' Note that the index of Python is '
-                                      '0-based.')
-                        
-                    log.debug('Column %s, %s, and %s will be parsed as '
-                              '"bin1", "bin2", and "Interaction frequency", '
-                              'respectively.', *tuple(self.cols))
-                    
-                    self.data[i] = np.loadtxt(self.map[i], dtype = itype,
-                                              delimiter = delimiter,
-                                              skiprows = skip,
-                                              usecols = self.cols)
-                else:
-                    log.debug('Column %s, %s, and %s will be parsed as '
-                              '"bin1", "bin2", and "Interaction frequency", '
-                              'respectively.', *tuple(cols))
-                    
-                    self.data[i] = np.loadtxt(self.map[i], dtype = itype,
-                                              delimiter = delimiter,
-                                              skiprows = skip,
-                                              usecols = cols)
-        log.debug('Hi-C data have been loaded successfully!')
-
-class TAD(object):
+def load_TAD(source_fil, chromname=None, cols=[0, 1, 2]):
     """
     Load TAD data from a TXT file.
-    
-    TAD -- Topologically Associating Domain.
-    
+
     Parameters
     ----------
     source : str
-        The complete source file name.
-        Suppose a file named "h1hesc.domain" is located in
-        "/home/xtwang/data/TAD", then ``source = '~/data/TAD/h1hesc.domain'``
-        or ``source = '/home/xtwang/data/TAD/h1hesc.domain'``.
+        Path to the TAD file.
     
     chromname : None or str
         Template of chromosome names.
@@ -416,64 +43,41 @@ class TAD(object):
         ``cols = [0, 1, 2]`` will extract the 1st, 2nd and 3rd columns.
         (Default: [0, 1, 2])
     
-    Attributes
-    ----------
+    Returns
+    -------
     data :  Numpy Structured Array
         The parsed TAD intervals are contained in a numpy structured array
         containing 3 fields: "chr", "start" and "end".
-    
-    See Also
-    --------
-    numpy.dtype : Create a data type object
-    
+
     """
-    def __init__(self, source, chromname=None, cols=[0, 1, 2]):
+    source = os.path.abspath(os.path.expanduser(source_fil))
+
+    # Read TAD data from source
+    # Skip any comment lines
+    pool = [line.strip().split() for line in open(source) if
+            not line.startswith('#')]
+    # Skip header lines
+    pool = [line for line in pool if ((isnumber(line[cols[1]])) and (isnumber(line[cols[2]])))]
+
+    # Manipulate chromosome labels
+    maxL = 0 # Maximum label length
+    if not chromname:
+        chromname = ''
+    for i in range(len(pool)):
+        pool[i][cols[0]] = pool[i][cols[0]][len(chromname):]
+        if len(pool[i][cols[0]]) > maxL:
+            maxL = len(pool[i][cols[0]])
+        # Standardize API
+        pool[i] = (pool[i][cols[0]], float(pool[i][cols[1]]),
+                float(pool[i][cols[2]]))
         
-        source = os.path.abspath(os.path.expanduser(source))
-        
-        log.debug('Initializing a TAD object ...')
-        
-        # Check settings
-        if len(cols) != 3:
-            log.error('Setting Error: the length of cols must be 3')
-            sys.exit(1)
-        
-        if not os.path.exists(source):
-            log.error('We cannot find %s' % source)
-            sys.exit(1)
-        
-        log.debug('Loading TADs ...')
-        # Read TAD data from source
-        # Skip any comment lines
-        pool = [line.strip().split() for line in open(source) if
-                not line.startswith('#')]
-        
-        if not pool:
-            log.error('Empty source file!')
-            sys.exit(1)
-        
-        # Skip header lines
-        pool = [line for line in pool if ((isnumber(line[cols[1]])) and (isnumber(line[cols[2]])))]
-        
-        # Manipulate chromosome labels
-        maxL = 0 # Maximum label length        
-        if not chromname:
-            chromname = ''
-        for i in xrange(len(pool)):
-            pool[i][cols[0]] = pool[i][cols[0]][len(chromname):]
-            if len(pool[i][cols[0]]) > maxL:
-                maxL = len(pool[i][cols[0]])
-            # Standardize API
-            pool[i] = (pool[i][cols[0]], float(pool[i][cols[1]]),
-                       float(pool[i][cols[2]]))
-        
-        # Create a structured array
-        dtype = np.dtype({'names':['chr', 'start', 'end'],
-                          'formats':['S'+str(maxL), np.int, np.int]})
-        
-        self.data = np.array(pool, dtype = dtype)
-        
-        log.debug('External TADs are loaded successfully!')
+    # Create a structured array
+    dtype = np.dtype({'names':['chr', 'start', 'end'],
+                      'formats':['S'+str(maxL), np.int, np.int]})  
+    
+    data = np.array(pool, dtype = dtype)
+
+    return data
 
 class Core(object):
     """
@@ -549,8 +153,7 @@ class Core(object):
     After :meth:`tadlib.calfea.analyze.Core.gdensity`:
     
     gden : float, [0, 1]
-        Weighted average density. Calculated using cluster density
-        information.
+        Weighted average density.
     
     After :meth:`tadlib.calfea.analyze.Core.totalCover`:
     
@@ -563,6 +166,11 @@ class Core(object):
     
     """
     def __init__(self, matrix, left = 0):
+
+        # rescale matrix
+        min_nonzero = matrix[matrix.nonzero()].min()
+        scale = 1 / min_nonzero
+        matrix = matrix * scale
         
         # Manipulation, remove vacant rows and columns
         self.newM, self.convert = manipulation(matrix, left)
@@ -593,10 +201,10 @@ class Core(object):
         Parameters
         ----------
         pw : int
-            Width of the interaction region surrounding the peak. Default: 2
+            Width of the peak region. Default: 2
         
         ww : int
-            The size of the donut sampled. Default: 5
+            Width of the donut. Default: 5
         
         top : float, [0.5, 1]
             Parameter for noisy interaction filtering. Default: 0.7
@@ -734,7 +342,7 @@ class Core(object):
         self._area = EM_idx[0].size
         
     def DBSCAN(self):
-        """Detect natural patterns in selected IFs using DBSCAN.
+        """Detect natural patterns in selected interactions using DBSCAN.
         
         DBSCAN is a dennsity-based clustering algorithm. [1]_ Two input
         parameters *eps* and *MinPts* are calculated in an analytical
@@ -822,7 +430,7 @@ class Core(object):
                     cores_mask = cores_mask[mask]
                     
                     # For each cluster
-                    for i in xrange(self.Nc):
+                    for i in range(self.Nc):
                         extract = (self.cluster_id == i)
                         t_C = self.pos[extract]
                         
@@ -994,15 +602,6 @@ def getmatrix(inter, l_bin, r_bin):
     inter_matrix : numpy.ndarray
         The value of each entry is the interaction frequency between
         corresponding two bins.
-    
-    Notes
-    -----
-    Original interaction data is always binned under some resolution (10 kb
-    in our research). *inter* is used to store such binned data, which can
-    be seen as a sparse matrix in a numpy-style way.
-    
-    Sparse matrix is always required for high-resolution analysis of large
-    genome, such as human and mouse.
         
     """
     # Construct a matrix

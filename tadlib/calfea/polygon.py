@@ -2,7 +2,7 @@
 
 # Author: XiaoTao Wang
 # Organization: HuaZhong Agricultural University
-
+from __future__ import division
 import numpy as np
 from scipy.spatial import ConvexHull
 
