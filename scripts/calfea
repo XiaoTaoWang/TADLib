@@ -33,53 +33,18 @@ def getargs():
                         default = sys.stdout, help = 'Output file name.')
     
     ## Argument Groups
-    ## First one, about Hi-C data
-    group_1 = parser.add_argument_group(title = 'Relate to Hi-C data:')
+    group_1 = parser.add_argument_group(title = 'Relate to the input:')
     group_1.add_argument('-p', '--path', default = '.',
-                         help = 'Path to the folder with Hi-C data. Support both absolute'
-                                ' and relative path.')
-    group_1.add_argument('-F', '--Format', default = 'TXT', choices = ['TXT', 'NPZ'],
-                         help = 'Format of source data file')
-    group_1.add_argument('-R', '--resolution', default = 10000, type = int,
-                         help = 'Resolution of the binned data')
-    group_1.add_argument('-T', '--template', default = 'chr%s_chr%s.int',
-                         help = 'Template for matching file names using regular expression.'
-                         ' Needed when "--Format" is set to be "TXT". Note only within-chromosome'
-                         ' data are allowed, and don\'t place inter-chromosome data under the '
-                         'folder.')
-    group_1.add_argument('-C', '--chroms', nargs = '*', default = ['#', 'X'],
-                         help = 'Which chromosomes to read. Specially, "#" stands'
-                         ' for chromosomes with numerical labels. "--chroms" with zero argument'
-                         ' will generate an empty list, in which case all chromosome data will'
-                         ' be loaded.')
-    group_1.add_argument('-c', '--cols', nargs = 3, type = int,
-                         help = 'Which 3 columns to read, with 0 being the first. For example,'
-                         ' "--cols 1 3 4" will extract the 2nd, 4th and 5th columns. Only '
-                         'required when "--Format=TXT".')
-    group_1.add_argument('--immortal', action = 'store_true',
-                         help = 'When specified, a Numpy .npz file will be generated under the same '
-                         'folder. This operation will greatly speed up data loading process next'
-                         ' time.')
-    group_1.add_argument('-P', '--prefix', help = 'Prefix of input .npz file name, path not'
-                         ' included. Required when "--Format=NPZ".')
-    group_1.add_argument('-S', '--saveto', help = 'Prefix of output .npz file name, path '
-                         'not included. Required with "--immortal".')
-                     
-    ## Second one, load TAD data
-    group_2 = parser.add_argument_group(title = 'TAD Loading:', description = 'Your file should '
-                                        'contain 3 columns indicating "chromosome name",'
-                                        ' "start site" and "end site", respectively.')
-    group_2.add_argument('-s', '--source', help = 'Complete source file name. Both absolute '
-                         'and relative path are supported.')
-    group_2.add_argument('--chromname', help = 'Template of chromosome names')
+                         help = 'Path to the cool URI')
+    group_1.add_argument('-s', '--tad-file', help = 'Path to the TAD file.')
     
     ## About the algorithm
     group_3 = parser.add_argument_group(title = 'Feature calculation')
-    group_3.add_argument('--pw', type = int, default = 2, help = 'Width of the interaction '
-                         'region surrounding the peak. According to experience, we set it'
-                         ' to 1 at 20 kb, 2 at 10 kb, and 4 at 5 kb.')
-    group_3.add_argument('--ww', type = int, default = 5, help = 'The size of the donut '
-                         'sampled. Set it to 3 at 20 kb, 5 at 10 kb, and 7 at 5 kb.')
+    group_3.add_argument('--pw', type = int, default = 2, help = '''Width of the interaction
+                         region surrounding the peak. According to experience, we set it
+                         to 1 at 20 kb, 2 at 10 kb, and 4 at 5 kb.''')
+    group_3.add_argument('--ww', type = int, default = 5, help = '''Width of the donut region
+                         Set it to 3 at 20 kb, 5 at 10 kb, and 7 at 5 kb.''')
     group_3.add_argument('--top', type = float, default = 0.7, help = 'Parameter for noisy '
                          'interaction filtering. By default, 30 percent noisy interactions'
                          ' will be eliminated.')
@@ -94,17 +59,6 @@ def getargs():
     args = parser.parse_args(commands)
     
     args.Format = args.Format.upper()
-
-    ## Conflicts
-    if (args.Format == 'TXT') and (not args.cols):
-        parser.print_help()
-        parser.exit(1, 'You have to specify "--cols" with "--Format TXT"!')
-    if (args.Format == 'NPZ') and (not args.prefix):
-        parser.print_help()
-        parser.exit(1, 'You have to specify "--prefix" with "--Format NPZ"!')
-    if args.immortal and (not args.saveto):
-        parser.print_help()
-        parser.exit(1, 'You have to specify "--saveto" with "--immortal" flag!')
     
     return args, commands
 
@@ -138,61 +92,46 @@ def pipe():
         logger.addHandler(filehandler)
         ## Logging for argument setting
         arglist = ['# ARGUMENT LIST:',
-                   '# output file name = %s' % args.filename,
-                   '# data folder = %s' % args.path,
-                   '# Hi-C format = %s' % args.Format,
-                   '# chromosomes = %s' % args.chroms,
-                   '# data resolution = %s' % args.resolution,
-                   '# TAD source file = %s' % args.source,
-                   '# chromosome name template = %s' % args.source,
-                   '# Peak window width = %s' % args.pw,
-                   '# Donut size = %s' % args.ww,
-                   '# Noise filtering ratio = %s' % (1 - args.top),
-                   '# Significant interaction ratio = %s' % args.ratio,
-                   '# Maximum gap ratio = %s' % args.gap
+                   '# output file name = {0}'.format(args.filename),
+                   '# Hi-C path = {0}'.format(args.path),
+                   '# TAD source file = {0}'.format(args.tad_file),
+                   '# Peak window width = {0}'.format(args.pw),
+                   '# Donut width = {0}'.format(args.ww),
+                   '# Noise filtering ratio = {0}'.format((1 - args.top)),
+                   '# Significant interaction ratio = {0}'.format(args.ratio),
+                   '# Maximum gap ratio = {0}'.format(args.gap)
                    ]
         
         argtxt = '\n'.join(arglist)
         logger.info('\n' + argtxt)
-    
-        # Interface for Inters and Queue Object
-        dicts = {'path': args.path, 'Format': args.Format, 'resolution': args.resolution,
-                 'template': args.template, 'chroms': args.chroms, 'cols': args.cols,
-                 'prefix': args.prefix, 'immortal': args.immortal, 'saveto': args.saveto}
                  
         from tadlib.calfea import analyze
+        import cooler
         
         logger.info('Read Hi-C data ...')
-        # Inters Object, Load Hi-C Data
-        workInters = analyze.Inters(**dicts)
-        logger.info('Done!')
-        # TAD Object, Load External TAD File, Columns 0,1,2
+        workInters = cooler.Cooler(args.path)
+        # Load External TAD File, Columns 0,1,2
         logger.info('Read external TAD data ...')
-        workTAD = analyze.TAD(source = args.source)
-        logger.info('Done!')
-        # Interaction Data
-        Idata = workInters.data
-        # Chromosome Labels
-        chroms = workInters.labels
-        # TAD Data
-        Tdata = workTAD.data
+        workTAD = analyze.load_TAD(args.tad_file)
+
+        resolution = workInters.binsize
     
         # Header
         H = ['ChromID', 'Start', 'End', 'AP', 'Gap-Ratio']
         args.filename.write('\t'.join(H) + '\n')
         logger.info('Calculate feature for each TAD ...')
-        # Loop for Each Chromosome and Each TAD
-        for c in chroms:
+        for c in workInters.chromnames:
             logger.info('Chromosome %s', c)
-            # Extract Data of One Chromosome
-            i_data = Idata[c]
-            d_data = Tdata[Tdata['chr'] == c]
+            d_data = workTAD[workTAD['chr'] == c]
             for d in d_data:
                 ## Boundary of Current TAD
-                left = d['start'] // args.resolution
-                right = d['end'] // args.resolution
+                left = d['start'] // resolution
+                right = d['end'] // resolution
                 # Interaction Matrix
-                matrix = analyze.getmatrix(i_data, left, right)
+                if 'weight' in workInters.bins().keys():
+                    matrix = workInters.matrix(balance=True, sparse=False).fetch((c, d['start'], d['end']))
+                else:
+                    matrix = workInters.matrix(balance=False, sparse=False).fetch((c, d['start'], d['end']))
                 
                 newM, convert = analyze.manipulation(matrix)
                 if len(matrix) > 0:
@@ -201,13 +140,11 @@ def pipe():
                 else:
                     gaps = 1.0
                 
-                # Logical Condition
                 if (gaps < args.gap) and (newM.shape[0] > (args.ww * 2 + 1)):
-                    # Core Object for Interaction Analysis
                     workCore = analyze.Core(matrix)
                     # Extract Long-Range Interactions
                     workCore.longrange(pw = args.pw, ww = args.ww, top = args.top, ratio = args.ratio)
-                    # Natural Clusters
+                    # Clusters
                     workCore.DBSCAN()
                     # Feature
                     workCore.gdensity()

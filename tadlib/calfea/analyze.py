@@ -169,8 +169,9 @@ class Core(object):
 
         # rescale matrix
         min_nonzero = matrix[matrix.nonzero()].min()
-        scale = 1 / min_nonzero
-        matrix = matrix * scale
+        if min_nonzero < 1:
+            scale = 1 / min_nonzero
+            matrix = matrix * scale
         
         # Manipulation, remove vacant rows and columns
         self.newM, self.convert = manipulation(matrix, left)
