@@ -10,7 +10,7 @@ import copy, collections
 import numpy as np
 from scipy import sparse
 from pomegranate import NormalDistribution, HiddenMarkovModel, GeneralMixtureModel, State
-from aligner import BoundSet, DomainSet, DomainAligner, hierFormat, Container
+from tadlib.hitad.aligner import BoundSet, DomainSet, DomainAligner, hierFormat, Container
 from tadlib.calfea import analyze
 
 from matplotlib.colors import Normalize

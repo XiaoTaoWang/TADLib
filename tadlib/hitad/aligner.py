@@ -7,7 +7,7 @@ Created on Wed May 18 11:05:35 2016
 """
 from __future__ import division
 import bisect
-from graph import Graph
+from tadlib.hitad.graph import Graph
 
 #------------------------------------------------------------------------------
 # Boundary-Based Alignment

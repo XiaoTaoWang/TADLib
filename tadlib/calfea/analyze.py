@@ -7,7 +7,7 @@ from __future__ import division
 import glob, re, os, sys
 import logging
 import warnings
-import polygon
+from tadlib.calfea import polygon
 import numpy as np
 from scipy.stats import poisson, itemfreq
 from scipy.spatial import distance

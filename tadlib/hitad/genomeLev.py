@@ -9,7 +9,7 @@ import os, pickle, tempfile, time, logging, cooler
 import multiprocessing as mp
 import numpy as np
 from scipy.sparse import triu
-from chromLev import Chrom, MultiReps
+from tadlib.hitad.chromLev import Chrom, MultiReps
 
 total_cpu = mp.cpu_count()
 
