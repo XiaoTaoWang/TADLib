@@ -85,9 +85,10 @@
 <span class="kn">import</span> <span class="nn">copy</span><span class="o">,</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">sparse</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">tadlib.hitad.aligner</span> <span class="k">import</span> <span class="n">BoundSet</span><span class="p">,</span> <span class="n">DomainSet</span><span class="p">,</span> <span class="n">DomainAligner</span><span class="p">,</span> <span class="n">hierFormat</span><span class="p">,</span> <span class="n">Container</span>
 <span class="kn">from</span> <span class="nn">tadlib.calfea</span> <span class="k">import</span> <span class="n">analyze</span>
-
 <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">Normalize</span>
 
 <span class="k">class</span> <span class="nc">MidpointNormalize</span><span class="p">(</span><span class="n">Normalize</span><span class="p">):</span>
@@ -457,13 +458,11 @@
                 <span class="n">chromRegions</span><span class="p">[(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span> <span class="o">=</span> <span class="n">DIs</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">startsIdx</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-            <span class="n">start</span> <span class="o">=</span> <span class="n">valid_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">end</span> <span class="o">=</span> <span class="n">valid_pos</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">minregion</span><span class="p">:</span>
-                <span class="n">chromRegions</span><span class="p">[(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span> <span class="o">=</span> <span class="n">DIs</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">chromRegions</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Empty DI sequences for HMM training&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">valid_pos</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">valid_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">valid_pos</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">minregion</span><span class="p">:</span>
+                    <span class="n">chromRegions</span><span class="p">[(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span> <span class="o">=</span> <span class="n">DIs</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
 
         <span class="n">gapmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">DIs</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">chromRegions</span><span class="p">:</span>
@@ -1299,7 +1298,7 @@
 
         <span class="k">return</span> <span class="n">A</span></div>
 
-<div class="viewcode-block" id="Chrom.plot"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.chromLev.Chrom.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">Domains</span><span class="p">,</span> <span class="n">figname</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">arrowhead</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="Chrom.plot"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.chromLev.Chrom.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">Domains</span><span class="p">,</span> <span class="n">figname</span><span class="p">,</span> <span class="n">arrowhead</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a genomic region and a domain list, plot corresponding contact</span>
@@ -1320,10 +1319,10 @@
 <span class="sd">            If True, the Arrowhead transformed matrix will be plotted instead</span>
 <span class="sd">            of the raw contact matrix. (Default: False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">matplotlib</span>
+
         <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
         <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">LinearSegmentedColormap</span>
-
+        
         <span class="k">def</span> <span class="nf">caxis_H</span><span class="p">(</span><span class="n">ax</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Axis control for the heatmap.</span>
