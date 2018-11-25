@@ -42,8 +42,6 @@ class Polygon(ConvexHull):
     anchors : ndarray of double, shape (nvertices,)
         Vertices of the convex hull, counter-clockwise ordered.
     
-    Attributes after :meth:`tadlib.calfea.polygon.Polygon.calarea` is called:
-    
     area : float
         Area of the polygon.
     
@@ -100,7 +98,7 @@ class Polygon(ConvexHull):
         
         Notes
         -----
-        Must be called before :meth:`tadlib.calfea.polygon.Polygon.isinside`.
+        Must be called before :py:meth:`tadlib.calfea.polygon.Polygon.isinside`.
         
         """
         first = self.anchors[0]

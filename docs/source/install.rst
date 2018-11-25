@@ -12,7 +12,7 @@ packages are required:
 - scikit-learn
 - cooler
 - pomegranate 0.10.0+
-- networkx 1.X (not compatible with networkx 2.0 yet)
+- networkx 1.x (not compatible with networkx 2.0 yet)
 
 Install Conda
 -------------

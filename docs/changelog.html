@@ -1,40 +1,27 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Release Notes &#8212; TADLib 0.3.1 documentation</title>
-    
+    <title>Release Notes &#8212; TADLib 0.4.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.3.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Hierarchical TAD Identification" href="hitad_api.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   <div class="document">
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -63,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="calfea.html">Aggregation Preference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-4-0-2018-11-24">Version 0.4.0 (2018-11-24)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#version-0-3-1-r1-2017-8-18">Version 0.3.1-r1 (2017-8-18)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#version-0-3-1-2017-7-19">Version 0.3.1 (2017-7-19)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#version-0-3-0-dev2-2017-5-28">Version 0.3.0-dev2 (2017-5-28)</a></li>
@@ -79,22 +67,35 @@
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="release-notes">
 <h1>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="version-0-4-0-2018-11-24">
+<h2>Version 0.4.0 (2018-11-24)<a class="headerlink" href="#version-0-4-0-2018-11-24" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Migrated to Python 3 (will not support Python 2 anymore)</li>
+<li><em>Cool</em> support</li>
+<li>Added two handy scripts <em>tad-plot</em> and <em>output-DI</em></li>
+<li>Changed to <em>pomegranate</em> for HMM learning</li>
+</ul>
+</div>
 <div class="section" id="version-0-3-1-r1-2017-8-18">
 <h2>Version 0.3.1-r1 (2017-8-18)<a class="headerlink" href="#version-0-3-1-r1-2017-8-18" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -114,7 +115,7 @@ used in the TAD and sub-TAD detection procedure.</li>
 <div class="section" id="version-0-3-0-dev2-2017-5-28">
 <h2>Version 0.3.0-dev2 (2017-5-28)<a class="headerlink" href="#version-0-3-0-dev2-2017-5-28" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Removed the <code class="docutils literal"><span class="pre">--cache</span></code> option from <em>hitad</em> command-line tool.</li>
+<li>Removed the <code class="docutils literal notranslate"><span class="pre">--cache</span></code> option from <em>hitad</em> command-line tool.</li>
 </ul>
 </div>
 <div class="section" id="version-0-3-0-dev1-2017-5-2">
@@ -161,16 +162,17 @@ and an optional TAD identification module</li>
 
 
           </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2017, XiaoTao Wang.
+      &copy;2018, Xiaotao Wang.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/changelog.rst.txt"

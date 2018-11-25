@@ -54,7 +54,7 @@ Since version 0.4.0, the input Hi-C matrix must be in `cool <https://github.com/
 Depending on what data you already have, there are different tools you can choose to generate
 *cool*:
 
-- If you are starting from the beginning (FASTQ/SRA), I recommend using `runHiC <https://github.com/XiaoTaoWang/HiC_pipeline>`,
+- If you are starting from the beginning (FASTQ/SRA), I recommend using `runHiC <https://github.com/XiaoTaoWang/HiC_pipeline>`_,
   a user-friendly and efficient Hi-C data processing tool developed by our lab.
 
 - If you are an old user of TADLib and have NPZ/TXT Hi-C matrix at hand, you can use the *toCooler*
@@ -140,14 +140,14 @@ Other Options
 Visualization
 -------------
 Since version 0.4.0, I have included a handy script called *tad-plot* for hierarchical domain
-visualization::
+visualization:
 
 .. image:: ./_static/region1.png
         :align: center
 
 On top of the heatmap is the adaptive DI track, which has been recorded in your *cool* file
 after executing *hitad*. You can also choose to visualize domains on the arrowhead-transformed
-heatmap::
+heatmap:
 
 .. image:: ./_static/region1-arrowhead.png
         :align: center

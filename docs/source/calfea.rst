@@ -33,7 +33,7 @@ format and corresponding TAD list (a TXT file with 3 columns: *chrom*, *start* a
 Depending on what data you already have, there are different tools you can choose to generate
 *cool*:
 
-- If you are starting from the beginning (FASTQ/SRA), I recommend using `runHiC <https://github.com/XiaoTaoWang/HiC_pipeline>`,
+- If you are starting from the beginning (FASTQ/SRA), I recommend using `runHiC <https://github.com/XiaoTaoWang/HiC_pipeline>`_,
   a user-friendly and efficient Hi-C data processing tool developed by our lab.
 
 - If you are an old user of TADLib and have NPZ/TXT Hi-C matrix at hand, you can use the *toCooler*

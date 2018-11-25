@@ -1,26 +1,15 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>tadlib.hitad.genomeLev &#8212; TADLib 0.3.1 documentation</title>
-    
+    <title>tadlib.hitad.genomeLev &#8212; TADLib 0.4.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../../',
-        VERSION:     '0.3.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -32,8 +21,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   <div class="document">
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -67,18 +55,22 @@
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <h1>Source code for tadlib.hitad.genomeLev</h1><div class="highlight"><pre>
@@ -89,11 +81,12 @@
 <span class="sd">@author: wxt</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
-<span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">cPickle</span><span class="o">,</span> <span class="nn">tempfile</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">zipfile</span><span class="o">,</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">pickle</span><span class="o">,</span> <span class="nn">tempfile</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">cooler</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">chromLev</span> <span class="k">import</span> <span class="n">Chrom</span><span class="p">,</span> <span class="n">MultiReps</span>
-<span class="kn">from</span> <span class="nn">numpy.lib.format</span> <span class="k">import</span> <span class="n">write_array</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="k">import</span> <span class="n">triu</span>
+<span class="kn">from</span> <span class="nn">pomegranate</span> <span class="k">import</span> <span class="n">NormalDistribution</span><span class="p">,</span> <span class="n">HiddenMarkovModel</span><span class="p">,</span> <span class="n">GeneralMixtureModel</span><span class="p">,</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">tadlib.hitad.chromLev</span> <span class="k">import</span> <span class="n">Chrom</span><span class="p">,</span> <span class="n">MultiReps</span>
 
 <span class="n">total_cpu</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
 
@@ -107,52 +100,18 @@
 <span class="sd">    - Load bin-level Hi-C data</span>
 <span class="sd">    - Initialize, pickle and organize *Chrom* objects</span>
 <span class="sd">    - Call hierarchical domains of each chromosome in parallel</span>
-<span class="sd">    - Optionally save Hi-C data into *Numpy* .npz files for accelerating</span>
-<span class="sd">      IO in future.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    datasets : 2-level dict, {resolution(int):{biological_replicate_label(str):data_path,...}}</span>
-<span class="sd">        *resolution* should be in base-pair unit. *data_path* indicates the</span>
-<span class="sd">        absolute Hi-C data path under corresponding resolution and biological</span>
+<span class="sd">        *data_path* indicates the *cool* URI under corresponding resolution and biological</span>
 <span class="sd">        replicate label.</span>
-<span class="sd">        </span>
-<span class="sd">        If your Hi-C data are stored in *NPZ* format, *data_path* should point</span>
-<span class="sd">        to the npz file. Otherwise, you may provide with data in *TXT* format,</span>
-<span class="sd">        in this case, Hi-C data of each chromosome must be stored separately,</span>
-<span class="sd">        and data with the same resolution and replicate label should be placed</span>
-<span class="sd">        in the same folder, and naturally *data_path* should point to the folder.</span>
-<span class="sd">        </span>
-<span class="sd">        You can generate *NPZ* files in two ways:1.By runHiC pipeline. runHiC</span>
-<span class="sd">        is a user-friendly command-line software developed by our lab for Hi-C</span>
-<span class="sd">        data processing. Refer to the `link &lt;https://github.com/XiaoTaoWang/HiC_pipeline&gt;`_</span>
-<span class="sd">        for more details. 2.By hitad itself, provide TXT Hi-C data and run</span>
-<span class="sd">        *hitad* with ``--npzpre`` specified, or, if you are familiar with Python</span>
-<span class="sd">        environment, just open a Python interpreter and initialize a *Genome*</span>
-<span class="sd">        object and set the parameter *npzpre* explicitly.</span>
 <span class="sd">    </span>
 <span class="sd">    maxsize : int</span>
 <span class="sd">        Maximum allowable domain size in base-pair unit. (Default: 4000000)</span>
 <span class="sd">    </span>
-<span class="sd">    chroms : list</span>
-<span class="sd">        List of chromosome labels. Only Hi-C data within the specified chromosomes</span>
-<span class="sd">        will be included. Specially, &#39;#&#39; stands for chromosomes with numerical</span>
-<span class="sd">        labels. If an empty list is provided, all chromosome data will be loaded.</span>
-<span class="sd">        (Default: [&#39;#&#39;, &#39;X&#39;])</span>
-<span class="sd">    </span>
-<span class="sd">    npzpre : str or None</span>
-<span class="sd">        If not None, loaded Hi-C data will be stored in *Numpy* .npz format</span>
-<span class="sd">        to accelerate IO extremely for further use, and this parameter indicates</span>
-<span class="sd">        the prefix of these *NPZ* filenames. Path may be included, if no path</span>
-<span class="sd">        is contained, *NPZ* files will be placed under current working directory.</span>
-<span class="sd">        (Default: None)</span>
-<span class="sd">    </span>
 <span class="sd">    cache : str or None</span>
-<span class="sd">        :py:class:`tadlib.hitad.chromLev.Chrom` objects each representing a</span>
-<span class="sd">        single chromosome data under certain resolution and replicate label</span>
-<span class="sd">        will be pickled (using :py:mod:`cPickle`) under the folder named</span>
-<span class="sd">        *cache*. The folder will be created if specified but don&#39;t exist.</span>
-<span class="sd">        If None, the folder returned by :py:func:`tempfile.gettempdir` will</span>
+<span class="sd">        Cache folder path. If None, the folder returned by :py:func:`tempfile.gettempdir` will</span>
 <span class="sd">        be used. (Default: None)</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -166,51 +125,24 @@
 <span class="sd">        Final consistent domain list merged from all chromosome results.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">chroms</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#&#39;</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">maxsize</span><span class="o">=</span><span class="mi">4000000</span><span class="p">,</span> <span class="n">npzpre</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="mi">4000000</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">chroms</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">datasets</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_npzpre</span> <span class="o">=</span> <span class="n">npzpre</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npzpre</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_npzpre</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">npzpre</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">res</span><span class="p">]:</span>
-                    <span class="n">rl</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">K&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">res</span><span class="o">//</span><span class="mi">1000</span><span class="p">)</span>
-                    <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_npzpre</span><span class="p">,</span> <span class="n">rl</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="s1">&#39;npz&#39;</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The destination npz file will be overriden, reset npz prefix and run again ...&#39;</span><span class="p">)</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Exit ...&#39;</span><span class="p">)</span>
-                        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         
         <span class="c1"># We don&#39;t read data in memory at this point.</span>
         <span class="c1"># We only construct the mapping for loading convenience</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">res</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.npz&#39;</span><span class="p">):</span>
-                    <span class="n">lib</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lib</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="p">((</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="ow">and</span> <span class="s1">&#39;#&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span><span class="p">)</span>
-                           <span class="ow">or</span> <span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span><span class="p">)):</span>
-                            <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">res</span><span class="p">:{</span><span class="n">rep</span><span class="p">:</span><span class="n">lib</span><span class="p">}}</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="k">if</span> <span class="n">res</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">lib</span>
-                                <span class="k">else</span><span class="p">:</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">res</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rep</span><span class="p">:</span><span class="n">lib</span><span class="p">}</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">Map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scanFolder</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Map</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">res</span><span class="p">:{</span><span class="n">rep</span><span class="p">:</span><span class="n">Map</span><span class="p">[</span><span class="n">i</span><span class="p">]}}</span>
+                <span class="n">lib</span> <span class="o">=</span> <span class="n">cooler</span><span class="o">.</span><span class="n">Cooler</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lib</span><span class="o">.</span><span class="n">chromnames</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">res</span><span class="p">:{</span><span class="n">rep</span><span class="p">:</span><span class="n">lib</span><span class="p">}}</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">res</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">lib</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">res</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">Map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">res</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rep</span><span class="p">:</span><span class="n">Map</span><span class="p">[</span><span class="n">i</span><span class="p">]}</span>
-            
+                            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">res</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">rep</span><span class="p">:</span><span class="n">lib</span><span class="p">}</span>
         
         <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>
@@ -219,20 +151,17 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cache</span><span class="p">):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">_intertype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">({</span><span class="s1">&#39;names&#39;</span><span class="p">:[</span><span class="s1">&#39;bin1&#39;</span><span class="p">,</span> <span class="s1">&#39;bin2&#39;</span><span class="p">,</span> <span class="s1">&#39;IF&#39;</span><span class="p">],</span>
-                                    <span class="s1">&#39;formats&#39;</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">]})</span>
-        
         <span class="c1"># Before starting calling, we make cache data under the cache folder</span>
         <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Chrom </span><span class="si">%s</span><span class="s1">:&#39;</span><span class="p">,</span> <span class="n">chrom</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Chrom </span><span class="si">{0}</span><span class="s1">:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chrom</span><span class="p">))</span>
             <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">ms</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">]:</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  resolution: </span><span class="si">%d</span><span class="s1">, </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
-                        <span class="n">tdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intertype</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  resolution: </span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="s1">&#39;weight&#39;</span> <span class="ow">in</span> <span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span><span class="o">.</span><span class="n">bins</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="c1"># ICE correction</span>
+                        <span class="n">tdata</span> <span class="o">=</span> <span class="n">triu</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">balance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">chrom</span><span class="p">))</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">tdata</span> <span class="o">=</span> <span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">][</span><span class="n">chrom</span><span class="p">]</span>
+                        <span class="n">tdata</span> <span class="o">=</span> <span class="n">triu</span><span class="p">(</span><span class="n">ms</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">balance</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">chrom</span><span class="p">))</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
                     <span class="n">work</span> <span class="o">=</span> <span class="n">Chrom</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">tdata</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">)</span>
                     <span class="n">work</span><span class="o">.</span><span class="n">Label</span> <span class="o">=</span> <span class="n">rep</span>
                     <span class="n">tl</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
@@ -240,73 +169,116 @@
                     <span class="n">fd</span><span class="p">,</span> <span class="n">tmpfil</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">)</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  Cache Chrom object into </span><span class="si">%s</span><span class="s1"> ...&#39;</span><span class="p">,</span> <span class="n">tmpfil</span><span class="p">)</span>
-                        <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">work</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">protocol</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  Cache Chrom object into </span><span class="si">{0}</span><span class="s1"> ...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">))</span>
+                        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">work</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmpfil</span>
-                    
-                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-                    
-                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_npzpre</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">rl</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">K&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">res</span><span class="o">//</span><span class="mi">1000</span><span class="p">)</span>
-                        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_npzpre</span><span class="p">,</span> <span class="n">rl</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="s1">&#39;npz&#39;</span><span class="p">])</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
-                            <span class="n">Zip</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">allowZip64</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">Zip</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">allowZip64</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-                        <span class="n">tl</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
-                        <span class="n">fd</span><span class="p">,</span> <span class="n">tmpfile</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">tl</span><span class="p">,</span> <span class="s1">&#39;npy&#39;</span><span class="p">]))</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  Save data into </span><span class="si">%s</span><span class="s1"> for accelerating IO next time ...&#39;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
-                        <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">chrom</span><span class="p">,</span> <span class="s1">&#39;npy&#39;</span><span class="p">])</span>
-                        <span class="n">fid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">write_array</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">tdata</span><span class="p">)</span>
-                            <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                            <span class="n">fid</span> <span class="o">=</span> <span class="kc">None</span>
-                            <span class="n">Zip</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">arcname</span> <span class="o">=</span> <span class="n">fname</span><span class="p">)</span>
-                        <span class="k">finally</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="n">fid</span><span class="p">:</span>
-                                <span class="n">fid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                        
-                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">)</span>
-                        <span class="n">Zip</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    
-    <span class="k">def</span> <span class="nf">_extractChrLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Extract chromosome label from a file name.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Full filename including path prefix</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">interName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="n">regexp</span> <span class="o">=</span> <span class="s1">&#39;chr(.*).txt&#39;</span>
-        <span class="n">search_results</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">regexp</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="n">search_results</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        
-        <span class="c1"># Remove leading zeroes.</span>
-        <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
-    
-        <span class="k">return</span> <span class="n">label</span>
 
-    <span class="k">def</span> <span class="nf">_scanFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cools</span> <span class="o">=</span> <span class="n">datasets</span>
+    
+<div class="viewcode-block" id="Genome.oriHMMParams"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.genomeLev.Genome.oriHMMParams">[docs]</a>    <span class="k">def</span> <span class="nf">oriHMMParams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a map from chromosome labels to file names under the folder.</span>
+<span class="sd">        Set initial parameters for the Hidden Markov Model (HMM).</span>
+<span class="sd">        </span>
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        HMMParams : dict</span>
+<span class="sd">            Has 3 keys: &quot;A&quot;, state transition matrix, &quot;B&quot; (emission probabilities),</span>
+<span class="sd">            specifying parameters (Means, Variances, Weights) of the mixture</span>
+<span class="sd">            Gaussian distributions for each hidden state, and &quot;pi&quot;, indicating</span>
+<span class="sd">            the hidden state weights. This dict will be updated after learning</span>
+<span class="sd">            procedure.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">oriFiles</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s1">&#39;chr*.txt&#39;</span><span class="p">))</span>
+        <span class="n">hmm</span> <span class="o">=</span> <span class="n">HiddenMarkovModel</span><span class="p">()</span>
+        <span class="c1"># GMM emissions</span>
+        <span class="c1"># 5 Hidden States:</span>
+        <span class="c1"># 0--start, 1--downstream, 2--no bias, 3--upstream, 4--end</span>
+        <span class="n">numdists</span> <span class="o">=</span> <span class="mi">3</span> <span class="c1"># Three-distribution Gaussian Mixtures</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="mf">7.5</span> <span class="o">/</span> <span class="p">(</span><span class="n">numdists</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">means</span> <span class="o">=</span> <span class="p">[[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numdists</span><span class="p">):</span>
+            <span class="n">means</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mf">7.5</span> <span class="o">/</span> <span class="p">(</span> <span class="n">numdists</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">)</span> <span class="o">+</span> <span class="mf">2.5</span><span class="p">)</span>
+            <span class="n">means</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mf">7.5</span> <span class="o">/</span> <span class="p">(</span> <span class="n">numdists</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">))</span>
+            <span class="n">means</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span> <span class="o">-</span> <span class="p">(</span><span class="n">numdists</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mf">7.5</span> <span class="o">/</span> <span class="p">(</span><span class="n">numdists</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">means</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">i</span> <span class="o">*</span> <span class="mf">7.5</span> <span class="o">/</span> <span class="p">(</span> <span class="n">numdists</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">))</span>
+            <span class="n">means</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="n">i</span> <span class="o">*</span> <span class="mf">7.5</span> <span class="o">/</span> <span class="p">(</span> <span class="n">numdists</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">)</span> <span class="o">-</span> <span class="mf">2.5</span><span class="p">)</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">means</span><span class="p">):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">m</span><span class="p">:</span>
+                <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NormalDistribution</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
+            <span class="n">mixture</span> <span class="o">=</span> <span class="n">GeneralMixtureModel</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+            <span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">State</span><span class="p">(</span><span class="n">mixture</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_states</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">states</span><span class="p">))</span>
+
+        <span class="c1"># Transmission matrix</span>
+        <span class="c1">#A = [[0., 1., 0., 0., 0.],</span>
+        <span class="c1">#    [0., 0.4, 0.3, 0.3, 0.],</span>
+        <span class="c1">#    [0.05, 0., 0.5, 0.45, 0.],</span>
+        <span class="c1">#    [0., 0., 0., 0.5, 0.5],</span>
+        <span class="c1">#    [0.99, 0., 0.01, 0., 0.]]</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mf">0.4</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mf">0.3</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="mf">0.3</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="mf">0.45</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.99</span><span class="p">)</span>
+        <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">states</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mf">0.01</span><span class="p">)</span>
+
+        <span class="n">pi</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)):</span>
+            <span class="n">hmm</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="n">hmm</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pi</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">hmm</span><span class="o">.</span><span class="n">bake</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">hmm</span></div>
+    
+    <span class="k">def</span> <span class="nf">train_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">):</span>
+
+        <span class="n">lib</span> <span class="o">=</span> <span class="n">cooler</span><span class="o">.</span><span class="n">Cooler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span>
+        <span class="n">seqs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lib</span><span class="o">.</span><span class="n">chromnames</span><span class="p">:</span>
+            <span class="n">tmpfil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+                <span class="n">tmpcache</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="n">tmpcache</span><span class="o">.</span><span class="n">minWindows</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmpcache</span><span class="o">.</span><span class="n">chromLen</span><span class="p">,</span> <span class="n">tmpcache</span><span class="o">.</span><span class="n">_mw</span><span class="p">)</span>
+            <span class="n">tmpcache</span><span class="o">.</span><span class="n">calDI</span><span class="p">(</span><span class="n">tmpcache</span><span class="o">.</span><span class="n">windows</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">tmpcache</span><span class="o">.</span><span class="n">splitChrom</span><span class="p">(</span><span class="n">tmpcache</span><span class="o">.</span><span class="n">DIs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">tmpcache</span><span class="o">.</span><span class="n">regionDIs</span><span class="p">:</span>
+                <span class="n">seqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmpcache</span><span class="o">.</span><span class="n">regionDIs</span><span class="p">[</span><span class="n">region</span><span class="p">])</span>
         
-        <span class="c1"># Read chromosome labels</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">interFiles</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Depend on user&#39;s selection</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">oriFiles</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extractChrLabel</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">((</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="ow">and</span> <span class="s1">&#39;#&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span><span class="p">)</span>
-                <span class="ow">or</span> <span class="p">(</span><span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms</span><span class="p">)):</span>
-                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-                <span class="n">interFiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        
-        <span class="c1"># Map from labels to files</span>
-        <span class="n">Map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">interFiles</span><span class="p">))</span>
-        
-        <span class="k">return</span> <span class="n">Map</span>
+        <span class="k">return</span> <span class="n">seqs</span>
+    
+<div class="viewcode-block" id="Genome.learning"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.genomeLev.Genome.learning">[docs]</a>    <span class="k">def</span> <span class="nf">learning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu_core</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prepare training data and learn HMM model parameters for each dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cpu_core : int</span>
+<span class="sd">            Number of processes to launch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">[</span><span class="n">res</span><span class="p">]:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  resolution: </span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">))</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oriHMMParams</span><span class="p">()</span>
+                <span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">)</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">seqs</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;baum-welch&#39;</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                          <span class="n">stop_threshold</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">cpu_core</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">lib</span> <span class="o">=</span> <span class="n">cooler</span><span class="o">.</span><span class="n">Cooler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lib</span><span class="o">.</span><span class="n">chromnames</span><span class="p">:</span>
+                    <span class="n">tmpfil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+                        <span class="n">tmpcache</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                    <span class="n">tmpcache</span><span class="o">.</span><span class="n">hmm</span> <span class="o">=</span> <span class="n">model</span>
+                    <span class="c1"># same hmm for all chromosomes</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+                        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">tmpcache</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span></div>
         
 <div class="viewcode-block" id="Genome.callHierDomain"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.genomeLev.Genome.callHierDomain">[docs]</a>    <span class="k">def</span> <span class="nf">callHierDomain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu_core</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -334,26 +306,26 @@
                 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                     <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
                     <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: completed&#39;</span><span class="p">,</span> <span class="n">proc_name</span><span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: completed&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">proc_name</span><span class="p">))</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
                         <span class="k">break</span>
                     <span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span> <span class="o">=</span> <span class="n">current</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: Chrom </span><span class="si">%s</span><span class="s1"> (res </span><span class="si">%d</span><span class="s1">, </span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="n">proc_name</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: Chrom </span><span class="si">{1}</span><span class="s1"> (res </span><span class="si">{2}</span><span class="s1">, </span><span class="si">{3}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">proc_name</span><span class="p">,</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">))</span>
                     <span class="n">worker</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
                 
         <span class="k">def</span> <span class="nf">worker</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rep</span><span class="p">):</span>
             <span class="n">tmpfil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
-                <span class="n">curChrom</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                <span class="n">curChrom</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
             <span class="n">curChrom</span><span class="o">.</span><span class="n">callDomain</span><span class="p">()</span>
             <span class="c1"># Update cache data</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
-                <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">curChrom</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">protocol</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">curChrom</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
             
         <span class="n">cpu_core</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">cpu_core</span><span class="p">,</span> <span class="n">total_cpu</span><span class="p">)</span>
         
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Spawn </span><span class="si">%d</span><span class="s1"> subprocesses ...&#39;</span><span class="p">,</span> <span class="n">cpu_core</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Spawn </span><span class="si">{0}</span><span class="s1"> subprocesses ...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cpu_core</span><span class="p">))</span>
         
         <span class="n">tasks</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">JoinableQueue</span><span class="p">()</span>
         <span class="n">procs</span> <span class="o">=</span> <span class="p">[</span><span class="n">SubProcess</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cpu_core</span><span class="p">)]</span>
@@ -370,26 +342,43 @@
         
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Extract reproducible domains from replicates ...&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">DIs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Chrom </span><span class="si">%s</span><span class="s1"> ...&#39;</span><span class="p">,</span> <span class="n">chrom</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Chrom </span><span class="si">{0}</span><span class="s1"> ...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chrom</span><span class="p">))</span>
             <span class="n">pool</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">chrom</span><span class="p">]:</span>
                 <span class="n">reps</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">res</span><span class="p">]:</span>
                     <span class="n">tmpfil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span>
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
-                        <span class="n">reps</span><span class="p">[</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                        <span class="n">reps</span><span class="p">[</span><span class="n">rep</span><span class="p">]</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
                 <span class="n">mrep</span> <span class="o">=</span> <span class="n">MultiReps</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">reps</span><span class="p">)</span>
                 <span class="n">mrep</span><span class="o">.</span><span class="n">callDomain</span><span class="p">()</span>
                 <span class="n">pool</span><span class="p">[</span><span class="n">res</span><span class="p">]</span> <span class="o">=</span> <span class="n">mrep</span>
             <span class="n">minres</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pool</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pool</span><span class="p">[</span><span class="n">minres</span><span class="p">]</span><span class="o">.</span><span class="n">mergedDomains</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pool</span><span class="p">[</span><span class="n">minres</span><span class="p">]</span><span class="o">.</span><span class="n">mergedDomains</span><span class="p">)</span>
+        
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Add the DI column into cools ...&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">[</span><span class="n">res</span><span class="p">]:</span>
+                <span class="n">lib</span> <span class="o">=</span> <span class="n">cooler</span><span class="o">.</span><span class="n">Cooler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cools</span><span class="p">[</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">])</span>
+                <span class="n">DIs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[[]]</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lib</span><span class="o">.</span><span class="n">chromnames</span><span class="p">:</span>
+                    <span class="n">tmpfil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">res</span><span class="p">][</span><span class="n">rep</span><span class="p">]</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfil</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+                        <span class="n">tmpcache</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                    <span class="n">DIs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">DIs</span><span class="p">,</span> <span class="n">tmpcache</span><span class="o">.</span><span class="n">DIs</span><span class="p">]</span>
+                <span class="k">with</span> <span class="n">lib</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;r+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">grp</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;DIs&#39;</span> <span class="ow">in</span> <span class="n">grp</span><span class="p">[</span><span class="s1">&#39;bins&#39;</span><span class="p">]:</span>
+                        <span class="k">del</span> <span class="n">grp</span><span class="p">[</span><span class="s1">&#39;bins&#39;</span><span class="p">][</span><span class="s1">&#39;DIs&#39;</span><span class="p">]</span>
+                    <span class="n">h5opts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">,</span> <span class="n">compression_opts</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+                    <span class="n">grp</span><span class="p">[</span><span class="s1">&#39;bins&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;DIs&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">DIs</span><span class="p">,</span> <span class="o">**</span><span class="n">h5opts</span><span class="p">)</span></div>
     
     <span class="k">def</span> <span class="nf">outputDomain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Results</span><span class="p">:</span>
-                <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="se">\t</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="se">\t</span><span class="si">{1}</span><span class="se">\t</span><span class="si">{2}</span><span class="se">\t</span><span class="si">{3}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
                 <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
     
 <div class="viewcode-block" id="Genome.wipeDisk"><a class="viewcode-back" href="../../../hitad_api.html#tadlib.hitad.genomeLev.Genome.wipeDisk">[docs]</a>    <span class="k">def</span> <span class="nf">wipeDisk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -405,16 +394,17 @@
 </pre></div>
 
           </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2017, XiaoTao Wang.
+      &copy;2018, Xiaotao Wang.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
 

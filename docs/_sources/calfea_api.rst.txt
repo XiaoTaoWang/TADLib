@@ -1,22 +1,14 @@
-Hi-C Data Loading
-=================
-.. autoclass:: tadlib.calfea.analyze.Inters
-   :members:
-
 TAD Data Parsing
 ================
-.. autoclass:: tadlib.calfea.analyze.TAD
-   :members:
+.. autofunction:: tadlib.calfea.analyze.load_TAD
 
 Intra-TAD Interaction Analysis
 ==============================
 .. autoclass:: tadlib.calfea.analyze.Core
    :members:
 
-Interaction Matrix Extracting and Manipulating
-==============================================
-.. autofunction:: tadlib.calfea.analyze.getmatrix
-
+Matrix Manipulating
+===================
 .. autofunction:: tadlib.calfea.analyze.manipulation
 
 Polygon Creation and Operations

@@ -1,32 +1,20 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Hierarchical TAD Identification &#8212; TADLib 0.3.1 documentation</title>
-    
+    <title>Hierarchical TAD Identification &#8212; TADLib 0.4.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.3.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Release Notes" href="changelog.html" />
     <link rel="prev" title="Hierarchical TAD" href="hitad.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -34,8 +22,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   <div class="document">
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -66,7 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="hitad.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hitad.html#snapshot">Snapshot</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hitad.html#tutorial">Tutorial</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="hitad.html#api-documentation">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="hitad.html#id1">API Documentation</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Hierarchical TAD Identification</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#domain-loading-and-aligning">Domain Loading and Aligning</a></li>
 </ul>
@@ -79,18 +66,22 @@
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="hierarchical-tad-identification">
@@ -101,11 +92,10 @@
 <dd><p><em>Chrom</em> is defined to:</p>
 <ul class="simple">
 <li>Hold Hi-C data within a certain chromosome</li>
-<li>Identify hierarchical domains in 4 steps: 1.Calculate adaptive DIs for
-all bins of the considered chromosome. 2.Identify original candidate
-bounds by 5-state Gaussian mixture Hidden Markov Model using adaptive
-DIs as input. 3.Select TAD bounds from candidate bounds. 4.Recursively
-identify inner domain structures of each TAD.</li>
+<li>Identify hierarchical domains in 4 steps: 1.Calculate adaptive DIs.
+2.Identify original candidate bounds by 5-state Gaussian mixture Hidden
+Markov Model using adaptive DIs as input. 3.Select TAD bounds from
+candidate bounds. 4.Recursively identify inner domain structures of each TAD.</li>
 <li>Visualize any region of the chromosome. Hierarchical domains will be
 plotted as boxes along with the diagonal of the heatmap, and adaptive
 DI track will be placed on top of the heatmap.</li>
@@ -114,60 +104,134 @@ DI track will be placed on top of the heatmap.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chrom</strong> : str</p>
-<blockquote>
-<div><p>Chromosome label.</p>
-</div></blockquote>
-<p><strong>res</strong> : int</p>
-<blockquote>
-<div><p>Resolution of the Hi-C data in base-pair unit.</p>
-</div></blockquote>
-<p><strong>hicdata</strong> : numpy.ndarray</p>
-<blockquote>
-<div><p>Hi-C data stored in our customized Numpy Structured Array. The
-structured array is defined in <a class="reference internal" href="#tadlib.hitad.genomeLev.Genome" title="tadlib.hitad.genomeLev.Genome"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.genomeLev.Genome</span></code></a>,
-and it has 3 fields named &#8220;bin1&#8221;, &#8220;bin2&#8221; and &#8220;IF&#8221;, respectively.</p>
-</div></blockquote>
-<p><strong>replabel</strong> : str</p>
-<blockquote>
-<div><p>Biological replicate label.</p>
-</div></blockquote>
-<p><strong>maxapart</strong> : int</p>
-<blockquote class="last">
-<div><p>Maximum allowable TAD size in base-pair unit. (Default: 4000000)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>res</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Resolution of the Hi-C data in base-pair unit.</p>
+</dd>
+<dt><strong>hicdata</strong> <span class="classifier-delimiter">:</span> <span class="classifier">CSR sparse matrix</span></dt>
+<dd><p class="first last">Bin-level Hi-C matrix of the specified chromosome.</p>
+</dd>
+<dt><strong>replabel</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Biological replicate label.</p>
+</dd>
+<dt><strong>maxapart</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maximum allowable TAD size in base-pair unit. (Default: 4000000)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>res</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Resolution in base-pair unit.</p>
+</dd>
+<dt><strong>maxapart</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maximum allowable TAD size.</p>
+</dd>
+<dt><strong>replabel</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Biological replicate label.</p>
+</dd>
+<dt><strong>chromLen</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Total bin number of the chromosome.</p>
+</dd>
+<dt><strong>rawMatrix</strong> <span class="classifier-delimiter">:</span> <span class="classifier">sparse matrix in Compressed Sparse Row format</span></dt>
+<dd><p class="first last">CSR sparse matrix is used to extract Hi-C data by slicing conveniently
+while guarantee low memory overhead.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
 <colgroup>
-<col width="5%" />
-<col width="95%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>chrom</td>
-<td>(str) Chromosome label.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.calDI" title="tadlib.hitad.chromLev.Chrom.calDI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calDI</span></code></a>(windows,&nbsp;start)</td>
+<td>Calculate Directionality Index (DI) for each bin with adaptive window size.</td>
 </tr>
-<tr class="row-even"><td>res</td>
-<td>(int) Resolution in base-pair unit.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.callDomain" title="tadlib.hitad.chromLev.Chrom.callDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">callDomain</span></code></a>()</td>
+<td>Direct API for our hierarchical domain identification pipeline:</td>
 </tr>
-<tr class="row-odd"><td>maxapart</td>
-<td>(int) Maximum allowable TAD size.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.detectPeaks" title="tadlib.hitad.chromLev.Chrom.detectPeaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detectPeaks</span></code></a>(trends[,&nbsp;mph,&nbsp;mpd])</td>
+<td>Detect peaks (local maxima) in a 1-D array intuitively (a peak must be greater than its immediate neighbors).</td>
 </tr>
-<tr class="row-even"><td>replabel</td>
-<td>(str) Biological replicate label.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.fineDomain" title="tadlib.hitad.chromLev.Chrom.fineDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fineDomain</span></code></a>()</td>
+<td>Identify hierarchical domains within each TAD.</td>
 </tr>
-<tr class="row-odd"><td>chromLen</td>
-<td>(int) Total bin number of the chromosome. Obtained from Hi-C data.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.getDomainList" title="tadlib.hitad.chromLev.Chrom.getDomainList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDomainList</span></code></a>(byregion)</td>
+<td>Combine by-region domains into a single list.</td>
 </tr>
-<tr class="row-even"><td>rawMatrix</td>
-<td>(sparse matrix in Compressed Sparse Row format) CSR sparse matrix is used to extract Hi-C data by slicing conveniently while guarantee low memory overhead.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.getSelfMatrix" title="tadlib.hitad.chromLev.Chrom.getSelfMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getSelfMatrix</span></code></a>(start,&nbsp;end)</td>
+<td>Return the contact matrix of any given region.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.getWeightMatrix" title="tadlib.hitad.chromLev.Chrom.getWeightMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getWeightMatrix</span></code></a>(start,&nbsp;end[,&nbsp;bases])</td>
+<td>Calculate weights for each intra-domain interaction by considering the genomic distance and the local interaction background.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.idxmatch" title="tadlib.hitad.chromLev.Chrom.idxmatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">idxmatch</span></code></a>(domain)</td>
+<td>Pair interactions of the given domain with the upstream and downstream interactions under the same genomic distance.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterCore</span></code></a>(minDomains,&nbsp;tmpDomains)</td>
+<td>Calculate the mismatch ratio for the input two domain lists.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxCore" title="tadlib.hitad.chromLev.Chrom.maxCore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maxCore</span></code></a>([cache])</td>
+<td>Perform TAD identification.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maxscorepath</span></code></a>(domainlist,&nbsp;cache)</td>
+<td>An implementation for our proposed algorithm to find the best separation solution at chromosomal/domain level, given bottom domain list and pre-computed scores.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minCore" title="tadlib.hitad.chromLev.Chrom.minCore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minCore</span></code></a>(regionDIs)</td>
+<td>Output domain list for each gap-free region.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minWindows" title="tadlib.hitad.chromLev.Chrom.minWindows"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minWindows</span></code></a>(start,&nbsp;end,&nbsp;maxw)</td>
+<td>Estimate best window size for each bin of a given range.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oriIter</span></code></a>(minDomains)</td>
+<td>Iteratvely approximate adaptive window sizes and return the final bottom domain list which will be used in subsequent procedures.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriWindow" title="tadlib.hitad.chromLev.Chrom.oriWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oriWindow</span></code></a>(P)</td>
+<td>Estimate the most appropriate window size for current bin to best capture the local interaction bias direction.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.pipe" title="tadlib.hitad.chromLev.Chrom.pipe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipe</span></code></a>(seq,&nbsp;start)</td>
+<td>Transform an observed sequence into a list of domains.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.plot" title="tadlib.hitad.chromLev.Chrom.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>(start,&nbsp;end,&nbsp;Domains[,&nbsp;figname,&nbsp;…])</td>
+<td>Given a genomic region and a domain list, plot corresponding contact heatmap and all domains (represented as diagonal squares) within the region.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.randomCheck" title="tadlib.hitad.chromLev.Chrom.randomCheck"><code class="xref py py-obj docutils literal notranslate"><span class="pre">randomCheck</span></code></a>(seq[,&nbsp;pthre])</td>
+<td>We use chi square test to test the randomness of a sequence by looking at the conversion frequency between neighbors in the sequence.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.refNoise" title="tadlib.hitad.chromLev.Chrom.refNoise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">refNoise</span></code></a>(domain)</td>
+<td>Return noise level of a domain, which is simply defined as the zero entry ratio of the contact matrix.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.scoreCache" title="tadlib.hitad.chromLev.Chrom.scoreCache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scoreCache</span></code></a>(domainlist[,&nbsp;cache])</td>
+<td>Calculate and cache the TAD scores for any combinations of consecutive bottom domains.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.splitChrom" title="tadlib.hitad.chromLev.Chrom.splitChrom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">splitChrom</span></code></a>(DIs)</td>
+<td>Split a chromosome into gap-free regions.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.stablescore" title="tadlib.hitad.chromLev.Chrom.stablescore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stablescore</span></code></a>(domain[,&nbsp;bases])</td>
+<td>Calculate TAD score for the given domain.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.subDomains" title="tadlib.hitad.chromLev.Chrom.subDomains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subDomains</span></code></a>(domain,&nbsp;reflist[,&nbsp;clv,&nbsp;aM,&nbsp;W,&nbsp;…])</td>
+<td>A recusive method (function) to identify inner domain hierarchy of a TAD (or a domain).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.toArrowhead" title="tadlib.hitad.chromLev.Chrom.toArrowhead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toArrowhead</span></code></a>(start,&nbsp;end)</td>
+<td>Perform Arrowhead transformation on contact matrix of a given genomic region.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.viterbi" title="tadlib.hitad.chromLev.Chrom.viterbi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viterbi</span></code></a>(seq)</td>
+<td>Find the most likely hidden state series using the viterbi algorithm.</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Methods</p>
 <dl class="method">
 <dt id="tadlib.hitad.chromLev.Chrom.calDI">
 <code class="descname">calDI</code><span class="sig-paren">(</span><em>windows</em>, <em>start</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.calDI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.calDI" title="Permalink to this definition">¶</a></dt>
@@ -177,28 +241,24 @@ window size.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>windows</strong> : 1-D numpy.ndarray, int32</p>
-<blockquote>
-<div><p>Returned by <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minWindows" title="tadlib.hitad.chromLev.Chrom.minWindows"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.minWindows()</span></code></a>.</p>
-</div></blockquote>
-<p><strong>start</strong> : int</p>
-<blockquote class="last">
-<div><p>Starting bin index, the window size of which is taken from the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>windows</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numpy.ndarray, int32</span></dt>
+<dd><p class="first last">Returned by <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minWindows" title="tadlib.hitad.chromLev.Chrom.minWindows"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.minWindows()</span></code></a>.</p>
+</dd>
+<dt><strong>start</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Starting bin index, the window size of which is taken from the
 1st place of <em>windows</em>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-</tbody>
-</table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="3%" />
-<col width="97%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>DIs</td>
-<td>(1-D numpy ndarray, float) Calculated adaptive DI array, which has the same size as the input <em>windows</em>.</td>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>DIs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numpy ndarray, float</span></dt>
+<dd><p class="first last">Calculated adaptive DI array, which has the same size as the
+input <em>windows</em>.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -210,15 +270,14 @@ window size.</p>
 <dd><p>Direct API for our hierarchical domain identification pipeline:</p>
 <ul class="simple">
 <li>Adaptively estimate window size for each bin.
-(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minWindows" title="tadlib.hitad.chromLev.Chrom.minWindows"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.minWindows()</span></code></a>)</li>
-<li>Calculate adaptive DIs. (<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.calDI" title="tadlib.hitad.chromLev.Chrom.calDI"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.calDI()</span></code></a>)</li>
-<li>Perform HMM learning, identify initial bottom domains, and iteratively
-correct adaptive window size and bottom boundary positions.
-(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.oriIter()</span></code></a>)</li>
+(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minWindows" title="tadlib.hitad.chromLev.Chrom.minWindows"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.minWindows()</span></code></a>)</li>
+<li>Calculate adaptive DIs. (<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.calDI" title="tadlib.hitad.chromLev.Chrom.calDI"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.calDI()</span></code></a>)</li>
+<li>Iteratively correct adaptive window size and bottom boundary positions.
+(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.oriIter()</span></code></a>)</li>
 <li>Identify TADs based on bottom domains.
-(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxCore" title="tadlib.hitad.chromLev.Chrom.maxCore"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.maxCore()</span></code></a>)</li>
+(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxCore" title="tadlib.hitad.chromLev.Chrom.maxCore"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.maxCore()</span></code></a>)</li>
 <li>Resolve domain hierarchy within each TAD.
-(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.fineDomain" title="tadlib.hitad.chromLev.Chrom.fineDomain"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.fineDomain()</span></code></a>)</li>
+(<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.fineDomain" title="tadlib.hitad.chromLev.Chrom.fineDomain"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.fineDomain()</span></code></a>)</li>
 </ul>
 </dd></dl>
 
@@ -231,26 +290,26 @@ be greater than its immediate neighbors).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>trends</strong> : 1-D numpy ndarray</p>
-<blockquote>
-<div><p>Data.</p>
-</div></blockquote>
-<p><strong>mph</strong> : float</p>
-<blockquote>
-<div><p>Only peaks that are greater than this value will be detected.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>trends</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numpy ndarray</span></dt>
+<dd><p class="first last">Data.</p>
+</dd>
+<dt><strong>mph</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Only peaks that are greater than this value will be detected.
 (Default: 0)</p>
-</div></blockquote>
-<p><strong>mpd</strong> : positive integer</p>
-<blockquote>
-<div><p>Only peaks whose indices are at least separated by this value will
+</dd>
+<dt><strong>mpd</strong> <span class="classifier-delimiter">:</span> <span class="classifier">positive integer</span></dt>
+<dd><p class="first last">Only peaks whose indices are at least separated by this value will
 be reported. (Default: 5)</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ind</strong> : 1-D numpy ndarray</p>
-<blockquote class="last">
-<div><p>Indices of peaks detected in <em>trends</em>.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ind</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numpy ndarray</span></dt>
+<dd><p class="first last">Indices of peaks detected in <em>trends</em>.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -264,21 +323,24 @@ be reported. (Default: 5)</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxCore" title="tadlib.hitad.chromLev.Chrom.maxCore"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.maxCore</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxCore" title="tadlib.hitad.chromLev.Chrom.maxCore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.maxCore</span></code></a></dt>
 <dd>identify TADs</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.subDomains" title="tadlib.hitad.chromLev.Chrom.subDomains"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.subDomains</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.subDomains" title="tadlib.hitad.chromLev.Chrom.subDomains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.subDomains</span></code></a></dt>
 <dd>resolve domain hierarchy within a given TAD</dd>
 </dl>
 </div>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="5%" />
-<col width="95%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>hierDomains</td>
-<td>(dict) The keys are tuples representing gap-free regions of the chromosome, and the values are corresponding identified hierarchical domain lists. Start and end of the domain are in base-pair unit.</td>
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>hierDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are tuples representing gap-free regions of the chromosome,
+and the values are corresponding identified hierarchical domain lists.
+Start and end of the domain are in base-pair unit.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -292,17 +354,19 @@ be reported. (Default: 5)</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>byregion</strong> : dict</p>
-<blockquote>
-<div><p>The keys are tuples representing gap-free regions of the chromosome,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>byregion</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are tuples representing gap-free regions of the chromosome,
 and the values are corresponding identified domain lists.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>DomainList</strong> : list</p>
-<blockquote class="last">
-<div><p>A merged domain list of all regions</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>DomainList</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">A merged domain list of all regions</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -317,16 +381,18 @@ and the values are corresponding identified domain lists.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>start, end</strong> : int</p>
-<blockquote>
-<div><p>The region interval in base-pair unit.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">The region interval in base-pair unit.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>Matrix</strong> : 2-D numpy ndarray, float</p>
-<blockquote class="last">
-<div><p>Sub contact matrix.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Matrix</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D numpy ndarray, float</span></dt>
+<dd><p class="first last">Sub contact matrix.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -342,20 +408,21 @@ the genomic distance and the local interaction background.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>start, end</strong> : int</p>
-<blockquote>
-<div><p>The domain interval in base-pair unit.</p>
-</div></blockquote>
-<p><strong>bases</strong> : list</p>
-<blockquote>
-<div><p>List of the bottom domains within the given interval.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">The domain interval in base-pair unit.</p>
+</dd>
+<dt><strong>bases</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of the bottom domains within the given interval.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>W</strong> : 2-D numpy.ndarray</p>
-<blockquote class="last">
-<div><p>The weight matrix. (An upper triangular matrix)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>W</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D numpy.ndarray</span></dt>
+<dd><p class="first last">The weight matrix. (An upper triangular matrix)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -371,24 +438,24 @@ interactions under the same genomic distance.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domain</strong> : [start, end]</p>
-<blockquote>
-<div><p>Domain interval in base-pair unit.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domain</strong> <span class="classifier-delimiter">:</span> <span class="classifier">[start, end]</span></dt>
+<dd><p class="first last">Domain interval in base-pair unit.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>cur_store</strong> : tuple, (x-coordinates, y-coordinates, interaction frequencies)</p>
-<blockquote>
-<div><p>Interactions within the given domain.</p>
-</div></blockquote>
-<p><strong>up_store</strong> : tuple, (x-coordinates, y-coordinates, interaction frequencies)</p>
-<blockquote>
-<div><p>Corresponding upstream interctions.</p>
-</div></blockquote>
-<p><strong>down_store</strong> : tuple, (x-coordinates, y-coordinates, interaction frequencies)</p>
-<blockquote class="last">
-<div><p>Corresponding downstream interactions.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>cur_store</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple, (x-coordinates, y-coordinates, interaction frequencies)</span></dt>
+<dd><p class="first last">Interactions within the given domain.</p>
+</dd>
+<dt><strong>up_store</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple, (x-coordinates, y-coordinates, interaction frequencies)</span></dt>
+<dd><p class="first last">Corresponding upstream interctions.</p>
+</dd>
+<dt><strong>down_store</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple, (x-coordinates, y-coordinates, interaction frequencies)</span></dt>
+<dd><p class="first last">Corresponding downstream interactions.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -400,56 +467,31 @@ interactions under the same genomic distance.</p>
 <code class="descname">iterCore</code><span class="sig-paren">(</span><em>minDomains</em>, <em>tmpDomains</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.iterCore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the mismatch ratio for the input two domain lists. Return
 1 if <em>minDomains</em> is empty.</p>
-<p><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.oriIter()</span></code></a> uses this method to
+<p><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.oriIter()</span></code></a> uses this method to
 determine whether to break the iteration.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>minDomains</strong> : dict</p>
-<blockquote>
-<div><p>Target domains calculated by the last loop.</p>
-</div></blockquote>
-<p><strong>tmpDomains</strong> : dict</p>
-<blockquote>
-<div><p>Query domains returned by the current loop.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tol</strong> : float</p>
-<blockquote class="last">
-<div><p>Mismatch ratio.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="tadlib.hitad.chromLev.Chrom.learning">
-<code class="descname">learning</code><span class="sig-paren">(</span><em>regionDIs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.learning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.learning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepare training data and learn HMM model parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>regionDIs</strong> : dict</p>
-<blockquote class="last">
-<div><p>Gap-free regions and corresponding adaptive DI arrays. Returned
-by <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.splitChrom" title="tadlib.hitad.chromLev.Chrom.splitChrom"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.splitChrom()</span></code></a>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.paramFromModel" title="tadlib.hitad.chromLev.Chrom.paramFromModel"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.paramFromModel</span></code></a></dt>
-<dd>core part for HMM learning and parameter updating.</dd>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>minDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Target domains calculated by the last loop.</p>
+</dd>
+<dt><strong>tmpDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Query domains returned by the current loop.</p>
+</dd>
 </dl>
-</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>tol</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Mismatch ratio.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -458,18 +500,19 @@ by <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.splitChrom" 
 <dd><p>Perform TAD identification. We define TADs as domains to optimize
 chromosome separation(based on some objective function), which is
 solved by using an algorithm like dynamic programming implemented in
-<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.maxscorepath()</span></code></a>.</p>
+<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.maxscorepath()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cache</strong> : dict</p>
-<blockquote class="last">
-<div><p>TAD scores for all combinations of consecutive bottom domains
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">TAD scores for all combinations of consecutive bottom domains
 will be pre-computed and stored in this dict. The keys are
 tuples (start, end) representing merged domain intervals.
 (Default: {})</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -477,24 +520,25 @@ tuples (start, end) representing merged domain intervals.
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.scoreCache" title="tadlib.hitad.chromLev.Chrom.scoreCache"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.scoreCache</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.scoreCache" title="tadlib.hitad.chromLev.Chrom.scoreCache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.scoreCache</span></code></a></dt>
 <dd>Pre-compute TAD scores for all combinations of consecutive bottom domains.</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.maxscorepath</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.maxscorepath</span></code></a></dt>
 <dd>find the best TAD list</dd>
 </dl>
 </div>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="29%" />
-<col width="71%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>maxDomains</td>
-<td>(dict) Optimized TADs.</td>
-</tr>
-<tr class="row-even"><td>cache</td>
-<td>(dict) Cached TAD scores.</td>
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>maxDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Optimized TADs.</p>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Cached TAD scores.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -510,23 +554,24 @@ pre-computed scores.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domainlist</strong> : list of [start,end]</p>
-<blockquote>
-<div><p>List of bottom domain intervals in base-pair unit.</p>
-</div></blockquote>
-<p><strong>cache</strong> : dict</p>
-<blockquote>
-<div><p>Pre-computed scores for any combinations of continuous bottom
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of [start,end]</span></dt>
+<dd><p class="first last">List of bottom domain intervals in base-pair unit.</p>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Pre-computed scores for any combinations of continuous bottom
 domains. The keys are intervals of continuous regions in (start,end)
 format, and the values are corresponding scores.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bests</strong> : set of (sidx, eidx)</p>
-<blockquote class="last">
-<div><p>Each element indicates one merged domain of the solution, represented
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bests</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set of (sidx, eidx)</span></dt>
+<dd><p class="first last">Each element indicates one merged domain of the solution, represented
 as (start index, end index) of the input <em>domainlist</em>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -536,60 +581,47 @@ as (start index, end index) of the input <em>domainlist</em>.</p>
 <dl class="method">
 <dt id="tadlib.hitad.chromLev.Chrom.minCore">
 <code class="descname">minCore</code><span class="sig-paren">(</span><em>regionDIs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.minCore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.minCore" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learner and Caller. Take adaptive DI arrays of all gap-free regions,
-learn HMM parameters, retrieve hidden state series, and finally
-output identified domain list for each region.</p>
-<p>In our implementation, this method is mainly used as a core for
-<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.oriIter()</span></code></a>.</p>
+<dd><p>Output domain list for each gap-free region.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>regionDIs</strong> : dict</p>
-<blockquote>
-<div><p>Gap-free regions and corresponding adaptive DI arrays.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>regionDIs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Gap-free regions and corresponding adaptive DI arrays.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>minDomains</strong> : dict</p>
-<blockquote class="last">
-<div><p>Gap-free regions and corresponding identified bottom domain list.
-Different from <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.pipe" title="tadlib.hitad.chromLev.Chrom.pipe"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.pipe()</span></code></a>, the
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>minDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Gap-free regions and corresponding identified bottom domain list.
+Different from <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.pipe" title="tadlib.hitad.chromLev.Chrom.pipe"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.pipe()</span></code></a>, the
 start and the end of a domain are in base-pair unit.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriIter" title="tadlib.hitad.chromLev.Chrom.oriIter"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.oriIter</span></code></a></dt>
-<dd>iteratively approximate adaptive window sizes and return final bottom domain lists.</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.splitChrom" title="tadlib.hitad.chromLev.Chrom.splitChrom"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.splitChrom</span></code></a></dt>
-<dd>by which the input learning data can be calculated</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.pipe" title="tadlib.hitad.chromLev.Chrom.pipe"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.pipe</span></code></a></dt>
-<dd>take an adaptive DI array and return a list of domains after learning procedure has been completed</dd>
-</dl>
-</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="tadlib.hitad.chromLev.Chrom.minWindows">
 <code class="descname">minWindows</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>maxw</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.minWindows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.minWindows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Estimate best window size for every bin of a given range.</p>
+<dd><p>Estimate best window size for each bin of a given range.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>start, end</strong> : int</p>
-<blockquote>
-<div><p>Specify range of the bin indices.</p>
-</div></blockquote>
-<p><strong>maxw</strong> : int</p>
-<blockquote class="last">
-<div><p>Maximum allowable window size.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Specify range of the bin indices.</p>
+</dd>
+<dt><strong>maxw</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maximum allowable window size.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -597,44 +629,19 @@ start and the end of a domain are in base-pair unit.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriWindow" title="tadlib.hitad.chromLev.Chrom.oriWindow"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.oriWindow</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriWindow" title="tadlib.hitad.chromLev.Chrom.oriWindow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.oriWindow</span></code></a></dt>
 <dd>Window size estimation for a single bin.</dd>
 </dl>
 </div>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="21%" />
-<col width="79%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>windows</td>
-<td>(1-D numpy.ndarray, int32)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="tadlib.hitad.chromLev.Chrom.oriHMMParams">
-<code class="descname">oriHMMParams</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.oriHMMParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.oriHMMParams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set initial parameters for the Hidden Markov Model (HMM).</p>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.paramFromModel" title="tadlib.hitad.chromLev.Chrom.paramFromModel"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.paramFromModel</span></code></a></dt>
-<dd>Learn HMM parameters from sequence data.</dd>
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>windows</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numpy.ndarray, int32</span></dt>
+<dd></dd>
 </dl>
-</div>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="3%" />
-<col width="97%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>HMMParams</td>
-<td>(dict) Has 3 keys: &#8220;A&#8221;, state transition matrix, &#8220;B&#8221; (emission probabilities), specifying parameters (Means, Variances, Weights) of the mixture Gaussian distributions for each hidden state, and &#8220;pi&#8221;, indicating the hidden state weights. This dict will be updated after learning procedure.</td>
+</td>
 </tr>
 </tbody>
 </table>
@@ -649,17 +656,18 @@ each loop, window sizes are updated according to the latest bottom
 domains and next loop will re-run the identification pipeline using
 new window sizes. The iteration terminates if domains between two
 consecutive loops are very similar (estimated by
-<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.iterCore()</span></code></a>).</p>
+<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.iterCore()</span></code></a>).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>minDomains</strong> : dict</p>
-<blockquote class="last">
-<div><p>Initial domains served as the target domain list for
-<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.iterCore()</span></code></a> at the first
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>minDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Initial domains served as the target domain list for
+<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.iterCore()</span></code></a> at the first
 iteration. We set it empty in our pipeline.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -667,23 +675,24 @@ iteration. We set it empty in our pipeline.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.calDI" title="tadlib.hitad.chromLev.Chrom.calDI"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.calDI</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.calDI" title="tadlib.hitad.chromLev.Chrom.calDI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.calDI</span></code></a></dt>
 <dd>calculate DI values according to input window sizes</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.minCore" title="tadlib.hitad.chromLev.Chrom.minCore"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.minCore</span></code></a></dt>
-<dd>learn HMM parameters and identify bottom domains by using updated adaptive DIs</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.iterCore</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.iterCore" title="tadlib.hitad.chromLev.Chrom.iterCore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.iterCore</span></code></a></dt>
 <dd>estimate the degree of divergence between two domain lists</dd>
 </dl>
 </div>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="5%" />
-<col width="95%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>minDomains</td>
-<td>(dict) The keys are tuples representing gap-free regions of the chromosome, and the values are corresponding identified bottom domain lists. Start and end of the domain are in base-pair unit.</td>
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>minDomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are tuples representing gap-free regions of the chromosome,
+and the values are corresponding identified bottom domain lists.
+Start and end of the domain are in base-pair unit.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -694,60 +703,13 @@ iteration. We set it empty in our pipeline.</p>
 <code class="descname">oriWindow</code><span class="sig-paren">(</span><em>P</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.oriWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.oriWindow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Estimate the most appropriate window size for current bin to best
 capture the local interaction bias direction.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>P</strong> : 1-D numpy.ndarray</p>
-<blockquote class="last">
-<div><p>Calculated by the formula P<sub>i</sub>(k) = M<sub>i-k,k</sub> -
-M<sub>i,i+k</sub>, where <em>M</em> represents the contact matrix, <em>i</em>
-represents current bin index, and <em>k</em> indicates bin-level genomic
-distances. This is an intuitive definition of interaction bias
-for each genomic distance: if the sign of an entry is positive,
-then bin <em>i</em> is more likely to contact with the upstream bin
-<em>i-k</em>; otherwise it&#8217;s more inclined to contact with the downstream
-bin <em>i+k</em>.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.detectPeaks" title="tadlib.hitad.chromLev.Chrom.detectPeaks"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.detectPeaks</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.detectPeaks" title="tadlib.hitad.chromLev.Chrom.detectPeaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.detectPeaks</span></code></a></dt>
 <dd>detect peaks given a 1-D array</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.randomCheck" title="tadlib.hitad.chromLev.Chrom.randomCheck"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.randomCheck</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.randomCheck" title="tadlib.hitad.chromLev.Chrom.randomCheck"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.randomCheck</span></code></a></dt>
 <dd>randomness test for a two-valued (0-1) sequence</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="tadlib.hitad.chromLev.Chrom.paramFromModel">
-<code class="descname">paramFromModel</code><span class="sig-paren">(</span><em>seqs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.paramFromModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.paramFromModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Train HMM model on <em>seqs</em> using <a class="reference external" href="http://ghmm.sourceforge.net/index.html">GHMM</a>.
-Update <em>HMMParams</em> attribute after training.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>seqs</strong> : list of list</p>
-<blockquote class="last">
-<div><p>Each element is the adaptive DI list of a gap-free region.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.oriHMMParams" title="tadlib.hitad.chromLev.Chrom.oriHMMParams"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.oriHMMParams</span></code></a></dt>
-<dd>Set initial parameters</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.splitChrom" title="tadlib.hitad.chromLev.Chrom.splitChrom"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.splitChrom</span></code></a></dt>
-<dd>Split chromosome into gap-free regions.</dd>
 </dl>
 </div>
 </dd></dl>
@@ -760,21 +722,22 @@ Update <em>HMMParams</em> attribute after training.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>seq</strong> : 1-D numbpy ndarray, float</p>
-<blockquote>
-<div><p>Adaptive DI array for any region.</p>
-</div></blockquote>
-<p><strong>start</strong> : int</p>
-<blockquote>
-<div><p>Chromosome bin index of the <em>seq</em> start.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>seq</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numbpy ndarray, float</span></dt>
+<dd><p class="first last">Adaptive DI array for any region.</p>
+</dd>
+<dt><strong>start</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Chromosome bin index of the <em>seq</em> start.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>domains</strong> : list</p>
-<blockquote class="last">
-<div><p>List of domains in the format <code class="docutils literal"><span class="pre">[start</span> <span class="pre">bin,</span> <span class="pre">end</span> <span class="pre">bin,</span> <span class="pre">noise</span> <span class="pre">level,</span>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of domains in the format <code class="docutils literal notranslate"><span class="pre">[start</span> <span class="pre">bin,</span> <span class="pre">end</span> <span class="pre">bin,</span> <span class="pre">noise</span> <span class="pre">level,</span>
 <span class="pre">hierarchical</span> <span class="pre">level]</span></code>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -782,9 +745,9 @@ Update <em>HMMParams</em> attribute after training.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.refNoise" title="tadlib.hitad.chromLev.Chrom.refNoise"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.refNoise</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.refNoise" title="tadlib.hitad.chromLev.Chrom.refNoise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.refNoise</span></code></a></dt>
 <dd>Calculate the noise level of a given domain</dd>
-<dt><a class="reference internal" href="#tadlib.hitad.aligner.BoundSet" title="tadlib.hitad.aligner.BoundSet"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.aligner.BoundSet</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.aligner.BoundSet" title="tadlib.hitad.aligner.BoundSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.BoundSet</span></code></a></dt>
 <dd>where the meanings of the hierarchical level labels are explained in detail.</dd>
 </dl>
 </div>
@@ -792,7 +755,7 @@ Update <em>HMMParams</em> attribute after training.</p>
 
 <dl class="method">
 <dt id="tadlib.hitad.chromLev.Chrom.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>Domains</em>, <em>figname=None</em>, <em>arrowhead=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.plot" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>start</em>, <em>end</em>, <em>Domains</em>, <em>figname=None</em>, <em>arrowhead=False</em>, <em>vmin=None</em>, <em>vmax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a genomic region and a domain list, plot corresponding contact
 heatmap and all domains (represented as diagonal squares) within the
 region.</p>
@@ -800,25 +763,23 @@ region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>start, end</strong> : int</p>
-<blockquote>
-<div><p>The region interval.</p>
-</div></blockquote>
-<p><strong>Domains</strong> : dict</p>
-<blockquote>
-<div><p>The keys are tuples representing gap-free regions, and values
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">The region interval.</p>
+</dd>
+<dt><strong>Domains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are tuples representing gap-free regions, and values
 are corresponding identified domains.</p>
-</div></blockquote>
-<p><strong>figname</strong> : str or None</p>
-<blockquote>
-<div><p>If not None, the figure will be saved, otherwise it will only be
+</dd>
+<dt><strong>figname</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd><p class="first last">If not None, the figure will be saved, otherwise it will only be
 shown in an interactive window. (Default: None)</p>
-</div></blockquote>
-<p><strong>arrowhead</strong> : bool</p>
-<blockquote class="last">
-<div><p>If True, the Arrowhead transformed matrix will be plotted instead
+</dd>
+<dt><strong>arrowhead</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, the Arrowhead transformed matrix will be plotted instead
 of the raw contact matrix. (Default: False)</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -834,21 +795,22 @@ looking at the conversion frequency between neighbors in the sequence.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>seq</strong> : str</p>
-<blockquote>
-<div><p>A string containing only &#8216;1&#8217; or &#8216;0&#8217;. (e.g. &#8216;101000101&#8217;)</p>
-</div></blockquote>
-<p><strong>pthre</strong> : float, 0-1</p>
-<blockquote>
-<div><p>Significance level of the hypothesis tests.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>seq</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">A string containing only ‘1’ or ‘0’. (e.g. ‘101000101’)</p>
+</dd>
+<dt><strong>pthre</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, 0-1</span></dt>
+<dd><p class="first last">Significance level of the hypothesis tests.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>reject</strong> : bool</p>
-<blockquote class="last">
-<div><p>True if we should reject the null hypothesis (the sequence is
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>reject</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if we should reject the null hypothesis (the sequence is
 generated randomly) under the selected significance level.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -871,16 +833,16 @@ bottom domains.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domainlist</strong> : list of [start,end]</p>
-<blockquote>
-<div><p>List of bottom domain intervals in base-pair unit.</p>
-</div></blockquote>
-<p><strong>cache</strong> : dict</p>
-<blockquote class="last">
-<div><p>Cache of the TAD scores. The keys are in (start,end) format,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of [start,end]</span></dt>
+<dd><p class="first last">List of bottom domain intervals in base-pair unit.</p>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Cache of the TAD scores. The keys are in (start,end) format,
 intervals of continuous regions, and the values are corresponding
 calculated scores.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -888,7 +850,7 @@ calculated scores.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.stablescore" title="tadlib.hitad.chromLev.Chrom.stablescore"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.stablescore</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.stablescore" title="tadlib.hitad.chromLev.Chrom.stablescore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.stablescore</span></code></a></dt>
 <dd>Calculate TAD score of any genomic interval</dd>
 </dl>
 </div>
@@ -898,33 +860,30 @@ calculated scores.</p>
 <dt id="tadlib.hitad.chromLev.Chrom.splitChrom">
 <code class="descname">splitChrom</code><span class="sig-paren">(</span><em>DIs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.splitChrom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.splitChrom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split a chromosome into gap-free regions. HMM learning and domain
-identification procedure will be performed on these region separately.</p>
+identification procedures will be performed on these regions separately.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>DIs</strong> : 1-D numpy ndarray, float</p>
-<blockquote class="last">
-<div><p>Adaptive DI array of the whole chromosome. Generally, we detect
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>DIs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numpy ndarray, float</span></dt>
+<dd><p class="first last">Adaptive DI array of the whole chromosome. Generally, we detect
 runs of zeros in the array as gaps, which will be cut off the
 chromosome, making entire chromosome pieces of gap-free regions.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-</tbody>
-</table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="9%" />
-<col width="91%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>chromRegions</td>
-<td>(dict, {(start,end):DIs[start:end]}) The keys are gap-free regions, and the values are corresponding adaptive DI pieces.</td>
-</tr>
-<tr class="row-even"><td>gapbins</td>
-<td>(set) Set of bins (in base-pair unit) located in gap regions.</td>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chromRegions</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict, {(start,end):DIs[start:end]}</span></dt>
+<dd><p class="first last">The keys are gap-free regions, and the values are corresponding
+adaptive DI pieces.</p>
+</dd>
+<dt><strong>gapbins</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set</span></dt>
+<dd><p class="first last">Set of bins (in base-pair unit) located in gap regions.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -938,22 +897,23 @@ chromosome, making entire chromosome pieces of gap-free regions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domain</strong> : [start, end]</p>
-<blockquote>
-<div><p>Domain interval in base-pair unit.</p>
-</div></blockquote>
-<p><strong>bases</strong> : list</p>
-<blockquote>
-<div><p>List of bottom domains within the given domain region.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domain</strong> <span class="classifier-delimiter">:</span> <span class="classifier">[start, end]</span></dt>
+<dd><p class="first last">Domain interval in base-pair unit.</p>
+</dd>
+<dt><strong>bases</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of bottom domains within the given domain region.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>inout</strong> : float</p>
-<blockquote class="last">
-<div><p>TAD score defined as the enrichment between intra-domain interaction
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>inout</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">TAD score defined as the enrichment between intra-domain interaction
 frequencies and inter-domain interaction frequencies controlling
 for the impact of genomic distance.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -961,9 +921,9 @@ for the impact of genomic distance.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.idxmatch" title="tadlib.hitad.chromLev.Chrom.idxmatch"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.idxmatch</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.idxmatch" title="tadlib.hitad.chromLev.Chrom.idxmatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.idxmatch</span></code></a></dt>
 <dd>Pair intra-domain and inter-domain interactions with the same genomic distance</dd>
-<dt><a class="reference internal" href="calfea_api.html#tadlib.calfea.analyze.Core.longrange" title="tadlib.calfea.analyze.Core.longrange"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.calfea.analyze.Core.longrange</span></code></a></dt>
+<dt><a class="reference internal" href="calfea_api.html#tadlib.calfea.analyze.Core.longrange" title="tadlib.calfea.analyze.Core.longrange"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.calfea.analyze.Core.longrange</span></code></a></dt>
 <dd>Assign the weight value for each intra-domain interaction according to the genomic distance and the local interaction background.</dd>
 </dl>
 </div>
@@ -979,36 +939,32 @@ best separation of the outer domain.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domain</strong> : [start, end]</p>
-<blockquote>
-<div><p>Outer layer domain interval in base-pair unit.</p>
-</div></blockquote>
-<p><strong>reflist</strong> : list</p>
-<blockquote>
-<div><p>List of bottom domains within the region of the outer domain.</p>
-</div></blockquote>
-<p><strong>clv</strong> : int</p>
-<blockquote>
-<div><p>Global domain level of the outer domain. The TADs have the level
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domain</strong> <span class="classifier-delimiter">:</span> <span class="classifier">[start, end]</span></dt>
+<dd><p class="first last">Outer layer domain interval in base-pair unit.</p>
+</dd>
+<dt><strong>reflist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of bottom domains within the region of the outer domain.</p>
+</dd>
+<dt><strong>clv</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Global domain level of the outer domain. The TADs have the level
 0, the sub-TADs within a TAD have the level 1, and sub-sub-TADs
 within a sub-TAD have the level 2, and so forth. (Default: 0)</p>
-</div></blockquote>
-<p><strong>aM</strong> : 2-D numpy ndarray or None</p>
-<blockquote>
-<div><p>Arrowhead matrix of the outer domain. (Default: None)</p>
-</div></blockquote>
-<p><strong>W</strong> : 2-D numpy ndarray or None</p>
-<blockquote>
-<div><p>Weight matrix corresponding to the contact matrix of the outer
-domain. See <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.getWeightMatrix" title="tadlib.hitad.chromLev.Chrom.getWeightMatrix"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.getWeightMatrix()</span></code></a>
+</dd>
+<dt><strong>aM</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D numpy ndarray or None</span></dt>
+<dd><p class="first last">Arrowhead matrix of the outer domain. (Default: None)</p>
+</dd>
+<dt><strong>W</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D numpy ndarray or None</span></dt>
+<dd><p class="first last">Weight matrix corresponding to the contact matrix of the outer
+domain. See <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.getWeightMatrix" title="tadlib.hitad.chromLev.Chrom.getWeightMatrix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.getWeightMatrix()</span></code></a>
 for detailed calculation. (Default: None)</p>
-</div></blockquote>
-<p><strong>subdomains</strong> : dict</p>
-<blockquote class="last">
-<div><p>A container for domains of all hierarchy. The keys are domain
+</dd>
+<dt><strong>subdomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">A container for domains of all hierarchy. The keys are domain
 intervals in base-pair unit, and values are corresponding
 global levels.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1016,7 +972,7 @@ global levels.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.maxscorepath</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.maxscorepath" title="tadlib.hitad.chromLev.Chrom.maxscorepath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom.maxscorepath</span></code></a></dt>
 <dd>find the best domain list optimally separating domain-level interactions.</dd>
 </dl>
 </div>
@@ -1031,16 +987,18 @@ genomic region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>start, end</strong> : int</p>
-<blockquote>
-<div><p>The region interval.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">The region interval.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>A</strong> : 2-D numpy ndarray, float</p>
-<blockquote class="last">
-<div><p>Transformed matrix. (A symmetric matrix)</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>A</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-D numpy ndarray, float</span></dt>
+<dd><p class="first last">Transformed matrix. (A symmetric matrix)</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1050,34 +1008,28 @@ genomic region.</p>
 <dl class="method">
 <dt id="tadlib.hitad.chromLev.Chrom.viterbi">
 <code class="descname">viterbi</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#Chrom.viterbi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.Chrom.viterbi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find the most likely hidden state series given the observed <em>seq</em>
-using the viterbi algorithm.</p>
+<dd><p>Find the most likely hidden state series using the viterbi algorithm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>seq</strong> : 1-D numbpy ndarray, float</p>
-<blockquote>
-<div><p>Adaptive DI array for any region.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>seq</strong> <span class="classifier-delimiter">:</span> <span class="classifier">1-D numbpy ndarray, float</span></dt>
+<dd><p class="first last">Adaptive DI array for any region.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>path</strong> : list</p>
-<blockquote class="last">
-<div><p>List of hidden state labels. Has the same length as the input
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>path</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of hidden state labels. Has the same length as the input
 <em>seq</em>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.paramFromModel" title="tadlib.hitad.chromLev.Chrom.paramFromModel"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom.paramFromModel</span></code></a></dt>
-<dd>parameter learning using Baum-Welch algorithm</dd>
-</dl>
-</div>
 </dd></dl>
 
 </dd></dl>
@@ -1097,25 +1049,70 @@ form the final domain list.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chrom</strong> : str</p>
-<blockquote>
-<div><p>Chromosome label.</p>
-</div></blockquote>
-<p><strong>res</strong> : int</p>
-<blockquote>
-<div><p>Hi-C data resolution in base-pair unit.</p>
-</div></blockquote>
-<p><strong>datasets</strong> : dict</p>
-<blockquote class="last">
-<div><p>The keys are unique replicate labels, and the values are constructed
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>res</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Hi-C data resolution in base-pair unit.</p>
+</dd>
+<dt><strong>datasets</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are unique replicate labels, and the values are constructed
 <em>Chrom</em> objects by using the Hi-C data of corresponding biological
 replicates.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">align</span></code>(tn,&nbsp;qn)</td>
+<td>Construct hierarchical alignment between <em>tn</em> and <em>qn</em>.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.MultiReps.callDomain" title="tadlib.hitad.chromLev.MultiReps.callDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">callDomain</span></code></a>()</td>
+<td>Find reproducible domains between replicates by using our domain-level alignment strategy.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">conserved</span></code>(tn,&nbsp;qn)</td>
+<td>Return conserved TAD pairs.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.MultiReps.getDomainList" title="tadlib.hitad.chromLev.MultiReps.getDomainList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDomainList</span></code></a>(byregion)</td>
+<td>Combine by-region domains into a single list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">inner_changed</span></code>(tn,&nbsp;qn)</td>
+<td>Return semi-conserved TAD pairs.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">merged</span></code>(tn,&nbsp;qn)</td>
+<td>Return merged region pairs and merged TAD details.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap</span></code>(ti,&nbsp;qi)</td>
+<td>Calculate overlap ratio of any two regions.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.chromLev.MultiReps.reproducible" title="tadlib.hitad.chromLev.MultiReps.reproducible"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reproducible</span></code></a>(tg,&nbsp;qy)</td>
+<td>Subprocess of <em>callDomain</em> for replicate alignment and reproducibility determination.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code>(tn,&nbsp;qn)</td>
+<td>Return split region pairs and split TAD details.</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils">
+<colgroup>
+<col width="57%" />
+<col width="43%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>intersect</strong></td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="tadlib.hitad.chromLev.MultiReps.callDomain">
 <code class="descname">callDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#MultiReps.callDomain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.MultiReps.callDomain" title="Permalink to this definition">¶</a></dt>
@@ -1128,7 +1125,7 @@ domain-level alignment strategy.</p>
 <code class="descname">getDomainList</code><span class="sig-paren">(</span><em>byregion</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/chromLev.html#MultiReps.getDomainList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.chromLev.MultiReps.getDomainList" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine by-region domains into a single list.</p>
 <p>Each domain in the returned list is represented in the format
-<code class="docutils literal"><span class="pre">[chromosome</span> <span class="pre">label,</span> <span class="pre">start</span> <span class="pre">bp,</span> <span class="pre">end</span> <span class="pre">bp,</span> <span class="pre">hierarchical</span> <span class="pre">level]</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">[chromosome</span> <span class="pre">label,</span> <span class="pre">start</span> <span class="pre">bp,</span> <span class="pre">end</span> <span class="pre">bp,</span> <span class="pre">hierarchical</span> <span class="pre">level]</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1142,86 +1139,82 @@ determination.</p>
 
 <dl class="class">
 <dt id="tadlib.hitad.genomeLev.Genome">
-<em class="property">class </em><code class="descclassname">tadlib.hitad.genomeLev.</code><code class="descname">Genome</code><span class="sig-paren">(</span><em>datasets, chroms=['#', 'X'], maxsize=4000000, npzpre=None, cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Genome</em> is built on top of <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>. We
+<em class="property">class </em><code class="descclassname">tadlib.hitad.genomeLev.</code><code class="descname">Genome</code><span class="sig-paren">(</span><em>datasets</em>, <em>maxsize=4000000</em>, <em>cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Genome</em> is built on top of <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>. We
 use it to:</p>
 <ul class="simple">
 <li>Load bin-level Hi-C data</li>
 <li>Initialize, pickle and organize <em>Chrom</em> objects</li>
 <li>Call hierarchical domains of each chromosome in parallel</li>
-<li>Optionally save Hi-C data into <em>Numpy</em> .npz files for accelerating
-IO in future.</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>datasets</strong> : 2-level dict, {resolution(int):{biological_replicate_label(str):data_path,...}}</p>
-<blockquote>
-<div><p><em>resolution</em> should be in base-pair unit. <em>data_path</em> indicates the
-absolute Hi-C data path under corresponding resolution and biological
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>datasets</strong> <span class="classifier-delimiter">:</span> <span class="classifier">2-level dict, {resolution(int):{biological_replicate_label(str):data_path,…}}</span></dt>
+<dd><p class="first last"><em>data_path</em> indicates the <em>cool</em> URI under corresponding resolution and biological
 replicate label.</p>
-<p>If your Hi-C data are stored in <em>NPZ</em> format, <em>data_path</em> should point
-to the npz file. Otherwise, you may provide with data in <em>TXT</em> format,
-in this case, Hi-C data of each chromosome must be stored separately,
-and data with the same resolution and replicate label should be placed
-in the same folder, and naturally <em>data_path</em> should point to the folder.</p>
-<p>You can generate <em>NPZ</em> files in two ways:1.By runHiC pipeline. runHiC
-is a user-friendly command-line software developed by our lab for Hi-C
-data processing. Refer to the <a class="reference external" href="https://github.com/XiaoTaoWang/HiC_pipeline">link</a>
-for more details. 2.By hitad itself, provide TXT Hi-C data and run
-<em>hitad</em> with <code class="docutils literal"><span class="pre">--npzpre</span></code> specified, or, if you are familiar with Python
-environment, just open a Python interpreter and initialize a <em>Genome</em>
-object and set the parameter <em>npzpre</em> explicitly.</p>
-</div></blockquote>
-<p><strong>maxsize</strong> : int</p>
-<blockquote>
-<div><p>Maximum allowable domain size in base-pair unit. (Default: 4000000)</p>
-</div></blockquote>
-<p><strong>chroms</strong> : list</p>
-<blockquote>
-<div><p>List of chromosome labels. Only Hi-C data within the specified chromosomes
-will be included. Specially, &#8216;#&#8217; stands for chromosomes with numerical
-labels. If an empty list is provided, all chromosome data will be loaded.
-(Default: [&#8216;#&#8217;, &#8216;X&#8217;])</p>
-</div></blockquote>
-<p><strong>npzpre</strong> : str or None</p>
-<blockquote>
-<div><p>If not None, loaded Hi-C data will be stored in <em>Numpy</em> .npz format
-to accelerate IO extremely for further use, and this parameter indicates
-the prefix of these <em>NPZ</em> filenames. Path may be included, if no path
-is contained, <em>NPZ</em> files will be placed under current working directory.
-(Default: None)</p>
-</div></blockquote>
-<p><strong>cache</strong> : str or None</p>
-<blockquote class="last">
-<div><p><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a> objects each representing a
-single chromosome data under certain resolution and replicate label
-will be pickled (using <a class="reference external" href="https://docs.python.org/2.7/library/pickle.html#module-cPickle" title="(in Python v2.7)"><code class="xref py py-mod docutils literal"><span class="pre">cPickle</span></code></a>) under the folder named
-<em>cache</em>. The folder will be created if specified but don&#8217;t exist.
-If None, the folder returned by <a class="reference external" href="https://docs.python.org/2.7/library/tempfile.html#tempfile.gettempdir" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">tempfile.gettempdir()</span></code></a> will
+</dd>
+<dt><strong>maxsize</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maximum allowable domain size in base-pair unit. (Default: 4000000)</p>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd><p class="first last">Cache folder path. If None, the folder returned by <a class="reference external" href="https://docs.python.org/2.7/library/tempfile.html#tempfile.gettempdir" title="(in Python v2.7)"><code class="xref py py-func docutils literal notranslate"><span class="pre">tempfile.gettempdir()</span></code></a> will
 be used. (Default: None)</p>
-</div></blockquote>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>data</strong> <span class="classifier-delimiter">:</span> <span class="classifier">3-level dict. {chrom(str):{resolution(int):{biological_replicate_label(str):cachedfile,…}},…}</span></dt>
+<dd><p class="first last">Different from the input datasets, it organizes data by chromosome
+label, and each bottom-level value indicates one pickled
+<a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a> file under the <em>cache</em> folder.</p>
+</dd>
+<dt><strong>Results</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Final consistent domain list merged from all chromosome results.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
 <colgroup>
-<col width="2%" />
-<col width="98%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>data</td>
-<td>(3-level dict. {chrom(str):{resolution(int):{biological_replicate_label(str):cachedfile,...}},...}) Different from the input datasets, it organizes data by chromosome label, and each bottom-level value indicates one pickled <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a> file under the <em>cache</em> folder.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.genomeLev.Genome.callHierDomain" title="tadlib.hitad.genomeLev.Genome.callHierDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">callHierDomain</span></code></a>([cpu_core])</td>
+<td>Identify hierarchical domains of each chromosome independently and concurrently, find consistent domains between biological replicates, and finally combine results of all chromosomes.</td>
 </tr>
-<tr class="row-even"><td>Results</td>
-<td>(list) Final consistent domain list merged from all chromosome results.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.genomeLev.Genome.learning" title="tadlib.hitad.genomeLev.Genome.learning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">learning</span></code></a>([cpu_core])</td>
+<td>Prepare training data and learn HMM model parameters for each dataset.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.genomeLev.Genome.oriHMMParams" title="tadlib.hitad.genomeLev.Genome.oriHMMParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oriHMMParams</span></code></a>()</td>
+<td>Set initial parameters for the Hidden Markov Model (HMM).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.genomeLev.Genome.wipeDisk" title="tadlib.hitad.genomeLev.Genome.wipeDisk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wipeDisk</span></code></a>()</td>
+<td>Remove catched (pickled) <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a> objects before exiting.</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Methods</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="62%" />
+<col width="38%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>outputDomain</strong></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><strong>train_data</strong></td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="tadlib.hitad.genomeLev.Genome.callHierDomain">
 <code class="descname">callHierDomain</code><span class="sig-paren">(</span><em>cpu_core=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome.callHierDomain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome.callHierDomain" title="Permalink to this definition">¶</a></dt>
@@ -1232,13 +1225,56 @@ replicates, and finally combine results of all chromosomes.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cpu_core</strong> : int</p>
-<blockquote class="last">
-<div><p>Number of processes to launch. For now, <em>hitad</em> only supports
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>cpu_core</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Number of processes to launch. For now, <em>hitad</em> only supports
 parallel computing on a quite high layer, that is, it simply
-allocates an uncompleted <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>
+allocates an uncompleted <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>
 object to an idle processor and invokes its <em>callDomain</em> method.</p>
-</div></blockquote>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.hitad.genomeLev.Genome.learning">
+<code class="descname">learning</code><span class="sig-paren">(</span><em>cpu_core=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome.learning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome.learning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare training data and learn HMM model parameters for each dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>cpu_core</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Number of processes to launch.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tadlib.hitad.genomeLev.Genome.oriHMMParams">
+<code class="descname">oriHMMParams</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome.oriHMMParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome.oriHMMParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initial parameters for the Hidden Markov Model (HMM).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>HMMParams</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Has 3 keys: “A”, state transition matrix, “B” (emission probabilities),
+specifying parameters (Means, Variances, Weights) of the mixture
+Gaussian distributions for each hidden state, and “pi”, indicating
+the hidden state weights. This dict will be updated after learning
+procedure.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1248,7 +1284,7 @@ object to an idle processor and invokes its <em>callDomain</em> method.</p>
 <dl class="method">
 <dt id="tadlib.hitad.genomeLev.Genome.wipeDisk">
 <code class="descname">wipeDisk</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome.wipeDisk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome.wipeDisk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove catched (pickled) <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>
+<dd><p>Remove catched (pickled) <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>
 objects before exiting.</p>
 </dd></dl>
 
@@ -1262,37 +1298,66 @@ objects before exiting.</p>
 <em class="property">class </em><code class="descclassname">tadlib.hitad.aligner.</code><code class="descname">DomainAligner</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#DomainAligner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.DomainAligner" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class is the work horse we define to:</p>
 <ol class="arabic simple">
-<li>Hold multiple <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances
+<li>Hold multiple <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances
 at the same time.</li>
 <li>Perform domain-based hierarchical alignment between any two
-<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</li>
+<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</li>
 <li>Define and extract domain-level change types from alignment results
-between two <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</li>
+between two <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</li>
 </ol>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> : two or more <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>args</strong> <span class="classifier-delimiter">:</span> <span class="classifier">two or more <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances</span></dt>
+<dd></dd>
+</dl>
+</td>
 </tr>
-</tbody>
-</table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="4%" />
-<col width="96%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>DomainSets</td>
-<td>(dict) Pool of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>. The keys are unique identifiers extracted from <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>, and the values are corresponding <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances.</td>
-</tr>
-<tr class="row-even"><td>Results</td>
-<td>(dict) Container for alignment results between any pair of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances.</td>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>DomainSets</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Pool of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>. The keys are
+unique identifiers extracted from <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>,
+and the values are corresponding <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+instances.</p>
+</dd>
+<dt><strong>Results</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Container for alignment results between any pair of
+<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainAligner.align" title="tadlib.hitad.aligner.DomainAligner.align"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align</span></code></a>(tn,&nbsp;qn)</td>
+<td>Construct hierarchical alignment between <em>tn</em> and <em>qn</em>.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainAligner.conserved" title="tadlib.hitad.aligner.DomainAligner.conserved"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conserved</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return conserved TAD pairs.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainAligner.inner_changed" title="tadlib.hitad.aligner.DomainAligner.inner_changed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inner_changed</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return semi-conserved TAD pairs.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainAligner.merged" title="tadlib.hitad.aligner.DomainAligner.merged"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merged</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return merged region pairs and merged TAD details.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap</span></code>(ti,&nbsp;qi)</td>
+<td>Calculate overlap ratio of any two regions.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainAligner.split" title="tadlib.hitad.aligner.DomainAligner.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return split region pairs and split TAD details.</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="tadlib.hitad.aligner.DomainAligner.align">
 <code class="descname">align</code><span class="sig-paren">(</span><em>tn</em>, <em>qn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#DomainAligner.align"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.DomainAligner.align" title="Permalink to this definition">¶</a></dt>
@@ -1301,11 +1366,12 @@ between two <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet"
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn</strong> : str</p>
-<blockquote class="last">
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>tn, qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances which are collected by <em>arg</em> during initialization.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1314,13 +1380,13 @@ instances which are collected by <em>arg</em> during initialization.</p>
 <p>The alignment results are organized in a hierarchical way in a
 dictionary. The keys are matched chromosome region (corresponds to
 either one TAD or several continuous TADs) pairs at the TAD level,
-and the values are <a class="reference internal" href="#tadlib.hitad.aligner.Container" title="tadlib.hitad.aligner.Container"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.Container</span></code></a> instances
+and the values are <a class="reference internal" href="#tadlib.hitad.aligner.Container" title="tadlib.hitad.aligner.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.Container</span></code></a> instances
 with <em>info</em> attribute set to be pair of detailed TAD lists; the keys
-of these <a class="reference internal" href="#tadlib.hitad.aligner.Container" title="tadlib.hitad.aligner.Container"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.Container</span></code></a> indicate domain
+of these <a class="reference internal" href="#tadlib.hitad.aligner.Container" title="tadlib.hitad.aligner.Container"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.Container</span></code></a> indicate domain
 levels, the values again are dictionaries containing sub-alignment
 results within the upper-layer TAD region.</p>
 <p>You can access the results from <em>Results</em> attribute:
-<code class="docutils literal"><span class="pre">self.Results[tn][qn]</span></code> or <code class="docutils literal"><span class="pre">self.Results[qn][tn]</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">self.Results[tn][qn]</span></code> or <code class="docutils literal notranslate"><span class="pre">self.Results[qn][tn]</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1331,17 +1397,19 @@ results within the upper-layer TAD region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn</strong> : str</p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : set of tuples</p>
-<blockquote class="last">
-<div><p>Each tuple has two elements (domain intervals), corresponding to
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set of tuples</span></dt>
+<dd><p class="first last">Each tuple has two elements (domain intervals), corresponding to
 <em>tn</em> and <em>qn</em> respectively.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1356,17 +1424,19 @@ results within the upper-layer TAD region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn</strong> : str</p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : set of tuples</p>
-<blockquote class="last">
-<div><p>Each tuple has two elements (domain intervals), corresponding to
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set of tuples</span></dt>
+<dd><p class="first last">Each tuple has two elements (domain intervals), corresponding to
 <em>tn</em> and <em>qn</em> respectively.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1381,17 +1451,19 @@ results within the upper-layer TAD region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn</strong> : str</p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : dict</p>
-<blockquote class="last">
-<div><p>The keys are merged region pairs in tuple, and the values are
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are merged region pairs in tuple, and the values are
 corresponding TAD list pairs within the region.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1406,17 +1478,19 @@ corresponding TAD list pairs within the region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn</strong> : str</p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : dict</p>
-<blockquote class="last">
-<div><p>The keys are split region pairs in tuple, and the values are
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are split region pairs in tuple, and the values are
 corresponding TAD list pairs within the region.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1437,23 +1511,80 @@ disappeared sub-TAD boundary, and TAD-to-sub-TAD boundary switch.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> : two or more <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>args</strong> <span class="classifier-delimiter">:</span> <span class="classifier">two or more <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instances</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>byclass</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Cache boundary pairs of each change type between datasets.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
 <colgroup>
 <col width="10%" />
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>byclass</td>
-<td>(dict) Cache boundary pairs of each change type between datasets.</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">align</span></code>(tn,&nbsp;qn)</td>
+<td>Construct hierarchical alignment between <em>tn</em> and <em>qn</em>.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.all_in_one" title="tadlib.hitad.aligner.BoundAligner.all_in_one"><code class="xref py py-obj docutils literal notranslate"><span class="pre">all_in_one</span></code></a>(tn,&nbsp;qn,&nbsp;cache)</td>
+<td>Parse domain alignment results between <em>tn</em> and <em>qn</em> and cache all detected cases of 6 defined change types.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">conserved</span></code>(tn,&nbsp;qn)</td>
+<td>Return conserved TAD pairs.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.conserved_sub_bounds" title="tadlib.hitad.aligner.BoundAligner.conserved_sub_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conserved_sub_bounds</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return pairs of conserved sub-TAD boundaries.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.conserved_tad_bounds" title="tadlib.hitad.aligner.BoundAligner.conserved_tad_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conserved_tad_bounds</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return pairs of conserved TAD boundaries.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.disappeared_sub" title="tadlib.hitad.aligner.BoundAligner.disappeared_sub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disappeared_sub</span></code></a>(tn,&nbsp;qn)</td>
+<td>Sub-TAD boundaries that exist in <em>tn</em>, but disappear in <em>qn</em>.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.disappeared_tad" title="tadlib.hitad.aligner.BoundAligner.disappeared_tad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disappeared_tad</span></code></a>(tn,&nbsp;qn)</td>
+<td>TAD boundaries that exist in <em>tn</em>, but disappear in <em>qn</em>.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">inner_changed</span></code>(tn,&nbsp;qn)</td>
+<td>Return semi-conserved TAD pairs.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">merged</span></code>(tn,&nbsp;qn)</td>
+<td>Return merged region pairs and merged TAD details.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap</span></code>(ti,&nbsp;qi)</td>
+<td>Calculate overlap ratio of any two regions.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">split</span></code>(tn,&nbsp;qn)</td>
+<td>Return split region pairs and split TAD details.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.sub2tad" title="tadlib.hitad.aligner.BoundAligner.sub2tad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sub2tad</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return sub-TAD to TAD switch cases.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.BoundAligner.tad2sub" title="tadlib.hitad.aligner.BoundAligner.tad2sub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tad2sub</span></code></a>(tn,&nbsp;qn)</td>
+<td>Return TAD to sub-TAD switch cases.</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Methods</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="69%" />
+<col width="31%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>pairwise_alignment</strong></td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="tadlib.hitad.aligner.BoundAligner.all_in_one">
 <code class="descname">all_in_one</code><span class="sig-paren">(</span><em>tn</em>, <em>qn</em>, <em>cache</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#BoundAligner.all_in_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.BoundAligner.all_in_one" title="Permalink to this definition">¶</a></dt>
@@ -1463,15 +1594,15 @@ detected cases of 6 defined change types.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn</strong> : str</p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>tn, qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
-<p><strong>cache</strong> : dict</p>
-<blockquote class="last">
-<div><p>An empty dictionary.</p>
-</div></blockquote>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">An empty dictionary.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1486,18 +1617,20 @@ instances.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn: str</strong></p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn: str</strong></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : dict</p>
-<blockquote class="last">
-<div><p>Keys and values indicate sub-TAD boundaries in <em>tn</em> and <em>qn</em>,
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Keys and values indicate sub-TAD boundaries in <em>tn</em> and <em>qn</em>,
 respectively.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1512,18 +1645,20 @@ respectively.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn: str</strong></p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn: str</strong></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : dict</p>
-<blockquote class="last">
-<div><p>Keys and values indicate TAD boundaries in <em>tn</em> and <em>qn</em>,
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Keys and values indicate TAD boundaries in <em>tn</em> and <em>qn</em>,
 respectively.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1538,17 +1673,19 @@ respectively.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn: str</strong></p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn: str</strong></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : set of tuples</p>
-<blockquote class="last">
-<div><p>Sub-TAD boundary positions in <em>tn</em>.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set of tuples</span></dt>
+<dd><p class="first last">Sub-TAD boundary positions in <em>tn</em>.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1563,17 +1700,19 @@ instances.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn: str</strong></p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn: str</strong></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : set of tuples</p>
-<blockquote class="last">
-<div><p>TAD boundary positions in <em>tn</em>.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set of tuples</span></dt>
+<dd><p class="first last">TAD boundary positions in <em>tn</em>.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1588,18 +1727,20 @@ instances.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn: str</strong></p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn: str</strong></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : dict</p>
-<blockquote class="last">
-<div><p>Keys are sub-TAD boundaries in <em>tn</em>, and values indicate corresponding
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Keys are sub-TAD boundaries in <em>tn</em>, and values indicate corresponding
 TAD boundaries in <em>qn</em>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1614,18 +1755,20 @@ TAD boundaries in <em>qn</em>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tn, qn: str</strong></p>
-<blockquote>
-<div><p>Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>tn, qn: str</strong></dt>
+<dd><p class="first last">Unique identifiers of <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a>
 instances.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pairs</strong> : dict</p>
-<blockquote class="last">
-<div><p>Keys are TAD boundaries in <em>tn</em>, and values indicate corresponding
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Keys are TAD boundaries in <em>tn</em>, and values indicate corresponding
 sub-TAD boundaries in <em>qn</em>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1642,62 +1785,82 @@ sub-TAD boundaries in <em>qn</em>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>en</strong> : str</p>
-<blockquote>
-<div><p>Unique identifier for input domain set.</p>
-</div></blockquote>
-<p><strong>domainlist</strong> : list</p>
-<blockquote>
-<div><p>List of domains. See <a class="reference internal" href="#tadlib.hitad.aligner.BoundSet" title="tadlib.hitad.aligner.BoundSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.BoundSet</span></code></a> for
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>en</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifier for input domain set.</p>
+</dd>
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of domains. See <a class="reference internal" href="#tadlib.hitad.aligner.BoundSet" title="tadlib.hitad.aligner.BoundSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.BoundSet</span></code></a> for
 details.</p>
-</div></blockquote>
-<p><strong>res</strong> : int</p>
-<blockquote>
-<div><p>Resolution of the Hi-C data in base-pair unit.</p>
-</div></blockquote>
-<p><strong>hier</strong> : bool</p>
-<blockquote class="last">
-<div><p>Whether <em>domainlist</em> contains multiple-level domains or not.
+</dd>
+<dt><strong>res</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Resolution of the Hi-C data in base-pair unit.</p>
+</dd>
+<dt><strong>hier</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Whether <em>domainlist</em> contains multiple-level domains or not.
 (Default: True)</p>
-</div></blockquote>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>res</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Resolution of the Hi-C data in base-pair unit.</p>
+</dd>
+<dt><strong>levs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">set of int</span></dt>
+<dd><p class="first last">All possible domain levels contained in <em>domainlist</em>.</p>
+</dd>
+<dt><strong>bychroms</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Bychromosomal rearrangement of <em>domainlist</em>. The keys are chromosome
+labels(1,2,…,22,X,Y), and the values are list of [start,end,level].</p>
+</dd>
+<dt><strong>pretree</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nested domain list within any domain interval. Returned by
+<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>.</p>
+</dd>
+<dt><strong>subpool</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Domain list within any domain interval.
+(<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</p>
+</dd>
+<dt><strong>lidx</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The smallest indices of left domain boundaries in a by-chromosomal
+domain list. (<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</p>
+</dd>
+<dt><strong>ridx</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The largest indices of right domain boundaries in a by-chromosomal
+domain list. (<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</p>
+</dd>
+<dt><strong>Domains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Store each TAD and its nested domains as a tree. Each node in the
+tree indicates one domain, in particular, the root corresponds to
+the TAD, and the leaves correspond to bottom domains.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
 <colgroup>
-<col width="4%" />
-<col width="96%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>res</td>
-<td>(int) Resolution of the Hi-C data in base-pair unit.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NestedDomains</span></code></a>(bychroms)</td>
+<td>Pre-parse domain lists for accelerating subsequent calculations.</td>
 </tr>
-<tr class="row-even"><td>levs</td>
-<td>(set of int) All possible domain levels contained in <em>domainlist</em>.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.genDomainTree" title="tadlib.hitad.aligner.DomainSet.genDomainTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genDomainTree</span></code></a>(node,&nbsp;pretree,&nbsp;cur)</td>
+<td>Recursively generate a tree/sub-tree taking <em>node</em> as starting point.</td>
 </tr>
-<tr class="row-odd"><td>bychroms</td>
-<td>(dict) Bychromosomal rearrangement of <em>domainlist</em>. The keys are chromosome labels(1,2,...,22,X,Y), and the values are list of [start,end,level].</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.getBottoms" title="tadlib.hitad.aligner.DomainSet.getBottoms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getBottoms</span></code></a>()</td>
+<td>Link bottom domains to corresponding outer TADs.</td>
 </tr>
-<tr class="row-even"><td>pretree</td>
-<td>(dict) Nested domain list within any domain interval. Returned by <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>.</td>
-</tr>
-<tr class="row-odd"><td>subpool</td>
-<td>(dict) Domain list within any domain interval. (<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</td>
-</tr>
-<tr class="row-even"><td>lidx</td>
-<td>(dict) The smallest indices of left domain boundaries in a by-chromosomal domain list. (<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</td>
-</tr>
-<tr class="row-odd"><td>ridx</td>
-<td>(dict) The largest indices of right domain boundaries in a by-chromosomal domain list. (<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</td>
-</tr>
-<tr class="row-even"><td>Domains</td>
-<td>(dict) Store each TAD and its nested domains as a tree. Each node in the tree indicates one domain, in particular, the root corresponds to the TAD, and the leaves correspond to bottom domains.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.getregion" title="tadlib.hitad.aligner.DomainSet.getregion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getregion</span></code></a>(chrom,&nbsp;start,&nbsp;end[,&nbsp;lev])</td>
+<td>Extract all domains (or domains at specific level) within a given region.</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Methods</p>
 <dl class="method">
 <dt id="tadlib.hitad.aligner.DomainSet.NestedDomains">
 <code class="descname">NestedDomains</code><span class="sig-paren">(</span><em>bychroms</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#DomainSet.NestedDomains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="Permalink to this definition">¶</a></dt>
@@ -1706,33 +1869,32 @@ details.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bychroms</strong> : dict</p>
-<blockquote>
-<div><p>By-chromosomal domain lists.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bychroms</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">By-chromosomal domain lists.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tmpdict</strong> : dict</p>
-<blockquote>
-<div><p>Nested domain list within any domain interval. If a domain have
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>tmpdict</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nested domain list within any domain interval. If a domain have
 no nested domains, then its value is an empty list.</p>
-</div></blockquote>
-<p><strong>subpool</strong> : dict</p>
-<blockquote>
-<div><p>Domain list within any domain interval. Different from <em>tmpdict</em>,
+</dd>
+<dt><strong>subpool</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Domain list within any domain interval. Different from <em>tmpdict</em>,
 if a domain have no nested domains, the value is a list only
 containing itself.</p>
-</div></blockquote>
-<p><strong>lidx</strong> : dict</p>
-<blockquote>
-<div><p>The smallest indices of left domain boundaries in a by-chromosomal
+</dd>
+<dt><strong>lidx</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The smallest indices of left domain boundaries in a by-chromosomal
 domain list.</p>
-</div></blockquote>
-<p><strong>ridx</strong> : dict</p>
-<blockquote class="last">
-<div><p>The largest indices of right domain boundaries in a by-chromosomal
+</dd>
+<dt><strong>ridx</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The largest indices of right domain boundaries in a by-chromosomal
 domain list.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1747,19 +1909,18 @@ domain list.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>node</strong> : Node</p>
-<blockquote>
-<div><p>A dict-like container for current domain.</p>
-</div></blockquote>
-<p><strong>pretree</strong> : dict</p>
-<blockquote>
-<div><p>Nested domain list within any domain interval.
-(<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</p>
-</div></blockquote>
-<p><strong>cur</strong> : list</p>
-<blockquote class="last">
-<div><p>Nested domain list within current domain interval.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>node</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Node</span></dt>
+<dd><p class="first last">A dict-like container for current domain.</p>
+</dd>
+<dt><strong>pretree</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Nested domain list within any domain interval.
+(<a class="reference internal" href="#tadlib.hitad.aligner.DomainSet.NestedDomains" title="tadlib.hitad.aligner.DomainSet.NestedDomains"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet.NestedDomains()</span></code></a>)</p>
+</dd>
+<dt><strong>cur</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Nested domain list within current domain interval.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1770,15 +1931,16 @@ domain list.</p>
 <dt id="tadlib.hitad.aligner.DomainSet.getBottoms">
 <code class="descname">getBottoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#DomainSet.getBottoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.DomainSet.getBottoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Link bottom domains to corresponding outer TADs.</p>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="11%" />
-<col width="89%" />
-</colgroup>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
 <tbody valign="top">
-<tr class="row-odd"><td>bottoms</td>
-<td>(dict) Used to quickly retrieve (bottom domain, TAD) pairs.</td>
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bottoms</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Used to quickly retrieve (bottom domain, TAD) pairs.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1793,26 +1955,26 @@ region.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chrom</strong> : str</p>
-<blockquote>
-<div><p>Chromosome label.</p>
-</div></blockquote>
-<p><strong>start, end</strong> : int</p>
-<blockquote>
-<div><p>Domain interval in base-pair unit.</p>
-</div></blockquote>
-<p><strong>lev</strong> : int or None</p>
-<blockquote>
-<div><p>Specify the desired domain level. (Default: None, domains of all
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Domain interval in base-pair unit.</p>
+</dd>
+<dt><strong>lev</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or None</span></dt>
+<dd><p class="first last">Specify the desired domain level. (Default: None, domains of all
 levels will be returned)</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rdomains</strong> : list</p>
-<blockquote class="last">
-<div><p>Sorted domain list. Each element corresponds to one domain in the
-format <code class="docutils literal"><span class="pre">[chrom,start,end,level]</span></code>.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>rdomains</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Sorted domain list. Each element corresponds to one domain in the
+format <code class="docutils literal notranslate"><span class="pre">[chrom,start,end,level]</span></code>.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1830,42 +1992,43 @@ list.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>en</strong> : str</p>
-<blockquote>
-<div><p>Unique identifier for current set of bounds.</p>
-</div></blockquote>
-<p><strong>domainlist</strong> : list</p>
-<blockquote>
-<div><p>List of the domains. Each domain is represented by
-<code class="docutils literal"><span class="pre">[chrom,start,end,level]</span></code>. I think <em>chrom</em>, <em>start</em> and <em>end</em> are
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>en</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifier for current set of bounds.</p>
+</dd>
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of the domains. Each domain is represented by
+<code class="docutils literal notranslate"><span class="pre">[chrom,start,end,level]</span></code>. I think <em>chrom</em>, <em>start</em> and <em>end</em> are
 self-explanatory, all you need to keep in mind is that <em>start and
 *end</em> should be in base-pair unit. <em>level</em> indicates the hierarchical
 level of the domain. In our work, TAD is denoted as 0, sub-TAD is
 denoted as 1, and subsequent domain level is denoted as 2, etc.</p>
-</div></blockquote>
-<p><strong>res</strong> : int</p>
-<blockquote class="last">
-<div><p>Resolution of the Hi-C data in base-pair unit.</p>
-</div></blockquote>
+</dd>
+<dt><strong>res</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Resolution of the Hi-C data in base-pair unit.</p>
+</dd>
+</dl>
 </td>
 </tr>
-</tbody>
-</table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="3%" />
-<col width="97%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>Label</td>
-<td>(str) Unique identifier.</td>
-</tr>
-<tr class="row-even"><td>boundclass</td>
-<td>(dict) The keys are bound representations (chrom,pos), and the values indicate corresponding hierarchical level notations. The Level of a bound is determined by the domain with the lowest level notation. For example, if we have two domains, [&#8216;1&#8217;,100000,500000,0] and [&#8216;1&#8217;,100000,200000,1], according to our definition, the level of (&#8216;1&#8217;,200000) is 1, but the level of (&#8216;1&#8217;,100000) is 0.</td>
-</tr>
-<tr class="row-odd"><td>Bounds</td>
-<td>(list) Sorted bound list. This attribute can be used as the reference bound list in <a class="reference internal" href="#tadlib.hitad.aligner.SingleBound.align" title="tadlib.hitad.aligner.SingleBound.align"><code class="xref py py-meth docutils literal"><span class="pre">tadlib.hitad.aligner.SingleBound.align()</span></code></a> directly.</td>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>Label</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifier.</p>
+</dd>
+<dt><strong>boundclass</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">The keys are bound representations (chrom,pos), and the values indicate
+corresponding hierarchical level notations. The Level of a bound is
+determined by the domain with the lowest level notation. For example,
+if we have two domains, [‘1’,100000,500000,0] and [‘1’,100000,200000,1],
+according to our definition, the level of (‘1’,200000) is 1, but the
+level of (‘1’,100000) is 0.</p>
+</dd>
+<dt><strong>Bounds</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Sorted bound list. This attribute can be used as the reference
+bound list in <a class="reference internal" href="#tadlib.hitad.aligner.SingleBound.align" title="tadlib.hitad.aligner.SingleBound.align"><code class="xref py py-meth docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.SingleBound.align()</span></code></a>
+directly.</p>
+</dd>
+</dl>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1883,37 +2046,46 @@ denoted as 1, and subsequent domain level is denoted as 2, etc.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chrom</strong> : str</p>
-<blockquote>
-<div><p>Chromosome label.</p>
-</div></blockquote>
-<p><strong>start, end</strong> : int</p>
-<blockquote class="last">
-<div><p>Interval of the domain in base-pair unit.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>start, end</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Interval of the domain in base-pair unit.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>interval</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">[start, end]</p>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Container for matched details.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
 <colgroup>
-<col width="18%" />
-<col width="82%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>chrom</td>
-<td>(str) Chromosome label.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.SingleDomain.align" title="tadlib.hitad.aligner.SingleDomain.align"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align</span></code></a>(qy)</td>
+<td>Find the domain <em>D</em> in <em>qy</em> maximizing the overlap ratio.</td>
 </tr>
-<tr class="row-even"><td>interval</td>
-<td>(list) [start, end]</td>
-</tr>
-<tr class="row-odd"><td>cache</td>
-<td>(dict) Container for matched details.</td>
+<tr class="row-even"><td><a class="reference internal" href="#tadlib.hitad.aligner.SingleDomain.overlap" title="tadlib.hitad.aligner.SingleDomain.overlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overlap</span></code></a>(ti,&nbsp;qi)</td>
+<td>Calculate overlap ratio of any two regions.</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Methods</p>
 <dl class="method">
 <dt id="tadlib.hitad.aligner.SingleDomain.align">
 <code class="descname">align</code><span class="sig-paren">(</span><em>qy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#SingleDomain.align"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.SingleDomain.align" title="Permalink to this definition">¶</a></dt>
@@ -1923,18 +2095,19 @@ search method is used internally for accelerating the search process.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>qy</strong> : a <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instance</p>
-<blockquote class="last">
-<div><p>Reference domain set. (Recall sequence mapping and reference
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>qy</strong> <span class="classifier-delimiter">:</span> <span class="classifier">a <a class="reference internal" href="#tadlib.hitad.aligner.DomainSet" title="tadlib.hitad.aligner.DomainSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.DomainSet</span></code></a> instance</span></dt>
+<dd><p class="first last">Reference domain set. (Recall sequence mapping and reference
 genome)</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
 <p>The matched details are stored in <em>cache</em> using the unique identifier
-of <em>qy</em> (<code class="docutils literal"><span class="pre">qy.Label</span></code>) as the key, the value is also a dict with 2
+of <em>qy</em> (<code class="docutils literal notranslate"><span class="pre">qy.Label</span></code>) as the key, the value is also a dict with 2
 keys: <em>hitdomain</em> records the matched domain interval in
 (chrom,start,end) format, and <em>hitoverlap</em> records the overlap ratio
 between the hitdomain and current query domain.</p>
@@ -1948,16 +2121,18 @@ between the hitdomain and current query domain.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ti, qi</strong> : list</p>
-<blockquote>
-<div><p>Interval ([start,end]) of the region.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>ti, qi</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Interval ([start,end]) of the region.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>OR</strong> : float, 0-1</p>
-<blockquote class="last">
-<div><p>Overlap ratio.</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>OR</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, 0-1</span></dt>
+<dd><p class="first last">Overlap ratio.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -1978,37 +2153,43 @@ between the hitdomain and current query domain.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chrom</strong> : str</p>
-<blockquote>
-<div><p>Chromosome label.</p>
-</div></blockquote>
-<p><strong>pos</strong> : int</p>
-<blockquote class="last">
-<div><p>Bound position on the chromosome.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>pos</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Bound position on the chromosome.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chrom</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Chromosome label.</p>
+</dd>
+<dt><strong>pos</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Position on the chromosome.</p>
+</dd>
+<dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Container for matched details.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table border="1" class="docutils">
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
 <colgroup>
-<col width="12%" />
-<col width="88%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>chrom</td>
-<td>(str) Chromosome label.</td>
-</tr>
-<tr class="row-even"><td>pos</td>
-<td>(int) Position on the chromosome.</td>
-</tr>
-<tr class="row-odd"><td>cache</td>
-<td>(dict) Container for matched details.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.aligner.SingleBound.align" title="tadlib.hitad.aligner.SingleBound.align"><code class="xref py py-obj docutils literal notranslate"><span class="pre">align</span></code></a>(qn,&nbsp;qb,&nbsp;tol)</td>
+<td>Map the bound to <em>qb</em> using the binary search method.</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Methods</p>
 <dl class="method">
 <dt id="tadlib.hitad.aligner.SingleBound.align">
 <code class="descname">align</code><span class="sig-paren">(</span><em>qn</em>, <em>qb</em>, <em>tol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#SingleBound.align"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.SingleBound.align" title="Permalink to this definition">¶</a></dt>
@@ -2017,22 +2198,21 @@ between the hitdomain and current query domain.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>qn</strong> : str</p>
-<blockquote>
-<div><p>Unique identifier for <em>qb</em>.</p>
-</div></blockquote>
-<p><strong>qb</strong> : list of tuples</p>
-<blockquote>
-<div><p>Reference bound (remember reference genome?) list. Each element
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>qn</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Unique identifier for <em>qb</em>.</p>
+</dd>
+<dt><strong>qb</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of tuples</span></dt>
+<dd><p class="first last">Reference bound (remember reference genome?) list. Each element
 is a tuple (chrom, pos) representing a single bound. And the list
 must be sorted in advance for binary search.</p>
-</div></blockquote>
-<p><strong>tol</strong> : int</p>
-<blockquote class="last">
-<div><p>Mismatch tolerance. If the genomic distance between the bound
+</dd>
+<dt><strong>tol</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Mismatch tolerance. If the genomic distance between the bound
 and the best hit is less than this value, we say we have found
 a match, otherwise the bound is missed in <em>qb</em>.</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2053,15 +2233,57 @@ index (midx) and the indices of the matched neighbors (nindices).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>info</strong> : list</p>
-<blockquote class="last">
-<div><p>Pair of domain lists from two domain sets.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Pair of domain lists from two domain sets.</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">fromkeys</span></code>($type,&nbsp;iterable[,&nbsp;value])</td>
+<td>Returns a new dict with keys from iterable and values equal to value.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code>(k[,d])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">items</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop</span></code>(k[,d])</td>
+<td>If key is not found, d is returned if given, otherwise KeyError is raised</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">popitem</span></code>()</td>
+<td>2-tuple; but raise KeyError if D is empty.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">setdefault</span></code>(k[,d])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code>([E,&nbsp;]**F)</td>
+<td>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k] If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v In either case, this is followed by: for k in F:  D[k] = F[k]</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">values</span></code>()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
@@ -2073,15 +2295,57 @@ in <em>DomainSet</em>.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bounds</strong> : list or None</p>
-<blockquote class="last">
-<div><p>Domain interval represented by [chrom,start,end].</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bounds</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list or None</span></dt>
+<dd><p class="first last">Domain interval represented by [chrom,start,end].</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">fromkeys</span></code>($type,&nbsp;iterable[,&nbsp;value])</td>
+<td>Returns a new dict with keys from iterable and values equal to value.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code>(k[,d])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">items</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop</span></code>(k[,d])</td>
+<td>If key is not found, d is returned if given, otherwise KeyError is raised</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">popitem</span></code>()</td>
+<td>2-tuple; but raise KeyError if D is empty.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">setdefault</span></code>(k[,d])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code>([E,&nbsp;]**F)</td>
+<td>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k] If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v In either case, this is followed by: for k in F:  D[k] = F[k]</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal notranslate"><span class="pre">values</span></code>()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -2089,25 +2353,27 @@ in <em>DomainSet</em>.</p>
 <code class="descclassname">tadlib.hitad.aligner.</code><code class="descname">readHierDomain</code><span class="sig-paren">(</span><em>domainfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#readHierDomain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.readHierDomain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load hierarchical domain list from a text file.</p>
 <p>The source file should contain 4 columns indicating chromosome label
-(1,2,...,X,Y), domain start (bp), domain end (bp), and hierarchical level
-(0,1,2,...), respectively.</p>
+(1,2,…,X,Y), domain start (bp), domain end (bp), and hierarchical level
+(0,1,2,…), respectively.</p>
 <p>In our paper, TAD is denoted as level 0, sub-TAD is denoted as level 1,
 and subsequent domain level is denoted as level 2, etc.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domainfile</strong> : str</p>
-<blockquote>
-<div><p>Domain file path.</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domainfile</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Domain file path.</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>domainlist</strong> : list</p>
-<blockquote class="last">
-<div><p>Each element of the list indicates one domain represented by
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Each element of the list indicates one domain represented by
 [chrom,start,end,level].</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2124,21 +2390,22 @@ domain start (bp) and domain end (bp), respectively.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domainfile</strong> : str</p>
-<blockquote>
-<div><p>Domain file path.</p>
-</div></blockquote>
-<p><strong>pre</strong> : str</p>
-<blockquote>
-<div><p>Leading string of the chromosome name. (Default: chr)</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domainfile</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Domain file path.</p>
+</dd>
+<dt><strong>pre</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Leading string of the chromosome name. (Default: chr)</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>domainlist</strong> : list</p>
-<blockquote class="last">
-<div><p>Each element indicates one domain represented by
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Each element indicates one domain represented by
 [chrom(leading string removed),start,end].</p>
-</div></blockquote>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2146,7 +2413,7 @@ domain start (bp) and domain end (bp), respectively.</p>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
 <dl class="last docutils">
-<dt><a class="reference internal" href="#tadlib.hitad.aligner.hierFormat" title="tadlib.hitad.aligner.hierFormat"><code class="xref py py-obj docutils literal"><span class="pre">tadlib.hitad.aligner.hierFormat</span></code></a></dt>
+<dt><a class="reference internal" href="#tadlib.hitad.aligner.hierFormat" title="tadlib.hitad.aligner.hierFormat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tadlib.hitad.aligner.hierFormat</span></code></a></dt>
 <dd>parse hierarchical relationships between domains</dd>
 </dl>
 </div>
@@ -2162,16 +2429,18 @@ including hierarchical level information.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domainlist</strong> : list</p>
-<blockquote>
-<div><p>Domains with the format [chrom,start,end].</p>
-</div></blockquote>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Domains with the format [chrom,start,end].</p>
+</dd>
+</dl>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>domainlist</strong> : list</p>
-<blockquote class="last">
-<div><p>Domains with the format [chrom,start,end,level].</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>domainlist</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Domains with the format [chrom,start,end,level].</p>
+</dd>
+</dl>
 </td>
 </tr>
 </tbody>
@@ -2182,16 +2451,17 @@ including hierarchical level information.</p>
 
 
           </div>
+          
         </div>
       </div>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2017, XiaoTao Wang.
+      &copy;2018, Xiaotao Wang.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="_sources/hitad_api.rst.txt"
