@@ -34,7 +34,7 @@ def getargs():
     group_1 = parser.add_argument_group(title = 'Relate to the input:')
     group_1.add_argument('-p', '--path', default = '.',
                          help = 'Path to the cool URI')
-    group_1.add_argument('-s', '--tad-file', help = 'Path to the TAD file.')
+    group_1.add_argument('-t', '--tad-file', help = 'Path to the TAD file.')
     
     ## About the algorithm
     group_3 = parser.add_argument_group(title = 'Feature calculation')

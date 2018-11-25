@@ -6,7 +6,6 @@
 from __future__ import division
 import glob, re, os, sys
 import logging
-import warnings
 from tadlib.calfea import polygon
 import numpy as np
 from scipy.stats import poisson, itemfreq

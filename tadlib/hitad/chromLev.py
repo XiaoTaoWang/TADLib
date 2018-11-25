@@ -1393,7 +1393,7 @@ class Chrom(object):
         caxis_S(ax, DI_color)
 
         if figname != None:
-            fig.savefig(figname)
+            fig.savefig(figname, bbox_inches='tight')
             plt.close(fig)
         else:
             plt.show()

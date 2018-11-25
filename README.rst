@@ -1,3 +1,7 @@
+.. note:: Since version 0.4.0, the default data format has changed to `cool <https://github.com/mirnylab/cooler>`_,
+   to comply with 4DN standards.
+
+
 Introduction
 ============
 Chromosome conformation capture (3C) derived techniques, especially Hi-C, have

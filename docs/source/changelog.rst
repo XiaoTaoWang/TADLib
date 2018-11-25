@@ -1,5 +1,12 @@
 Release Notes
 =============
+Version 0.4.0 (2018-11-24)
+""""""""""""""""""""""""""
+- Migrated to Python 3 (will not support Python 2 anymore)
+- *Cool* support
+- Added two handy scripts *tad-plot* and *output-DI*
+- Changed to *pomegranate* for HMM learning
+
 Version 0.3.1-r1 (2017-8-18)
 """"""""""""""""""""""""""""
 - Fixed a bug in the definition of conserved TADs
