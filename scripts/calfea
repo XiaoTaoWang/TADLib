@@ -27,8 +27,8 @@ def getargs():
                         help = 'Print version number and exit')
 
     # Output
-    parser.add_argument('-f', '--filename', type = argparse.FileType('w'),
-                        default = sys.stdout, help = 'Output file name.')
+    parser.add_argument('-O', '--output',
+                        help = 'Output file name.')
     
     ## Argument Groups
     group_1 = parser.add_argument_group(title = 'Relate to the input:')
@@ -55,8 +55,6 @@ def getargs():
     if not commands:
         commands.append('-h')
     args = parser.parse_args(commands)
-    
-    args.Format = args.Format.upper()
     
     return args, commands
 
@@ -90,7 +88,7 @@ def pipe():
         logger.addHandler(filehandler)
         ## Logging for argument setting
         arglist = ['# ARGUMENT LIST:',
-                   '# output file name = {0}'.format(args.filename),
+                   '# output file name = {0}'.format(args.output),
                    '# Hi-C path = {0}'.format(args.path),
                    '# TAD source file = {0}'.format(args.tad_file),
                    '# Peak window width = {0}'.format(args.pw),
@@ -105,33 +103,32 @@ def pipe():
                  
         from tadlib.calfea import analyze
         import cooler
+        import numpy as np
         
         logger.info('Read Hi-C data ...')
         workInters = cooler.Cooler(args.path)
         # Load External TAD File, Columns 0,1,2
         logger.info('Read external TAD data ...')
         workTAD = analyze.load_TAD(args.tad_file)
-
-        resolution = workInters.binsize
     
         # Header
         H = ['ChromID', 'Start', 'End', 'AP', 'Gap-Ratio']
-        args.filename.write('\t'.join(H) + '\n')
+        outstream = open(args.output, 'w')
+        outstream.write('\t'.join(H) + '\n')
         logger.info('Calculate feature for each TAD ...')
         for c in workInters.chromnames:
             logger.info('Chromosome %s', c)
             d_data = workTAD[workTAD['chr'] == c]
             for d in d_data:
-                ## Boundary of Current TAD
-                left = d['start'] // resolution
-                right = d['end'] // resolution
                 # Interaction Matrix
                 if 'weight' in workInters.bins().keys():
-                    matrix = workInters.matrix(balance=True, sparse=False).fetch((c, d['start'], d['end']))
+                    matrix = workInters.matrix(balance=True, sparse=False).fetch((c, d['start'], min(d['end'], workInters.chromsizes[c])))
                 else:
-                    matrix = workInters.matrix(balance=False, sparse=False).fetch((c, d['start'], d['end']))
+                    matrix = workInters.matrix(balance=False, sparse=False).fetch((c, d['start'], min(d['end'], workInters.chromsizes[c])))
                 
-                newM, convert = analyze.manipulation(matrix)
+                matrix[np.isnan(matrix)] = 0
+                
+                newM, _ = analyze.manipulation(matrix)
                 if len(matrix) > 0:
                     # Ratio of Gaps (Vacant Rows or Columns)
                     gaps = 1 - len(newM) / len(matrix)
@@ -151,11 +148,11 @@ def pipe():
                 else:
                     # Bad Domain!
                     wL = [c, str(d['start']), str(d['end']), '-1', str(gaps)]
-                args.filename.write('\t'.join(wL) + '\n')
+                outstream.write('\t'.join(wL) + '\n')
         logger.info('Done!')
-        logger.info('Write results to %s ...', args.filename)
-        args.filename.flush()
-        args.filename.close()
+        logger.info('Write results to %s ...', args.output)
+        outstream.flush()
+        outstream.close()
         logger.info('Done!\n')
 
 if __name__ == '__main__':

@@ -193,7 +193,7 @@ class Genome(object):
                 model = self.oriHMMParams()
                 seqs = self.train_data(res, rep)
                 model.fit(seqs, algorithm='baum-welch', max_iterations=10000,
-                          stop_threshold=1e-6, n_jobs=cpu_core, verbose=True)
+                          stop_threshold=1e-5, n_jobs=cpu_core, verbose=True)
                 lib = cooler.Cooler(self.cools[res][rep])
                 for c in lib.chromnames:
                     tmpfil = self.data[c][res][rep]

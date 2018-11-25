@@ -54,7 +54,7 @@ def load_TAD(source_fil, chromname=None, cols=[0, 1, 2]):
 
     # Read TAD data from source
     # Skip any comment lines
-    pool = [line.strip().split() for line in open(source) if
+    pool = [line.strip().split() for line in open(source, 'r') if
             not line.startswith('#')]
     # Skip header lines
     pool = [line for line in pool if ((isnumber(line[cols[1]])) and (isnumber(line[cols[2]])))]
@@ -73,7 +73,7 @@ def load_TAD(source_fil, chromname=None, cols=[0, 1, 2]):
         
     # Create a structured array
     dtype = np.dtype({'names':['chr', 'start', 'end'],
-                      'formats':['S'+str(maxL), np.int, np.int]})  
+                      'formats':['U'+str(maxL), np.int, np.int]})  
     
     data = np.array(pool, dtype = dtype)
 
