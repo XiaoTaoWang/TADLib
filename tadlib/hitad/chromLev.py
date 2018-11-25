@@ -9,7 +9,6 @@ from __future__ import division
 import copy, collections
 import numpy as np
 from scipy import sparse
-from pomegranate import NormalDistribution, HiddenMarkovModel, GeneralMixtureModel, State
 from tadlib.hitad.aligner import BoundSet, DomainSet, DomainAligner, hierFormat, Container
 from tadlib.calfea import analyze
 
@@ -98,6 +97,7 @@ class Chrom(object):
         self._rm = 1
         self._dw = self.defaultwindow // res
         self.chromLen = hicdata.shape[0]
+        self.hmm = None
 
         x, y = hicdata.nonzero()
         IF = np.array(hicdata[x, y]).ravel()
@@ -334,58 +334,6 @@ class Chrom(object):
 
         return bias
 
-    def oriHMMParams(self):
-        """
-        Set initial parameters for the Hidden Markov Model (HMM).
-        
-        Attributes
-        ----------
-        HMMParams : dict
-            Has 3 keys: "A", state transition matrix, "B" (emission probabilities),
-            specifying parameters (Means, Variances, Weights) of the mixture
-            Gaussian distributions for each hidden state, and "pi", indicating
-            the hidden state weights. This dict will be updated after learning
-            procedure.
-        
-        See Also
-        --------
-        tadlib.hitad.chromLev.Chrom.paramFromModel : Learn HMM parameters
-                                                     from sequence data.
-        """
-
-        # Transmission matrix
-        # Five Hidden States:
-        # 0--start, 1--downstream, 2--no bias, 3--upstream, 4--end
-        A = [[0., 1., 0., 0., 0.],
-            [0., 0.4, 0.3, 0.3, 0.],
-            [0.05, 0., 0.5, 0.45, 0.],
-            [0., 0., 0., 0.5, 0.5],
-            [0.99, 0., 0.01, 0., 0.]]
-        
-        # GMM emissions
-        numdists = 3 # Three-distribution Gaussian Mixtures
-        var = 7.5 / (numdists - 1)
-        dists = []
-        means = [[], [], [], [], []]
-        for i in range(numdists):
-            means[4].append(i * 7.5 / ( numdists - 1 ) + 2.5)
-            means[3].append(i * 7.5 / ( numdists - 1 ))
-            means[2].append((i - (numdists-1)/2) * 7.5 / (numdists - 1))
-            means[1].append(-i * 7.5 / ( numdists - 1 ))
-            means[0].append(-i * 7.5 / ( numdists - 1 ) - 2.5)
-        for m in means:
-            tmp = []
-            for i in m:
-                tmp.append(NormalDistribution(i, var))
-            mixture = GeneralMixtureModel(tmp)
-            dists.append(mixture)
-        
-        starts = np.array([0.05, 0.3, 0.3, 0.3, 0.05])
-        ends = np.array([0.05, 0.3, 0.3, 0.3, 0.05])
-        names = ['0', '1', '2', '3', '4']
-
-        self.hmm = HiddenMarkovModel.from_matrix(A, dists, starts, ends, names)
-
     def splitChrom(self, DIs):
         """
         Split a chromosome into gap-free regions. HMM learning and domain
@@ -407,7 +355,7 @@ class Chrom(object):
             Set of bins (in base-pair unit) located in gap regions.
         """
         # minregion and maxgaplen are set intuitively
-        maxgaplen = 100000 // self.res
+        maxgaplen = max(100000 // self.res, 5)
         minregion = maxgaplen * 2
 
         valid_pos = np.where(DIs != 0)[0]
@@ -448,50 +396,6 @@ class Chrom(object):
         
         self.regionDIs, self.gapbins = chromRegions, gapbins
 
-    def paramFromModel(self, seqs):
-        """
-        Train HMM model on *seqs*.
-        
-        Parameters
-        ----------
-        seqs : list of list
-            Each element is the adaptive DI list of a gap-free region.
-        
-        See Also
-        --------
-        tadlib.hitad.chromLev.Chrom.oriHMMParams : Set initial parameters
-        tadlib.hitad.chromLev.Chrom.splitChrom : Split chromosome into gap-free
-                                                 regions.
-        """
-        self.hmm.fit(seqs, algorithm='baum-welch')
-
-    def learning(self, regionDIs):
-        """
-        Prepare training data and learn HMM model parameters.
-        
-        Parameters
-        ----------
-        regionDIs : dict
-            Gap-free regions and corresponding adaptive DI arrays. Returned
-            by :py:meth:`tadlib.hitad.chromLev.Chrom.splitChrom`.
-        
-        See Also
-        --------
-        tadlib.hitad.chromLev.Chrom.paramFromModel : core part for HMM learning
-                                                     and parameter updating.
-        """
-        import random
-
-        self.oriHMMParams()
-
-        seqs = []
-        for region in regionDIs:
-            seqs.append(regionDIs[region])
-
-        random.shuffle(seqs)
-
-        self.paramFromModel(seqs)
-
     def viterbi(self, seq):
         """
         Find the most likely hidden state series using the viterbi algorithm.
@@ -507,12 +411,8 @@ class Chrom(object):
             List of hidden state labels. Has the same length as the input
             *seq*.
         
-        See Also
-        --------
-        tadlib.hitad.chromLev.Chrom.paramFromModel : parameter learning
-                                                     using Baum-Welch algorithm
         """
-        path = [int(s.name) for i, s in self.hmm.viterbi(seq)[1]]
+        path = [int(s.name) for i, s in self.hmm.viterbi(seq)[1][1:]]
 
         return path
 
@@ -594,12 +494,7 @@ class Chrom(object):
 
     def minCore(self, regionDIs):
         """
-        Learner and Caller. Take adaptive DI arrays of all gap-free regions,
-        learn HMM parameters, retrieve hidden state series, and finally
-        output identified domain list for each region.
-        
-        In our implementation, this method is mainly used as a core for
-        :py:meth:`tadlib.hitad.chromLev.Chrom.oriIter`.
+        Output domain list for each gap-free region.
         
         Parameters
         ----------
@@ -612,19 +507,8 @@ class Chrom(object):
             Gap-free regions and corresponding identified bottom domain list.
             Different from :py:meth:`tadlib.hitad.chromLev.Chrom.pipe`, the
             start and the end of a domain are in base-pair unit.
-        
-        See Also
-        --------
-        tadlib.hitad.chromLev.Chrom.oriIter : iteratively approximate adaptive
-                                              window sizes and return final
-                                              bottom domain lists.
-        tadlib.hitad.chromLev.Chrom.splitChrom : by which the input learning
-                                                 data can be calculated
-        tadlib.hitad.chromLev.Chrom.pipe : take an adaptive DI array and return
-                                           a list of domains after learning
-                                           procedure has been completed
+
         """
-        self.learning(regionDIs)
         tmpDomains = {}
         for region in sorted(regionDIs):
             seq = regionDIs[region]
@@ -756,9 +640,6 @@ class Chrom(object):
         --------
         tadlib.hitad.chromLev.Chrom.calDI : calculate DI values according to
                                             input window sizes
-        tadlib.hitad.chromLev.Chrom.minCore : learn HMM parameters and
-                                              identify bottom domains by using
-                                              updated adaptive DIs
         tadlib.hitad.chromLev.Chrom.iterCore : estimate the degree of divergence
                                                between two domain lists
         """
@@ -825,8 +706,7 @@ class Chrom(object):
         - Adaptively estimate window size for each bin.
           (:py:meth:`tadlib.hitad.chromLev.Chrom.minWindows`)
         - Calculate adaptive DIs. (:py:meth:`tadlib.hitad.chromLev.Chrom.calDI`)
-        - Perform HMM learning, identify initial bottom domains, and iteratively
-          correct adaptive window size and bottom boundary positions.
+        - Iteratively correct adaptive window size and bottom boundary positions.
           (:py:meth:`tadlib.hitad.chromLev.Chrom.oriIter`)
         - Identify TADs based on bottom domains.
           (:py:meth:`tadlib.hitad.chromLev.Chrom.maxCore`)
