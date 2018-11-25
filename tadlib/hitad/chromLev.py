@@ -1223,7 +1223,8 @@ class Chrom(object):
 
         return A
 
-    def plot(self, start, end, Domains, figname = None, arrowhead = False):
+    def plot(self, start, end, Domains, figname = None, arrowhead = False,
+        vmin=None, vmax=None):
         """
         Given a genomic region and a domain list, plot corresponding contact
         heatmap and all domains (represented as diagonal squares) within the
@@ -1333,8 +1334,15 @@ class Chrom(object):
         else:
             Matrix = self.getSelfMatrix(start, end)
             nonzero = Matrix[np.nonzero(Matrix)]
-            p = np.percentile(nonzero, 95)
-            Params = {'vmax': p, 'cmap': raw_cmap}
+            if vmin is None:
+                vmin = 0
+            else:
+                vmin = vmin
+            if vmax is None:
+                vmax = np.percentile(nonzero, 95)
+            else:
+                vmax = vmax
+            Params = {'vmin': vmin, 'vmax': vmax, 'cmap': raw_cmap}
 
         startidx = start // self.res
         endidx = end // self.res

@@ -1,0 +1,63 @@
+import argparse, sys, os, tadlib
+
+currentVersion = tadlib.__version__
+
+def getargs():
+    ## Construct an ArgumentParser object for command-line arguments
+    parser = argparse.ArgumentParser(description='''Export the DI track in BedGraph format for
+                                     any genomic regions.''',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    
+    # Version
+    parser.add_argument('-v', '--version', action='version',
+                        version=' '.join(['%(prog)s',currentVersion]),
+                        help='Print version number and exit.')
+
+    # Output
+    parser.add_argument('-O', '--output', help='Output file name.')
+
+    # Input
+    parser.add_argument('-p', '--path',
+                        help = 'URI string pointing to a cooler at specific resolution.')
+    parser.add_argument('-C', '--chrom',
+                        help='''Chromosome label of the region.''')
+    parser.add_argument('-S', '--start', type=int,
+                        help='''Start position.''')
+    parser.add_argument('-E', '--end', type=int,
+                        help='''End position.''')
+
+    ## Parse the command-line arguments
+    commands = sys.argv[1:]
+    if not commands:
+        commands.append('-h')
+    args = parser.parse_args(commands)
+    
+    return args, commands
+
+def run():
+
+    # Parse Arguments
+    args, commands = getargs()
+    # Improve the performance if you don't want to run it
+    if commands[0] not in ['-h', '-v', '--help', '--version']:
+
+        import cooler
+
+        chrom, start, end = args.chrom, args.start, args.end
+
+        # Load Hi-C data
+        Lib = cooler.Cooler(args.path)
+        if chrom is None:
+            data = Lib.bins()[['chrom', 'start', 'end', 'DIs']][:]
+        else:
+            if (start is None) or (end is None):
+                data = Lib.bins()[['chrom', 'start', 'end', 'DIs']].fetch(chrom)
+            else:
+                data = Lib.bins()[['chrom', 'start', 'end', 'DIs']].fetch((chrom, start, end))
+        
+        data.to_csv(args.output, sep='\t', float_format='%.4g', header=False, index=False)
+
+if __name__ == '__main__':
+    run()
+        
+        

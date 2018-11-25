@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+# Created on Sat Nov 24 20:01:14 2018
+# Author: XiaoTao Wang
+
+## Required modules
+
+import argparse, sys, os, tadlib
+
+currentVersion = tadlib.__version__
+
+def getargs():
+    ## Construct an ArgumentParser object for command-line arguments
+    parser = argparse.ArgumentParser(description='''Visualize the adaptive DI track and hierarchical
+                                     domains.''',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # Version
+    parser.add_argument('-v', '--version', action='version',
+                        version=' '.join(['%(prog)s',currentVersion]),
+                        help='Print version number and exit.')
+    
+    # Output
+    parser.add_argument('-O', '--output', help='Output png file name.')
+    parser.add_argument('--dpi', default=300, type=int,
+                        help='''The resolution in dots per inch of the output figure.''')
+
+    # Input
+    parser.add_argument('-p', '--path',
+                        help = 'URI string pointing to a cooler at specific resolution.')
+    parser.add_argument('-T', '--tad-file', help='TAD file outputed by hitad.')
+    parser.add_argument('-C', '--chrom', help='Chromosome label of your anticipated region.')
+    parser.add_argument('-S', '--start', type=int, help='Start site (bp) of the region.')
+    parser.add_argument('-E', '--end', type=int, help='End site (bp) of the region.')
+    parser.add_argument('--skip-rows', default=0, type=int,
+                        help='''Number of leading lines in the TAD file to skip.''')
+    parser.add_argument('--correct', action='store_true',
+                        help='''Whether or not plot ICE-corrected heatmap.''')
+    parser.add_argument('--arrowhead', action='store_true',
+                        help='''Whether or not use arrowhead transformed matrix.''')
+    parser.add_argument('--vmin', type=float,
+                        help='''The minimum value that the colorbar covers.''')
+    parser.add_argument('--vmax', type=float,
+                        help='''The maximum value that the colorbar covers.''')
+    
+    ## Parse the command-line arguments
+    commands = sys.argv[1:]
+    if not commands:
+        commands.append('-h')
+    args = parser.parse_args(commands)
+    
+    return args, commands
+
+def run():
+
+    # Parse Arguments
+    args, commands = getargs()
+    # Improve the performance if you don't want to run it
+    if commands[0] not in ['-h', '-v', '--help', '--version']:
+
+        import cooler
+        from scipy.sparse import triu
+        from tadlib.hitad.chromLev import Chrom
+        from tadlib.hitad.aligner import readHierDomain
+
+        chrom, start, end, tad_file = args.chrom, args.start, args.end, args.tad_file
+
+        # Load Hi-C data
+        Lib = cooler.Cooler(args.path)
+        res = Lib.binsize
+        rep = 'pseudo'
+        maxsize = 4000000
+
+        if args.correct:
+            tdata = triu(Lib.matrix(balance=True, sparse=True).fetch(chrom)).tocsr()
+        else:
+            tdata = triu(Lib.matrix(balance=False, sparse=True).fetch(chrom)).tocsr()
+        
+        work = Chrom(chrom, res, tdata, rep, maxsize)
+        work.DIs = Lib.bins()['DIs'].fetch(chrom).values
+
+        # Load TAD data
+        domains = [d[1:] for d in readHierDomain(tad_file) if d[0]==chrom]
+
+        # plot
+        work.plot(start, end, Domains={(1,2):domains}, figname=args.output,
+                  arrowhead=args.arrowhead, vmin=args.vmin, vmax=args.vmax)
+
+
+if __name__ == '__main__':
+    run()
