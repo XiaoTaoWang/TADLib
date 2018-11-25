@@ -189,10 +189,8 @@ We use a rotating file for logging. According to our settings, when the size of 
 gets about 200K, it’s closed and renamed to “hitad.log.1”. At the same time, a new file
 “hitad.log” is silently opened for output. In a word, the system saves old log files by
 appending the extensions “.1”, “.2” etc., and the current log is always written to “hitad.log”:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;test.txt&quot;</span> <span class="n">contains</span> <span class="mi">4</span> <span class="n">columns</span> <span class="n">indicating</span> <span class="n">chromosome</span> <span class="n">label</span><span class="p">,</span> <span class="n">domain</span> <span class="n">start</span> <span class="p">(</span><span class="n">bp</span><span class="p">),</span> <span class="n">domain</span> <span class="n">end</span> <span class="p">(</span><span class="n">bp</span><span class="p">),</span>
-</pre></div>
-</div>
-<p>and hierarchical label, respectively. In our notation, TAD is denoted as level 0, sub-TAD is denoted
+<p>“test.txt” contains 4 columns indicating chromosome label, domain start (bp), domain end (bp),
+and hierarchical label, respectively. In our notation, TAD is denoted as level 0, sub-TAD is denoted
 as level 1, and subsequent domain level is denoted as level 2, etc.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">22</span>      <span class="mi">18240000</span>        <span class="mi">18560000</span>        <span class="mi">0</span>
 <span class="mi">22</span>      <span class="mi">19000000</span>        <span class="mi">19640000</span>        <span class="mi">0</span>

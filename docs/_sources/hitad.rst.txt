@@ -101,7 +101,7 @@ Two files "test.txt" and "hitad.log" will be generated under current working dir
 We use a rotating file for logging. According to our settings, when the size of "hitad.log"
 gets about 200K, it's closed and renamed to "hitad.log.1". At the same time, a new file
 "hitad.log" is silently opened for output. In a word, the system saves old log files by
-appending the extensions ".1", ".2" etc., and the current log is always written to "hitad.log"::
+appending the extensions ".1", ".2" etc., and the current log is always written to "hitad.log":
 
 "test.txt" contains 4 columns indicating chromosome label, domain start (bp), domain end (bp),
 and hierarchical label, respectively. In our notation, TAD is denoted as level 0, sub-TAD is denoted
