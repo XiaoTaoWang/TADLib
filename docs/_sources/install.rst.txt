@@ -9,6 +9,7 @@ packages are required:
 - Python 3.5+
 - numpy
 - scipy
+- matplotlib
 - scikit-learn
 - cooler
 - pomegranate 0.10.0+
@@ -41,7 +42,7 @@ important to guarantee the correct priority)::
 
 Then just type and execute the following command::
     
-    $ conda install setuptools numpy scipy scikit-learn cooler pomegranate=0.10.0 networkx=1
+    $ conda install setuptools numpy scipy matplotlib scikit-learn cooler pomegranate=0.10.0 networkx=1
 
 Install TADLib
 --------------
