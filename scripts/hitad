@@ -105,6 +105,8 @@ def run():
             cachefolder = os.path.expanduser('~/.hitad')
             G = Genome(args.datasets, args.maxsize, cachefolder)
             logger.info('Done!')
+            logger.debug('Learning HMM parameters for each dataset ...')
+            G.learning(cpu_core=args.cpu_core)
             logger.info('Identifying hierarchical domains ...')
             kwargs = {'cpu_core':args.cpu_core}
             G.callHierDomain(**kwargs)

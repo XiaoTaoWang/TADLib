@@ -187,14 +187,13 @@ class Genome(object):
         cpu_core : int
             Number of processes to launch.
         """
-        log.debug('Learning HMM parameters for each dataset ...')
         for res in self.cools:
             for rep in self.cools[res]:
                 log.debug('  resolution: {0}, {1}'.format(res, rep))
                 model = self.oriHMMParams()
                 seqs = self.train_data(res, rep)
                 model.fit(seqs, algorithm='baum-welch', max_iterations=10000,
-                          n_jobs=cpu_core, verbose=True)
+                          stop_threshold=1e-6, n_jobs=cpu_core, verbose=True)
                 lib = cooler.Cooler(self.cools[res][rep])
                 for c in lib.chromnames:
                     tmpfil = self.data[c][res][rep]
@@ -301,7 +300,7 @@ class Genome(object):
     
     def outputDomain(self, filename):
         
-        with open(filename, 'wb') as output:
+        with open(filename, 'w') as output:
             for d in self.Results:
                 line = '{0}\t{1}\t{2}\t{3}\n'.format(*tuple(d))
                 output.write(line)
