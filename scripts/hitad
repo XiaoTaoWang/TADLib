@@ -23,7 +23,8 @@ def datasets_convert(metadata):
                 if line.isspace():
                     continue
                 parse = line.strip().split(':')
-                datasets[res][parse[0]] = os.path.abspath(os.path.expanduser(parse[1]))
+                uri = ':'.join(parse[1:])
+                datasets[res][parse[0]] = os.path.abspath(os.path.expanduser(uri))
     
     return datasets
 
