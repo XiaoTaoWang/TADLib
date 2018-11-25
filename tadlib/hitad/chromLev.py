@@ -9,9 +9,10 @@ from __future__ import division
 import copy, collections
 import numpy as np
 from scipy import sparse
+import matplotlib
+matplotlib.use('agg')
 from tadlib.hitad.aligner import BoundSet, DomainSet, DomainAligner, hierFormat, Container
 from tadlib.calfea import analyze
-
 from matplotlib.colors import Normalize
 
 class MidpointNormalize(Normalize):
@@ -381,13 +382,11 @@ class Chrom(object):
                 chromRegions[(start, end)] = DIs[start:end]
 
         if not startsIdx.size:
-            start = valid_pos[0]
-            end = valid_pos[-1]
-            if end - start > minregion:
-                chromRegions[(start, end)] = DIs[start:end]
-
-        if not len(chromRegions):
-            raise ValueError('Empty DI sequences for HMM training')
+            if valid_pos.size > 0:
+                start = valid_pos[0]
+                end = valid_pos[-1]
+                if end - start > minregion:
+                    chromRegions[(start, end)] = DIs[start:end]
 
         gapmask = np.ones(DIs.size, bool)
         for r in chromRegions:
@@ -1223,7 +1222,7 @@ class Chrom(object):
 
         return A
 
-    def plot(self, start, end, Domains, figname = None, arrowhead = False,
+    def plot(self, start, end, Domains, figname, arrowhead = False,
         vmin=None, vmax=None):
         """
         Given a genomic region and a domain list, plot corresponding contact
@@ -1244,10 +1243,10 @@ class Chrom(object):
             If True, the Arrowhead transformed matrix will be plotted instead
             of the raw contact matrix. (Default: False)
         """
-        import matplotlib
+
         import matplotlib.pyplot as plt
         from matplotlib.colors import LinearSegmentedColormap
-
+        
         def caxis_H(ax):
             """
             Axis control for the heatmap.
