@@ -101,7 +101,13 @@ class Chrom(object):
         self.hmm = None
 
         x, y = hicdata.nonzero()
-        IF = np.array(hicdata[x, y]).ravel()
+        mat_ = hicdata[x, y]
+        if isinstance(mat_, np.matrix):
+            IF = np.array(mat_).ravel()
+        else:
+            # mat_ is a sparse matrix
+            IF = np.array(mat_.todense()).ravel()
+
         IF[np.isnan(IF)] = 0
         self.rawMatrix = self._genSparseMatrix(x, y, IF)
         self._mw = min(self.maxapart//res, self.chromLen)
