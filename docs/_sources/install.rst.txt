@@ -35,10 +35,9 @@ Install the Required Packages
 First set up the channels to make all packages listed above accessible (note that the order is
 important to guarantee the correct priority)::
     
-    $ conda config --add channels conda-forge
     $ conda config --add channels defaults
-    $ conda config --add channels r
     $ conda config --add channels bioconda
+    $ conda config --add channels conda-forge
 
 Then just type and execute the following command::
     
