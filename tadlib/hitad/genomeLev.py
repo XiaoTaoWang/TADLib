@@ -49,9 +49,10 @@ class Genome(object):
         Final consistent domain list merged from all chromosome results.
     """
     
-    def __init__(self, datasets, maxsize=4000000, cache=None):
+    def __init__(self, datasets, maxsize=4000000, cache=None, exclude=['chrM', 'chrY']):
         
         data = datasets
+        self.exclude = exclude
         
         # We don't read data in memory at this point.
         # We only construct the mapping for loading convenience
@@ -60,6 +61,8 @@ class Genome(object):
             for rep in data[res]:
                 lib = cooler.Cooler(data[res][rep])
                 for i in lib.chromnames:
+                    if i in self.exclude:
+                        continue
                     if not i in self.data:
                         self.data[i] = {res:{rep:lib}}
                     else:
@@ -167,6 +170,8 @@ class Genome(object):
         lib = cooler.Cooler(self.cools[res][rep])
         seqs = []
         for c in lib.chromnames:
+            if c in self.exclude:
+                continue
             tmpfil = self.data[c][res][rep]
             with open(tmpfil, 'rb') as source:
                 tmpcache = pickle.load(source)
@@ -196,6 +201,8 @@ class Genome(object):
                           stop_threshold=1e-5, n_jobs=cpu_core, verbose=False)
                 lib = cooler.Cooler(self.cools[res][rep])
                 for c in lib.chromnames:
+                    if c in self.exclude:
+                        continue
                     tmpfil = self.data[c][res][rep]
                     with open(tmpfil, 'rb') as source:
                         tmpcache = pickle.load(source)
@@ -288,10 +295,13 @@ class Genome(object):
                 lib = cooler.Cooler(self.cools[res][rep])
                 DIs = np.r_[[]]
                 for c in lib.chromnames:
-                    tmpfil = self.data[c][res][rep]
-                    with open(tmpfil, 'rb') as source:
-                        tmpcache = pickle.load(source)
-                    DIs = np.r_[DIs, tmpcache.DIs]
+                    if not c in self.exclude:
+                        tmpfil = self.data[c][res][rep]
+                        with open(tmpfil, 'rb') as source:
+                            tmpcache = pickle.load(source)
+                        DIs = np.r_[DIs, tmpcache.DIs]
+                    else:
+                        DIs = np.r_[DIs, np.zeros(len(lib.bins().fetch(c)))]
                 with lib.open('r+') as grp:
                     if 'DIs' in grp['bins']:
                         del grp['bins']['DIs']
