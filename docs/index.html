@@ -50,7 +50,6 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install TADLib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="calfea.html">Aggregation Preference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
-<li class="toctree-l1"><a class="reference internal" href="domaincaller.html">Domain Caller</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a></li>
 </ul>
 
@@ -85,7 +84,7 @@ are relevant to biological functions. To systematically investigate the relation
 between structure and function, it is important to develop quantitative methods to
 identify and measure the organization of TAD. TADLib is such a library to explore
 the chromatin interaction patterns inside TAD from Hi-C chromatin interactions.</p>
-<p>Currently, TADLib consists of three methods:</p>
+<p>Currently, TADLib consists of two methods:</p>
 <ul class="simple">
 <li><dl class="first docutils">
 <dt>Aggregation Preference (AP)</dt>
@@ -97,7 +96,7 @@ aggregation degree of significant chromatin interactions. Application to human
 and mouse cell types (including both traditional Hi-C and in situ Hi-C data sets)
 shows that there exist heterogeneous structures among TADs and the structural
 rearrangement across cell types is significantly associated with transcriptional
-remodelling. <a class="footnote-reference" href="#id4" id="id1">[1]</a></dd>
+remodelling. <a class="footnote-reference" href="#id3" id="id1">[1]</a></dd>
 </dl>
 </li>
 <li><dl class="first docutils">
@@ -111,19 +110,7 @@ sensitivity, replicate reproducibility and inter cell-type conservation. Applica
 to human and mouse cell types (including both traditional Hi-C and in situ Hi-C data
 sets) reveals that there exist common change types for hierarchical TADs, which are
 involved in shaping higher-order compartment, replication timing and transcriptional
-regulation. <a class="footnote-reference" href="#id5" id="id2">[2]</a></dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>Domain Caller (domaincaller)</dt>
-<dd>Domaincaller is an implementation of the original Directionality Index (DI) based
-TAD caller proposed by Dixon et al. <a class="footnote-reference" href="#id6" id="id3">[3]</a> Instead of original separate scripts for
-each stage of the caller, this module provides a convenient command line interface
-integrating the whole pipeline, including calculating the DI track, performing HMM
-and post-processing. It supports the <a class="reference external" href="https://github.com/mirnylab/cooler">.cool</a>
-matrix format, so has low memory requirements when dealing with high resolution data.
-The TAD calls on the <a class="reference external" href="http://chromosome.sdsc.edu/mouse/hi-c/hESC.tar.gz">Human ES dataset</a>
-are pretty similar to the published list, both in boundary locations and CTCF enrichment.</dd>
+regulation. <a class="footnote-reference" href="#id4" id="id2">[2]</a></dd>
 </dl>
 </li>
 </ul>
@@ -172,17 +159,8 @@ are pretty similar to the published list, both in boundary locations and CTCF en
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="domaincaller.html">Domain Caller</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="domaincaller.html#tutorial">Tutorial</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="domaincaller.html#data-preparation">Data Preparation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="domaincaller.html#usage">Usage</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="domaincaller.html#performance-test">Performance test</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#version-0-5-0-2019-05-03">Version 0.5.0 (2019-05-03)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#version-0-4-1-2019-05-03">Version 0.4.1 (2019-05-03)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#version-0-4-0-2018-11-24">Version 0.4.0 (2018-11-24)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#version-0-3-1-r1-2017-8-18">Version 0.3.1-r1 (2017-8-18)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#version-0-3-1-2017-7-19">Version 0.3.1 (2017-7-19)</a></li>
@@ -200,7 +178,7 @@ are pretty similar to the published list, both in boundary locations and CTCF en
 </div>
 <div class="section" id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
+<table class="docutils footnote" frame="void" id="id3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Wang XT, Dong PF, Zhang HY, Peng C. Structural heterogeneity and functional diversity
@@ -208,20 +186,12 @@ of topologically associating domains in mammalian genomes. Nucleic Acids Researc
 doi: 10.1093/nar/gkv684</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
+<table class="docutils footnote" frame="void" id="id4" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Wang XT, Cui W, Peng C. HiTAD: detecting the structural and functional hierarchies of
 topologically associating domains from chromatin interactions. Nucleic Acids Research, 2017,
 doi: 10.1093/nar/gkx735</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Dixon JR, Selvaraj S, Yue F, Kim A, Li Y, Shen Y, Hu M, Liu JS, Ren B. Topological domains
-in mammalian genomes identified by analysis of chromatin interactions. Nature, 2012,
-doi: 10.1038/nature11082</td></tr>
 </tbody>
 </table>
 </div>

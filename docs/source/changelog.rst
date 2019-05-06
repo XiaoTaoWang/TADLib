@@ -1,8 +1,7 @@
 Release Notes
 =============
-Version 0.5.0 (2019-05-03)
+Version 0.4.1 (2019-05-03)
 """"""""""""""""""""""""""
-- Added the domaincaller module
 - Improved command-line options
 
 Version 0.4.0 (2018-11-24)
