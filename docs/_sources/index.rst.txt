@@ -9,7 +9,7 @@ between structure and function, it is important to develop quantitative methods 
 identify and measure the organization of TAD. TADLib is such a library to explore
 the chromatin interaction patterns inside TAD from Hi-C chromatin interactions.
 
-Currently, TADLib consists of two methods:
+Currently, TADLib consists of three methods:
 
 - Aggregation Preference (AP)
     AP is a quantitative parameter to measure the overall density of significant
@@ -32,6 +32,15 @@ Currently, TADLib consists of two methods:
     sets) reveals that there exist common change types for hierarchical TADs, which are
     involved in shaping higher-order compartment, replication timing and transcriptional
     regulation. [2]_
+- Domain Caller (domaincaller)
+    Domaincaller is an implementation of the original Directionality Index (DI) based
+    TAD caller proposed by Dixon et al. [3]_ Instead of original separate scripts for
+    each stage of the caller, this module provides a convenient command line interface
+    integrating the whole pipeline, including calculating the DI track, performing HMM
+    and post-processing. It supports the `.cool <https://github.com/mirnylab/cooler>`_
+    matrix format, so has low memory requirements when dealing with high resolution data.
+    The TAD calls on the `Human ES dataset <http://chromosome.sdsc.edu/mouse/hi-c/hESC.tar.gz>`_
+    are pretty similar to the published list, both in boundary locations and CTCF enrichment.
 
 User Guide
 ==========
@@ -42,6 +51,7 @@ User Guide
    install
    calfea
    hitad
+   domaincaller
    changelog 
 
 
@@ -54,4 +64,8 @@ Reference
 .. [2] Wang XT, Cui W, Peng C. HiTAD: detecting the structural and functional hierarchies of
    topologically associating domains from chromatin interactions. Nucleic Acids Research, 2017,
    doi: 10.1093/nar/gkx735
+
+.. [3] Dixon JR, Selvaraj S, Yue F, Kim A, Li Y, Shen Y, Hu M, Liu JS, Ren B. Topological domains
+   in mammalian genomes identified by analysis of chromatin interactions. Nature, 2012,
+   doi: 10.1038/nature11082
 

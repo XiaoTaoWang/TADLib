@@ -1,0 +1,167 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Domain Caller &#8212; TADLib 0.5.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Release Notes" href="changelog.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">TADLib</a></h1>
+
+
+
+<p class="blurb">A Library to Explore Chromatin Interaction Patterns for Topologically Associating Domains</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=XiaoTaoWang&repo=TADLib&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install TADLib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calfea.html">Aggregation Preference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hitad.html">Hierarchical TAD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Domain Caller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial">Tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-preparation">Data Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-test">Performance test</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="domain-caller">
+<h1>Domain Caller<a class="headerlink" href="#domain-caller" title="Permalink to this headline">¶</a></h1>
+<p>Domaincaller is an implementation of the original DI based TAD caller proposed by
+Dixon et al (2012). It provides a single command-line tool called <em>domaincaller</em>
+which takes a <em>.cool</em> file as input, calculates the DI track and performs Hidden
+Markov Model (HMM) to predict TAD boundary locations. Different from our HiTAD method,
+which calculates adaptive DIs with dynamic window sizes, <em>domaincaller</em> uses a fixed
+window size specified by the argument <code class="docutils literal notranslate"><span class="pre">--window</span></code> in DI calculation.</p>
+<div class="section" id="tutorial">
+<h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-preparation">
+<h3>Data Preparation<a class="headerlink" href="#data-preparation" title="Permalink to this headline">¶</a></h3>
+<p>The only required input to this tool is the Hi-C matrix in <a class="reference external" href="https://github.com/mirnylab/cooler">cool</a>
+format.</p>
+<p>Depending on what data you already have, there are different tools you can choose to generate
+<em>cool</em>:</p>
+<ul class="simple">
+<li>If you are starting from the beginning (FASTQ/SRA), I recommend using <a class="reference external" href="https://github.com/XiaoTaoWang/HiC_pipeline">runHiC</a>,
+a user-friendly and efficient Hi-C data processing tool developed by our lab.</li>
+<li>If you are an old user of TADLib and have NPZ/TXT Hi-C matrix at hand, you can use the <em>toCooler</em>
+script distributed with another software of mine <a class="reference external" href="https://github.com/XiaoTaoWang/HiCPeaks">hicpeaks</a>.</li>
+<li>In other case, try <a class="reference external" href="https://cooler.readthedocs.io/en/latest/cli.html">cooler official tools</a>.</li>
+</ul>
+</div>
+<div class="section" id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
+<p>To run <em>domaincaller</em>, just follow the pseudo command below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ domaincaller --uri /path/to/the/cool/URI -O test.txt --window 2000000 --removeCache
+</pre></div>
+</div>
+<p>Type <code class="docutils literal notranslate"><span class="pre">domaincaller</span></code> or <code class="docutils literal notranslate"><span class="pre">domaincaller</span> <span class="pre">-h</span></code> on your terminal to print detailed help information for each parameter.</p>
+</div>
+</div>
+<div class="section" id="performance-test">
+<h2>Performance test<a class="headerlink" href="#performance-test" title="Permalink to this headline">¶</a></h2>
+<p>To test the performance of <em>domaincaller</em>, I downloaded <a class="reference external" href="http://chromosome.sdsc.edu/mouse/hi-c/hESC.tar.gz">Human ES dataset</a>
+and the <a class="reference external" href="http://chromosome.sdsc.edu/mouse/hi-c/hESC.domain.tar.gz">TAD calls</a> identified by
+the original implementation (coded in perl &amp; matlab). After transforming the TXT Hi-C matrix into
+<em>cool</em> format with my <a class="reference external" href="https://github.com/XiaoTaoWang/HiCPeaks">toCooler</a> script, I ran the following
+command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ domaincaller --uri hES-hg18-Ren.cool::40000 -O hESC-test.txt --window 2000000 -M 160000 --removeCache
+</pre></div>
+</div>
+<p>The execution finished in 4min:14sec (used only one cpu core, 2.6 GHz Intel Core i7). And the venn
+diagram below shows <em>domaincaller</em> identifies similar TAD boundary locations to the original
+implementation:</p>
+<img alt="_images/domaincaller-venn.png" class="align-center" src="_images/domaincaller-venn.png" />
+<p>Then I computed the average ChIP-Seq CTCF peak occupancy for boundaries identified by both implementations
+as well as their neighborhood regions. As shown in the figure below, both boundary sets show same level of
+CTCF enrichment, although <em>domaincaller</em> detects slightly more boundaries:</p>
+<img alt="_images/domaincaller-ctcf.png" class="align-center" src="_images/domaincaller-ctcf.png" />
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, XiaoTao Wang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/domaincaller.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/XiaoTaoWang/TADLib" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

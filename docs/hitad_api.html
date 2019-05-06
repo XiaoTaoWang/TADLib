@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Hierarchical TAD Identification &#8212; TADLib 0.3.1 documentation</title>
+    <title>Hierarchical TAD Identification &#8212; TADLib 0.5.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -60,6 +60,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="domaincaller.html">Domain Caller</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Release Notes</a></li>
 </ul>
 
@@ -229,6 +230,20 @@ while guarantee low memory overhead.</p>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#tadlib.hitad.chromLev.Chrom.viterbi" title="tadlib.hitad.chromLev.Chrom.viterbi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viterbi</span></code></a>(seq)</td>
 <td>Find the most likely hidden state series using the viterbi algorithm.</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils">
+<colgroup>
+<col width="62%" />
+<col width="38%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>calIS</strong></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><strong>preciseBound</strong></td>
+<td>&#160;</td>
 </tr>
 </tbody>
 </table>
@@ -1139,7 +1154,7 @@ determination.</p>
 
 <dl class="class">
 <dt id="tadlib.hitad.genomeLev.Genome">
-<em class="property">class </em><code class="descclassname">tadlib.hitad.genomeLev.</code><code class="descname">Genome</code><span class="sig-paren">(</span><em>datasets</em>, <em>maxsize=4000000</em>, <em>cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">tadlib.hitad.genomeLev.</code><code class="descname">Genome</code><span class="sig-paren">(</span><em>datasets, balance_type='weight', maxsize=4000000, cache=None, exclude=['chrM', 'chrY'], DIcol='DIs'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/genomeLev.html#Genome"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.genomeLev.Genome" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Genome</em> is built on top of <a class="reference internal" href="#tadlib.hitad.chromLev.Chrom" title="tadlib.hitad.chromLev.Chrom"><code class="xref py py-class docutils literal notranslate"><span class="pre">tadlib.hitad.chromLev.Chrom</span></code></a>. We
 use it to:</p>
 <ul class="simple">
@@ -1160,7 +1175,7 @@ replicate label.</p>
 <dd><p class="first last">Maximum allowable domain size in base-pair unit. (Default: 4000000)</p>
 </dd>
 <dt><strong>cache</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
-<dd><p class="first last">Cache folder path. If None, the folder returned by <a class="reference external" href="https://docs.python.org/2.7/library/tempfile.html#tempfile.gettempdir" title="(in Python v2.7)"><code class="xref py py-func docutils literal notranslate"><span class="pre">tempfile.gettempdir()</span></code></a> will
+<dd><p class="first last">Cache folder path. If None, the folder returned by <a class="reference external" href="https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir" title="(in Python v3.7)"><code class="xref py py-func docutils literal notranslate"><span class="pre">tempfile.gettempdir()</span></code></a> will
 be used. (Default: None)</p>
 </dd>
 </dl>
@@ -2350,7 +2365,7 @@ in <em>DomainSet</em>.</p>
 
 <dl class="function">
 <dt id="tadlib.hitad.aligner.readHierDomain">
-<code class="descclassname">tadlib.hitad.aligner.</code><code class="descname">readHierDomain</code><span class="sig-paren">(</span><em>domainfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#readHierDomain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.readHierDomain" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">tadlib.hitad.aligner.</code><code class="descname">readHierDomain</code><span class="sig-paren">(</span><em>domainfile</em>, <em>pre=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tadlib/hitad/aligner.html#readHierDomain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tadlib.hitad.aligner.readHierDomain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load hierarchical domain list from a text file.</p>
 <p>The source file should contain 4 columns indicating chromosome label
 (1,2,…,X,Y), domain start (bp), domain end (bp), and hierarchical level

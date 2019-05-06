@@ -49,10 +49,17 @@ class Genome(object):
         Final consistent domain list merged from all chromosome results.
     """
     
-    def __init__(self, datasets, maxsize=4000000, cache=None, exclude=['chrM', 'chrY']):
+    def __init__(self, datasets, balance_type='weight', maxsize=4000000, cache=None,
+                 exclude=['chrM', 'chrY'], DIcol='DIs'):
         
         data = datasets
         self.exclude = exclude
+        self.DIcol = DIcol
+
+        if balance_type.lower() == 'raw':
+            correct = False
+        else:
+            correct = balance_type
         
         # We don't read data in memory at this point.
         # We only construct the mapping for loading convenience
@@ -85,10 +92,7 @@ class Genome(object):
             for res in ms:
                 for rep in ms[res]:
                     log.debug('  resolution: {0}, {1}'.format(res, rep))
-                    if 'weight' in ms[res][rep].bins().keys(): # ICE correction
-                        tdata = triu(ms[res][rep].matrix(balance=True, sparse=True).fetch(chrom)).tocsr()
-                    else:
-                        tdata = triu(ms[res][rep].matrix(balance=False, sparse=True).fetch(chrom)).tocsr()
+                    tdata = triu(ms[res][rep].matrix(balance=correct, sparse=True).fetch(chrom)).tocsr()
                     work = Chrom(chrom, res, tdata, rep, maxsize)
                     work.Label = rep
                     tl = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
@@ -119,15 +123,14 @@ class Genome(object):
         """
         hmm = HiddenMarkovModel()
         # GMM emissions
-        # 5 Hidden States:
-        # 0--start, 1--downstream, 2--no bias, 3--upstream, 4--end
+        # 4 Hidden States:
+        # 0--start, 1--downstream, 2--upstream, 3--end
         numdists = 3 # Three-distribution Gaussian Mixtures
         var = 7.5 / (numdists - 1)
-        means = [[], [], [], [], []]
+        means = [[], [], [], []]
         for i in range(numdists):
-            means[4].append(i * 7.5 / ( numdists - 1 ) + 2.5)
-            means[3].append(i * 7.5 / ( numdists - 1 ))
-            means[2].append((i - (numdists-1)/2) * 7.5 / (numdists - 1))
+            means[3].append(i * 7.5 / ( numdists - 1 ) + 2.5)
+            means[2].append(i * 7.5 / ( numdists - 1 ))
             means[1].append(-i * 7.5 / ( numdists - 1 ))
             means[0].append(-i * 7.5 / ( numdists - 1 ) - 2.5)
         states = []
@@ -140,26 +143,20 @@ class Genome(object):
         hmm.add_states(*tuple(states))
 
         # Transmission matrix
-        #A = [[0., 1., 0., 0., 0.],
-        #    [0., 0.4, 0.3, 0.3, 0.],
-        #    [0.05, 0., 0.5, 0.45, 0.],
-        #    [0., 0., 0., 0.5, 0.5],
-        #    [0.99, 0., 0.01, 0., 0.]]
+        #A = [[0., 1., 0., 0.],
+        #    [0., 0.5, 0.5, 0.],
+        #    [0., 0., 0.5, 0.5],
+        #    [1., 0., 0., 0.]]
         hmm.add_transition(states[0], states[1], 1)
-        hmm.add_transition(states[1], states[1], 0.4)
-        hmm.add_transition(states[1], states[2], 0.3)
-        hmm.add_transition(states[1], states[3], 0.3)
-        hmm.add_transition(states[2], states[0], 0.05)
+        hmm.add_transition(states[1], states[1], 0.5)
+        hmm.add_transition(states[1], states[2], 0.5)
         hmm.add_transition(states[2], states[2], 0.5)
-        hmm.add_transition(states[2], states[3], 0.45)
-        hmm.add_transition(states[3], states[3], 0.5)
-        hmm.add_transition(states[3], states[4], 0.5)
-        hmm.add_transition(states[4], states[0], 0.99)
-        hmm.add_transition(states[4], states[2], 0.01)
+        hmm.add_transition(states[2], states[3], 0.5)
+        hmm.add_transition(states[3], states[0], 1)
 
-        pi = [0.05, 0.3, 0.3, 0.3, 0.05]
-        for i in range(len(states)):
-            hmm.add_transition(hmm.start, states[i], pi[i])
+        #pi = [0.2, 0.3, 0.3, 0.2]
+        hmm.add_transition(hmm.start, states[0], 1)
+        hmm.add_transition(states[3], hmm.end, 1)
 
         hmm.bake()
 
@@ -175,7 +172,7 @@ class Genome(object):
             tmpfil = self.data[c][res][rep]
             with open(tmpfil, 'rb') as source:
                 tmpcache = pickle.load(source)
-            tmpcache.minWindows(0, tmpcache.chromLen, tmpcache._mw)
+            tmpcache.minWindows(0, tmpcache.chromLen, tmpcache._dw)
             tmpcache.calDI(tmpcache.windows, 0)
             tmpcache.splitChrom(tmpcache.DIs)
             for region in tmpcache.regionDIs:
@@ -303,10 +300,10 @@ class Genome(object):
                     else:
                         DIs = np.r_[DIs, np.zeros(len(lib.bins().fetch(c)))]
                 with lib.open('r+') as grp:
-                    if 'DIs' in grp['bins']:
-                        del grp['bins']['DIs']
+                    if self.DIcol in grp['bins']:
+                        del grp['bins'][self.DIcol]
                     h5opts = dict(compression='gzip', compression_opts=6)
-                    grp['bins'].create_dataset('DIs', data=DIs, **h5opts)
+                    grp['bins'].create_dataset(self.DIcol, data=DIs, **h5opts)
     
     def outputDomain(self, filename):
         

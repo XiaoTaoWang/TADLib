@@ -1,5 +1,10 @@
 Release Notes
 =============
+Version 0.5.0 (2019-05-03)
+""""""""""""""""""""""""""
+- Added the domaincaller module
+- Improved command-line options
+
 Version 0.4.0 (2018-11-24)
 """"""""""""""""""""""""""
 - Migrated to Python 3 (will not support Python 2 anymore)

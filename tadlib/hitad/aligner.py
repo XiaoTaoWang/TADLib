@@ -1152,7 +1152,7 @@ class BoundAligner(DomainAligner):
         
 #------------------------------------------------------------------------------
 # Functions for parsing domain data        
-def readHierDomain(domainfile):
+def readHierDomain(domainfile, pre=''):
     """
     Load hierarchical domain list from a text file.
     
@@ -1179,6 +1179,7 @@ def readHierDomain(domainfile):
         for line in source:
             parse = line.rstrip().split()
             chrom, start, end, label = [parse[i] for i in range(4)]
+            chrom = chrom.lstrip(pre)
             if int(end) - int(start) <= 0:
                 continue
             domainlist.append([chrom, int(start), int(end), int(label)])

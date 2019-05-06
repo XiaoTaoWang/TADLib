@@ -44,10 +44,15 @@ def getargs():
     parser.add_argument('-d', '--datasets', type = datasets_convert,
                         help = 'Metadata file describing Hi-C datasets. Refer to our '
                         'online documentation for more details.')
+    parser.add_argument('-W', '--weight-col', default='weight',
+                        help = '''Name of the column in .cool to be used to construct the
+                        normalized matrix. Specify "-W RAW" if you want to run with the raw matrix.''')
     parser.add_argument('--exclude', nargs = '*', default = ['chrY','chrM'],
                         help = '''List of chromosomes to exclude.''')
     parser.add_argument('--maxsize', default = 4000000, type=int, help = 'Maximum domain size in '
                         'base-pair unit.')
+    parser.add_argument('-D', '--DI-col', default='DIs',
+                        help = '''Name of the column in .cool to output the DI track''')
     parser.add_argument('-p', '--cpu-core', type = int, default = 1,
                         help = 'Number of processes to launch.')
     parser.add_argument('--removeCache', action = 'store_true',
@@ -92,8 +97,10 @@ def run():
         arglist = ['# ARGUMENT LIST:',
                    '# Output file name = {0}'.format(args.output),
                    '# Hi-C datasets = {0}'.format(args.datasets),
+                   '# Column for matrix balancing = {0}'.format(args.weight_col),
                    '# Excluded chromosomes = {0}'.format(args.exclude),
                    '# Maximum domain size = {0}'.format(args.maxsize),
+                   '# Column for DI track = {0}'.format(args.DI_col),
                    '# Number of processes used = {0}'.format(args.cpu_core),
                    '# Remove cache data = {0}'.format(args.removeCache),
                    '# Log file name = {0}'.format(args.logFile)
@@ -107,7 +114,8 @@ def run():
         try:
             logger.info('Parsing Hi-C datasets ...')
             cachefolder = os.path.expanduser('~/.hitad')
-            G = Genome(args.datasets, args.maxsize, cachefolder, exclude=args.exclude)
+            G = Genome(args.datasets, balance_type=args.weight_col, maxsize=args.maxsize,
+                       cache=cachefolder, exclude=args.exclude, DIcol=args.DI_col)
             logger.info('Done!')
             logger.debug('Learning HMM parameters for each dataset ...')
             G.learning(cpu_core=args.cpu_core)

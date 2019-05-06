@@ -26,6 +26,8 @@ def getargs():
     # Input
     parser.add_argument('-p', '--path',
                         help = 'URI string pointing to a cooler at specific resolution.')
+    parser.add_argument('-D', '--DI-col', default='DIs',
+                        help = '''Name of the column in .cool storing the DI track.''')
     parser.add_argument('-C', '--chrom',
                         help='''Chromosome label of the region.''')
     parser.add_argument('-S', '--start', type=int,
@@ -55,12 +57,12 @@ def run():
         # Load Hi-C data
         Lib = cooler.Cooler(args.path)
         if chrom is None:
-            data = Lib.bins()[['chrom', 'start', 'end', 'DIs']][:]
+            data = Lib.bins()[['chrom', 'start', 'end', args.DI_col]][:]
         else:
             if (start is None) or (end is None):
-                data = Lib.bins()[['chrom', 'start', 'end', 'DIs']].fetch(chrom)
+                data = Lib.bins()[['chrom', 'start', 'end', args.DI_col]].fetch(chrom)
             else:
-                data = Lib.bins()[['chrom', 'start', 'end', 'DIs']].fetch((chrom, start, end))
+                data = Lib.bins()[['chrom', 'start', 'end', args.DI_col]].fetch((chrom, start, end))
         
         data.to_csv(args.output, sep='\t', float_format='%.4g', header=False, index=False)
 

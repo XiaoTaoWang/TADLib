@@ -110,7 +110,6 @@ class Chrom(object):
 
         IF[np.isnan(IF)] = 0
         self.rawMatrix = self._genSparseMatrix(x, y, IF)
-        self._mw = min(self.maxapart//res, self.chromLen)
 
         del x, y, IF, hicdata
 
@@ -283,6 +282,34 @@ class Chrom(object):
             diff = up - down
             ws = self.oriWindow(diff[self._rm+1:])
             self.windows[i-start] = ws
+    
+    def calIS(self, idx, w=5):
+
+        idx = idx + self.chromLen
+        sub = self.rawMatrix[idx-w:idx, idx+1:idx+w+1]
+
+        return sub.mean()
+    
+    def preciseBound(self, byregion):
+
+        for r in byregion:
+            tmp = byregion[r]
+            for d in tmp:
+                si = d[0]//self.res
+                ini = np.inf
+                for i in range(max(si-1,0), min(si+2,self.chromLen)):
+                    IS = self.calIS(i)
+                    if IS < ini:
+                        d[0] = i * self.res
+                        ini = IS
+
+                ei = d[1]//self.res
+                ini = np.inf
+                for i in range(max(ei-1,0), min(ei+2,self.chromLen)):
+                    IS = self.calIS(i)
+                    if IS < ini:
+                        d[1] = i * self.res
+                        ini = IS     
 
     def calDI(self, windows, start):
         """
@@ -309,15 +336,25 @@ class Chrom(object):
         self.DIs = np.zeros(len(windows))
         for i in range(start, start + len(windows)):
             w = windows[i-start]
-            if w > 0:
-                down = self.rawMatrix[i, i:(i+w)].toarray().ravel()
-                up = self.rawMatrix[(i-w+1):(i+1), i].toarray().ravel()[::-1]
-                down = down[self._rm+1:]; up = up[self._rm+1:]
-                self.DIs[i-start] = self._binbias(up, down)
+            if w == 0:
+                w = self._dw
+            down = self.rawMatrix[i, i:(i+w)].toarray().ravel()
+            up = self.rawMatrix[(i-w+1):(i+1), i].toarray().ravel()[::-1]
+            down = down[self._rm+1:]; up = up[self._rm+1:]
+            tmp = self._binbias(up, down)
+            if tmp != 0:
+                self.DIs[i-start] = tmp
+            else:
+                if w < self._dw:
+                    w = self._dw
+                    down = self.rawMatrix[i, i:(i+w)].toarray().ravel()
+                    up = self.rawMatrix[(i-w+1):(i+1), i].toarray().ravel()[::-1]
+                    down = down[self._rm+1:]; up = up[self._rm+1:]
+                    self.DIs[i-start] = self._binbias(up, down)
 
         # trim outliers
-        lthre = np.percentile(self.DIs, 0.1)
-        hthre = np.percentile(self.DIs, 99.9)
+        lthre = np.percentile(self.DIs[self.DIs<0], 0.1)
+        hthre = np.percentile(self.DIs[self.DIs>0], 99.9)
         self.DIs[self.DIs<lthre] = lthre
         self.DIs[self.DIs>hthre] = hthre
 
@@ -417,11 +454,11 @@ class Chrom(object):
             *seq*.
         
         """
-        path = [int(s.name) for i, s in self.hmm.viterbi(seq)[1][1:]]
+        path = [int(s.name) for i, s in self.hmm.viterbi(seq)[1][1:-1]]
 
         return path
 
-    def _getBounds(self, path, junctions=['20','40','42']):
+    def _getBounds(self, path, junctions=['30']):
         """
         Call boundary sites from hidden state series. By default, these
         transition modes will be detected as boundaries: "no bias(2) >
@@ -461,7 +498,7 @@ class Chrom(object):
         bounds = np.r_[0, np.r_[list(map(len, pieces))]].cumsum()
 
         return bounds
-
+        
     def pipe(self, seq, start):
         """
         Transform an observed sequence into a list of domains.
@@ -487,7 +524,7 @@ class Chrom(object):
                                         level labels are explained in detail.
         """
         # bin-level domain (not base-pair-level domain!)
-        bounds = self._getBounds(self.viterbi(seq))
+        bounds = self._getBounds(self.viterbi(seq), junctions=['30'])
         pairs = [[bounds[i], bounds[i+1]] for i in range(len(bounds)-1)]
         domains = []
         for b in pairs:
@@ -718,12 +755,13 @@ class Chrom(object):
         - Resolve domain hierarchy within each TAD.
           (:py:meth:`tadlib.hitad.chromLev.Chrom.fineDomain`)
         """
-        self.minWindows(0, self.chromLen, self._mw)
+        self.minWindows(0, self.chromLen, self._dw)
         self.calDI(self.windows, 0)
         self.splitChrom(self.DIs)
         self.oriIter({})
         self.maxCore()
         self.fineDomain()
+        self.preciseBound(self.hierDomains)
 
         self._state = 'Completed'
 

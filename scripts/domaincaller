@@ -25,8 +25,8 @@ def getargs():
     parser.add_argument('--uri',
                         help = 'Cool URI.')
     parser.add_argument('-O', '--output', help = 'Output file name.')
-    parser.add_argument('--weight-col', default='weight',
-                        help = '''Name of the column name in .cool to be used to construct the
+    parser.add_argument('-W', '--weight-col', default='weight',
+                        help = '''Name of the column in .cool to be used to construct the
                         normalized matrix. Specify "-W RAW" if you want to run with the raw matrix.''')
     parser.add_argument('--exclude', nargs = '*', default = ['chrY','chrM'],
                         help = '''List of chromosomes to exclude.''')
@@ -37,7 +37,7 @@ def getargs():
     parser.add_argument('-p', '--cpu-core', type = int, default = 1,
                         help = 'Number of processes to launch.')
     parser.add_argument('-D', '--DI-col', default='DIs',
-                        help = '''Name of the column name in .cool to output the DI track''')
+                        help = '''Name of the column in .cool to output the DI track''')
     parser.add_argument('--removeCache', action = 'store_true',
                         help = '''Remove cache data before exiting.''')
     
