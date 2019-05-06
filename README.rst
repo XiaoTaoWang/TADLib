@@ -53,6 +53,7 @@ Links
     - `Installation <https://xiaotaowang.github.io/TADLib/install.html>`_
     - `Aggregation Preference <https://xiaotaowang.github.io/TADLib/calfea.html>`_
     - `Hierarchical TAD <https://xiaotaowang.github.io/TADLib/hitad.html>`_
+    - `Domain Caller <https://xiaotaowang.github.io/TADLib/domaincaller.html>`_
 - `Code Repository <https://github.com/XiaoTaoWang/TADLib>`_ (At GitHub, Track the package issue)
 - `PyPI <https://pypi.python.org/pypi/TADLib>`_ (Download and Installation)
 	
