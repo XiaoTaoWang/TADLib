@@ -176,7 +176,10 @@ class Genome(object):
             tmpcache.calDI(tmpcache.windows, 0)
             tmpcache.splitChrom(tmpcache.DIs)
             for region in tmpcache.regionDIs:
-                seqs.append(tmpcache.regionDIs[region])
+                withzeros = tmpcache.regionDIs[region]
+                nozeros = withzeros[withzeros!=0]
+                if nozeros.size > 5:
+                    seqs.append(nozeros)
         
         return seqs
     
