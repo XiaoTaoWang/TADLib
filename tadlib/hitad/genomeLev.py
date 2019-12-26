@@ -178,7 +178,7 @@ class Genome(object):
             for region in tmpcache.regionDIs:
                 withzeros = tmpcache.regionDIs[region]
                 nozeros = withzeros[withzeros!=0]
-                if nozeros.size > 5:
+                if nozeros.size > 20:
                     seqs.append(nozeros)
         
         return seqs

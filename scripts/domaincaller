@@ -13,8 +13,7 @@ currentVersion = tadlib.__version__
 def getargs():
     ## Construct an ArgumentParser object for command-line arguments
     parser = argparse.ArgumentParser(usage = '%(prog)s <--uri cool -O output> [options]',
-                                     description = '''A python implementation of original DI-based
-                                     domain caller proposed by Dixon et al. (2012)''',
+                                     description = '''Detect minimum domains using adaptive DI''',
                                      formatter_class = argparse.ArgumentDefaultsHelpFormatter)
     
     parser.add_argument('-v', '--version', action = 'version',
@@ -24,20 +23,15 @@ def getargs():
     # Output
     parser.add_argument('--uri',
                         help = 'Cool URI.')
-    parser.add_argument('-O', '--output', help = 'Output file name.')
+    parser.add_argument('-O', '--output')
+    parser.add_argument('-D', '--DI-output')
     parser.add_argument('-W', '--weight-col', default='weight',
                         help = '''Name of the column in .cool to be used to construct the
                         normalized matrix. Specify "-W RAW" if you want to run with the raw matrix.''')
     parser.add_argument('--exclude', nargs = '*', default = ['chrY','chrM'],
                         help = '''List of chromosomes to exclude.''')
-    parser.add_argument('--window', type = int, default = 2000000,
-                        help = '''Window size used for directionality index (DI) calculation.''')
-    parser.add_argument('-M', '--min-size', type = int, default = 100000,
-                        help = '''Minimum domain size.''')
     parser.add_argument('-p', '--cpu-core', type = int, default = 1,
                         help = 'Number of processes to launch.')
-    parser.add_argument('-D', '--DI-col', default='DIs',
-                        help = '''Name of the column in .cool to output the DI track''')
     parser.add_argument('--removeCache', action = 'store_true',
                         help = '''Remove cache data before exiting.''')
     
@@ -78,14 +72,12 @@ def run():
         
         ## Logging for argument setting
         arglist = ['# ARGUMENT LIST:',
-                   '# Output file name = {0}'.format(args.output),
+                   '# Output TAD file = {0}'.format(args.output),
+                   '# Output DI file = {0}'.format(args.DI_output),
                    '# Cool URI = {0}'.format(args.uri),
                    '# Column for matrix balancing = {0}'.format(args.weight_col),
                    '# Excluded Chromosomes = {0}'.format(args.exclude),
-                   '# Window Size = {0}bp'.format(args.window),
-                   '# Minimum Domain Size = {0}bp'.format(args.min_size),
                    '# Number of processes used = {0}'.format(args.cpu_core),
-                   '# Column for DI track = {0}'.format(args.DI_col),
                    '# Remove cache data = {0}'.format(args.removeCache),
                    '# Log file name = {0}'.format(args.logFile)
                    ]
@@ -97,9 +89,9 @@ def run():
         
         try:
             logger.info('Loading Hi-C matrix ...')
-            cachefolder = os.path.expanduser('~/.domaincaller')
-            G = Genome(args.uri, balance_type=args.weight_col, window=args.window, minsize=args.min_size,
-                       cache=cachefolder, exclude=args.exclude, DIcol=args.DI_col)
+            cachefolder = os.path.expanduser('.domaincaller')
+            G = Genome(args.uri, balance_type=args.weight_col,
+                       cache=cachefolder, exclude=args.exclude, DIout=args.DI_output)
             logger.info('Done!')
             logger.debug('Learning HMM parameters ...')
             G.learning(cpu_core=args.cpu_core)

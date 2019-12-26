@@ -42,6 +42,8 @@ User Guide
    install
    calfea
    hitad
+   domaincaller
+   visualize
    changelog 
 
 

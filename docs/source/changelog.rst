@@ -1,5 +1,10 @@
 Release Notes
 =============
+Version 0.4.2 (2019-12-26)
+""""""""""""""""""""""""""
+- Fixed bugs related to HMM training failures
+- Added *domaincaller* and *visualize* modules
+
 Version 0.4.1 (2019-05-03)
 """"""""""""""""""""""""""
 - Improved command-line options

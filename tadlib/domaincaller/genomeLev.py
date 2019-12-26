@@ -21,8 +21,8 @@ genomeCore = genomeLev.Genome
 
 class Genome(genomeCore):
     
-    def __init__(self, uri, balance_type='weight', window=2000000, minsize=100000, cache=None,
-                 exclude=['chrY','chrM'], DIcol='DIs'):
+    def __init__(self, uri, balance_type='weight', cache=None,
+                 exclude=['chrY','chrM'], DIout='DIs.bedGraph'):
 
         if cache is None:
             self._cache = tempfile.gettempdir()
@@ -32,7 +32,7 @@ class Genome(genomeCore):
                 os.makedirs(cache)
         
         self.exclude = exclude
-        self.DIcol = DIcol
+        self.DIout = DIout
 
         if balance_type.lower() == 'raw':
             correct = False
@@ -41,7 +41,6 @@ class Genome(genomeCore):
         
         lib = cooler.Cooler(uri)
         res = lib.binsize
-        minsize = int(np.ceil(minsize/res))
         # Before starting calling, we make cache data under the cache folder
         self.data = {}
         self.chroms = []
@@ -51,7 +50,7 @@ class Genome(genomeCore):
             self.chroms.append(c)
             log.debug('Chrom {0}:'.format(c))
             tdata = triu(lib.matrix(balance=correct, sparse=True).fetch(c)).tocsr()
-            work = Chrom(c, res, tdata, window=window, minsize=minsize)
+            work = Chrom(c, res, tdata)
             tl = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
             kw = {'suffix':tl, 'dir':self._cache}
             fd, tmpfil = tempfile.mkstemp(**kw)
@@ -72,12 +71,13 @@ class Genome(genomeCore):
             tmpfil = self.data[c]
             with open(tmpfil, 'rb') as source:
                 tmpcache = pickle.load(source)
+            tmpcache.minWindows(0, tmpcache.chromLen, tmpcache._dw)
             tmpcache.calDI(tmpcache.windows, 0)
             tmpcache.splitChrom(tmpcache.DIs)
             for region in tmpcache.regionDIs:
                 withzeros = tmpcache.regionDIs[region]
                 nozeros = withzeros[withzeros!=0]
-                if nozeros.size > 5:
+                if nozeros.size > 20:
                     seqs.append(nozeros)
         
         return seqs
@@ -149,23 +149,22 @@ class Genome(genomeCore):
             for d in curChrom.domains:
                 if d[2] > 0.5:
                     continue
-                self.Results.append([chrom, d[0], d[1], 0])
+                self.Results.append([chrom, d[0], d[1]])
         
-        log.debug('Add the DI column into cools ...')
-        DIs = np.r_[[]]
-        for c in self.cool.chromnames:
-            if not c in self.exclude:
-                tmpfil = self.data[c]
-                with open(tmpfil, 'rb') as source:
-                    tmpcache = pickle.load(source)
-                DIs = np.r_[DIs, tmpcache.DIs]
-            else:
-                DIs = np.r_[DIs, np.zeros(len(self.cool.bins().fetch(c)))]
-        with self.cool.open('r+') as grp:
-            if self.DIcol in grp['bins']:
-                del grp['bins'][self.DIcol]
-            h5opts = dict(compression='gzip', compression_opts=6)
-            grp['bins'].create_dataset(self.DIcol, data=DIs, **h5opts)
+        log.debug('Output DI track to {0} ...'.format(self.DIout))
+        with open(self.DIout, 'w') as out:
+            for c in self.cool.chromnames:
+                if not c in self.exclude:
+                    tmpfil = self.data[c]
+                    with open(tmpfil, 'rb') as source:
+                        tmpcache = pickle.load(source)
+                    DIs = tmpcache.DIs
+                    for i in range(DIs.size):
+                        coord_start = i * self.cool.binsize
+                        coord_end = min((i + 1) * self.cool.binsize, self.cool.chromsizes[c])
+                        line = ['chr'+c.lstrip('chr'), str(coord_start), str(coord_end), '{0:.4g}'.format(DIs[i])]
+                        out.write('\t'.join(line)+'\n')
+
     
     def wipeDisk(self):
         """
@@ -174,4 +173,11 @@ class Genome(genomeCore):
         """
         for chrom in self.data:
             os.remove(self.data[chrom])
+    
+    def outputDomain(self, filename):
+        
+        with open(filename, 'w') as output:
+            for d in self.Results:
+                line = '{0}\t{1}\t{2}\n'.format(*tuple(d))
+                output.write(line)
     

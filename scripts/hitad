@@ -113,7 +113,7 @@ def run():
         
         try:
             logger.info('Parsing Hi-C datasets ...')
-            cachefolder = os.path.expanduser('~/.hitad')
+            cachefolder = os.path.abspath(os.path.expanduser('.hitad'))
             G = Genome(args.datasets, balance_type=args.weight_col, maxsize=args.maxsize,
                        cache=cachefolder, exclude=args.exclude, DIcol=args.DI_col)
             logger.info('Done!')
