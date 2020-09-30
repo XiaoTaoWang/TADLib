@@ -532,7 +532,7 @@ def _fitting(x, y):
     times = np.arange(2, 4)
     scheck = x.size / times
     snum = scheck[scheck > 6][-1] if (scheck > 6).sum() > 0 else x.size
-    xi = np.linspace(x.min(), x.max(), snum)
+    xi = np.linspace(x.min(), x.max(), int(snum))
     yi = ip(xi)
     
     ## B-spline
