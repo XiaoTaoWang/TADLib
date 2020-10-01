@@ -859,10 +859,11 @@ class Chrom(object):
         inout = 0
         if inside.size > 3:
             weights = 0.5
+            '''
             if len(bases):
                 M = self.getSelfMatrix(domain[0], domain[1])
                 newM, convert = analyze.manipulation(M)
-                if newM.shape[0] > 7: # 2*ww + 1
+                if newM.shape[0] > 10: # 2*ww + 1
                     work = analyze.Core(M)
                     work.longrange(pw=1, ww=3)
                     fE = work.convertMatrix(work.fE)
@@ -878,7 +879,7 @@ class Chrom(object):
                         W = norm(fE).data
                         W[fE==0] = 0.5
                         weights = np.r_[W[Umask], W[Dmask]]
-                
+            '''
             diff = (inside - outside) / (inside + outside) * weights
             inout = diff.mean()
 
@@ -1158,6 +1159,7 @@ class Chrom(object):
         """
         M = self.getSelfMatrix(start, end)
         W = np.ones(M.shape) * 0.5
+        '''
         newM, convert = analyze.manipulation(M)
         if newM.shape[0] > 7: # 2*ww + 1
             work = analyze.Core(M)
@@ -1174,7 +1176,7 @@ class Chrom(object):
                                          midpoint=1)
                 W = norm(fE).data
                 W[fE==0] = 0.5
-                
+        '''
         return W
         
 
