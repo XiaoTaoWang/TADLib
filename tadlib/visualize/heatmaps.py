@@ -75,7 +75,7 @@ class Triangle(object):
             vmin = M.min()
         
         sc = h_ax.pcolormesh(x, y, np.flipud(M), vmin=vmin, vmax=vmax, cmap=cmap,
-                        edgecolor='none', snap=True, linewidth=.001)
+                        edgecolor='none', snap=True, linewidth=.001, rasterized=True)
         
         # colorbar
         cbar = self.fig.colorbar(sc, cax=c_ax, ticks=[vmin, vmax], format='%.3g')
@@ -110,10 +110,10 @@ class Triangle(object):
 
             chrom_ax.set_xlim(ticks[0], ticks[-1])
             chrom_ax.set_ylim(0, 0.02)
+            self.chrom_ax = chrom_ax
 
         self.heatmap_ax = h_ax
         self.cbar_ax = c_ax
-        self.chrom_ax = chrom_ax
         self.hx = x
         self.hy = y
     
@@ -157,8 +157,8 @@ class Triangle(object):
         lx = self.hx[:-1,:-1][np.flipud(Bool)]
         ly = self.hy[:-1,:-1][np.flipud(Bool)] + 1
         if lx.size > 0:
-            self.heatmap_ax.scatter(lx, ly, s=marker_size, c=marker_color, marker=marker_type,
-                alpha=marker_alpha)
+            self.heatmap_ax.scatter(lx, ly, s=marker_size, c='none', marker=marker_type,
+                alpha=marker_alpha, edgecolors=marker_color)
         
         self.heatmap_ax.set_xlim(self.hx.min(), self.hx.max())
         self.heatmap_ax.set_ylim(self.hy.min(), self.hy.max())

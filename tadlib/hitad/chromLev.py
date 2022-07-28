@@ -96,8 +96,9 @@ class Chrom(object):
         self.maxapart = maxapart
         self.replabel = replabel
         self._rm = 1
-        self._dw = self.defaultwindow // res
         self.chromLen = hicdata.shape[0]
+        # considering the cases of super small chromosomes
+        self._dw = min(self.defaultwindow // res, self.chromLen//2)
         self.hmm = None
 
         x, y = hicdata.nonzero()
