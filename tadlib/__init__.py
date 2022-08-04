@@ -7,7 +7,7 @@ import xmlrpc.client
 from pkg_resources import parse_version as V
 
 __author__ = 'XiaoTao Wang'
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 __license__ = 'GPLv3+'
 
 ## Check for update

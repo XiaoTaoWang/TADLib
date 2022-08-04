@@ -50,16 +50,27 @@ class Genome(object):
     """
     
     def __init__(self, datasets, balance_type='weight', maxsize=4000000, cache=None,
-                 exclude=['chrM', 'chrY'], DIcol='DIs'):
+                 exclude=['chrM', 'chrY'], DIcol='DIs', min_chrom_size=1000000):
         
         data = datasets
-        self.exclude = exclude
+        self.exclude = set(exclude)
         self.DIcol = DIcol
 
         if balance_type.lower() == 'raw':
             correct = False
         else:
             correct = balance_type
+        
+        # exclude small chromosomes
+        for res in data:
+            for rep in data[res]:
+                lib = cooler.Cooler(data[res][rep])
+                for i in lib.chromnames:
+                    tmp = lib.bins().fetch(i)
+                    if len(tmp) * lib.binsize < min_chrom_size:
+                        self.exclude.add(i)
+        self.exclude = sorted(self.exclude)
+        log.debug('The following chromosomes will be discarded:', self.exclude)
         
         # We don't read data in memory at this point.
         # We only construct the mapping for loading convenience

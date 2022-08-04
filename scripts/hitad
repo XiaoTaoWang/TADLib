@@ -49,7 +49,10 @@ def getargs():
                         normalized matrix. Specify "-W RAW" if you want to run with the raw matrix.''')
     parser.add_argument('--exclude', nargs = '*', default = ['chrY','chrM'],
                         help = '''List of chromosomes to exclude.''')
-    parser.add_argument('--maxsize', default = 4000000, type=int, help = 'Maximum domain size in '
+    parser.add_argument('--minimum-chrom-size', default=1000000, type=int,
+                        help='''Minimum chromosome size. Only chromosomes with a size greater than
+                        this value will be considered.''')
+    parser.add_argument('--maxsize', default=4000000, type=int, help = 'Maximum domain size in '
                         'base-pair unit.')
     parser.add_argument('-D', '--DI-col', default='DIs',
                         help = '''Name of the column in .cool to output the DI track''')
@@ -99,6 +102,7 @@ def run():
                    '# Hi-C datasets = {0}'.format(args.datasets),
                    '# Column for matrix balancing = {0}'.format(args.weight_col),
                    '# Excluded chromosomes = {0}'.format(args.exclude),
+                   '# Minimum Chromosome Size = {0}'.format(args.minimum_chrom_size),
                    '# Maximum domain size = {0}'.format(args.maxsize),
                    '# Column for DI track = {0}'.format(args.DI_col),
                    '# Number of processes used = {0}'.format(args.cpu_core),
@@ -115,7 +119,8 @@ def run():
             logger.info('Parsing Hi-C datasets ...')
             cachefolder = os.path.abspath(os.path.expanduser('.hitad'))
             G = Genome(args.datasets, balance_type=args.weight_col, maxsize=args.maxsize,
-                       cache=cachefolder, exclude=args.exclude, DIcol=args.DI_col)
+                       cache=cachefolder, exclude=args.exclude, DIcol=args.DI_col,
+                       min_chrom_size=args.minimum_chrom_size)
             logger.info('Done!')
             logger.debug('Learning HMM parameters for each dataset ...')
             G.learning(cpu_core=args.cpu_core)
