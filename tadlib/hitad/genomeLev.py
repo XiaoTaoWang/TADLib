@@ -70,7 +70,7 @@ class Genome(object):
                     if len(tmp) * lib.binsize < min_chrom_size:
                         self.exclude.add(i)
         self.exclude = sorted(self.exclude)
-        log.debug('The following chromosomes will be discarded:', self.exclude)
+        log.debug('The following chromosomes will be discarded: {0}'.format(self.exclude))
         
         # We don't read data in memory at this point.
         # We only construct the mapping for loading convenience
